@@ -51,7 +51,7 @@ This document specifies an abstract machine. It does not describe any particular
 
 To implement the Java Virtual Machine correctly, you need only be able to read the class file format and correctly perform the operations specified therein. Implementation details that are not part of the Java Virtual Machine's specification would unnecessarily constrain the creativity of implementors. For example, the memory layout of run-time data areas, the garbage-collection algorithm used, and any internal optimization of the Java Virtual Machine instructions (for example, translating them into machine code) are left to the discretion of the implementor.
 
-All references to Unicode in this specification are given with respect to The Unicode Standard, Version 8.0.0, available at http://www.unicode.org/.
+All references to Unicode in this specification are given with respect to The Unicode Standard, Version 10.0.0, available at http://www.unicode.org/.
 
 2.1. The class File Format
 
@@ -704,7 +704,7 @@ invokevirtual invokes an instance method of an object, dispatching on the (virtu
 
 invokeinterface invokes an interface method, searching the methods implemented by the particular run-time object to find the appropriate method.
 
-invokespecial invokes an instance method requiring special handling, whether an instance initialization method (§2.9.1), a private method, or a superclass method.
+invokespecial invokes an instance method requiring special handling, either an instance initialization method (§2.9.1) or a method of the current class or its supertypes.
 
 invokestatic invokes a class (static) method in a named class.
 

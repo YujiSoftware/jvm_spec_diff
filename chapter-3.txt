@@ -478,33 +478,21 @@ Method int add12and13()
 
 Compiling an invocation of a class (static) method is very much like compiling an invocation of an instance method, except this is not passed by the invoker. The method arguments will thus be received beginning with local variable 0 (§3.6). The invokestatic instruction is always used to invoke class methods.
 
-The invokespecial instruction must be used to invoke instance initialization methods (§3.8). It is also used when invoking methods in the superclass (super) and when invoking private methods. For instance, given classes Near and Far declared as:
+The invokespecial instruction must be used to invoke instance initialization methods (§3.8). It is also used when invoking methods in the superclass (super). For instance, given classes Near and Far declared as:
 
 
 class Near {
     int it;
-    public int getItNear() {
-        return getIt();
-    }
-    private int getIt() {
+    int getItNear() {
         return it;
     }
 }
-
 class Far extends Near {
     int getItFar() {
         return super.getItNear();
     }
 }
 
-
-
-the method Near.getItNear (which invokes a private method) becomes:
-
-Method int getItNear()
-0   aload_0
-1   invokespecial #5    // Method Near.getIt()I
-4   ireturn
 
 
 The method Far.getItFar (which invokes a superclass method) becomes:
@@ -1133,7 +1121,7 @@ The interface's name is the internal form (§4.2.1) of package-name.package-info
 
 The interface has no superinterfaces.
 
-The interface's only members are those implied by The Java Language Specification, Java SE 10 Edition (JLS §9.2).
+The interface's only members are those implied by The Java Language Specification, Java SE 11 Edition (JLS §9.2).
 
 The annotations on the package declaration are stored as RuntimeVisibleAnnotations and RuntimeInvisibleAnnotations attributes in the attributes table of the ClassFile structure.
 

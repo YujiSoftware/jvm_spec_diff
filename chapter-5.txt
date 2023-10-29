@@ -20,9 +20,10 @@ Table of Contents
 5.4.3.3. Method Resolution
 5.4.3.4. Interface Method Resolution
 5.4.3.5. Method Type and Method Handle Resolution
-5.4.3.6. Call Site Specifier Resolution
+5.4.3.6. Dynamically-Computed Constant and Call Site Resolution
 5.4.4. Access Control
-5.4.5. Overriding
+5.4.5. Method Overriding
+5.4.6. Method Selection
 5.5. Initialization
 5.6. Binding Native Method Implementations
 5.7. Java Virtual Machine Exit
@@ -33,60 +34,81 @@ In this chapter, §5.1 describes how the Java Virtual Machine derives symbolic r
 
 5.1. The Run-Time Constant Pool
 
-The Java Virtual Machine maintains a per-type constant pool (§2.5.5), a run-time data structure that serves many of the purposes of the symbol table of a conventional programming language implementation.
+The Java Virtual Machine maintains a run-time constant pool for each class and interface (§2.5.5). This data structure serves many of the purposes of the symbol table of a conventional programming language implementation. The constant_pool table in the binary representation of a class or interface (§4.4) is used to construct the run-time constant pool upon class or interface creation (§5.3).
 
-The constant_pool table (§4.4) in the binary representation of a class or interface is used to construct the run-time constant pool upon class or interface creation (§5.3). All references in the run-time constant pool are initially symbolic. The symbolic references in the run-time constant pool are derived from structures in the binary representation of the class or interface as follows:
+There are two kinds of entry in the run-time constant pool: symbolic references, which may later be resolved (§5.4.3), and static constants, which require no further processing.
 
-A symbolic reference to a class or interface is derived from a CONSTANT_Class_info structure (§4.4.1) in the binary representation of a class or interface. Such a reference gives the name of the class or interface in the form returned by the Class.getName method, that is:
+The symbolic references in the run-time constant pool are derived from entries in the constant_pool table in accordance with the structure of each entry:
+
+A symbolic reference to a class or interface is derived from a CONSTANT_Class_info structure (§4.4.1). Such a reference gives the name of the class or interface in the following form:
 
 For a nonarray class or an interface, the name is the binary name (§4.2.1) of the class or interface.
 
-For an array class of n dimensions, the name begins with n occurrences of the ASCII "[" character followed by a representation of the element type:
+For an array class of n dimensions, the name begins with n occurrences of the ASCII [ character followed by a representation of the element type:
 
 If the element type is a primitive type, it is represented by the corresponding field descriptor (§4.3.2).
 
-Otherwise, if the element type is a reference type, it is represented by the ASCII "L" character followed by the binary name (§4.2.1) of the element type followed by the ASCII ";" character.
+Otherwise, if the element type is a reference type, it is represented by the ASCII L character followed by the binary name of the element type followed by the ASCII ; character.
 
-Whenever this chapter refers to the name of a class or interface, it should be understood to be in the form returned by the Class.getName method.
+Whenever this chapter refers to the name of a class or interface, the name should be understood to be in the form above. (This is also the form returned by the Class.getName method.)
 
-A symbolic reference to a field of a class or an interface is derived from a CONSTANT_Fieldref_info structure (§4.4.2) in the binary representation of a class or interface. Such a reference gives the name and descriptor of the field, as well as a symbolic reference to the class or interface in which the field is to be found.
+A symbolic reference to a field of a class or an interface is derived from a CONSTANT_Fieldref_info structure (§4.4.2). Such a reference gives the name and descriptor of the field, as well as a symbolic reference to the class or interface in which the field is to be found.
 
-A symbolic reference to a method of a class is derived from a CONSTANT_Methodref_info structure (§4.4.2) in the binary representation of a class or interface. Such a reference gives the name and descriptor of the method, as well as a symbolic reference to the class in which the method is to be found.
+A symbolic reference to a method of a class is derived from a CONSTANT_Methodref_info structure (§4.4.2). Such a reference gives the name and descriptor of the method, as well as a symbolic reference to the class in which the method is to be found.
 
-A symbolic reference to a method of an interface is derived from a CONSTANT_InterfaceMethodref_info structure (§4.4.2) in the binary representation of a class or interface. Such a reference gives the name and descriptor of the interface method, as well as a symbolic reference to the interface in which the method is to be found.
+A symbolic reference to a method of an interface is derived from a CONSTANT_InterfaceMethodref_info structure (§4.4.2). Such a reference gives the name and descriptor of the interface method, as well as a symbolic reference to the interface in which the method is to be found.
 
-A symbolic reference to a method handle is derived from a CONSTANT_MethodHandle_info structure (§4.4.8) in the binary representation of a class or interface. Such a reference gives a symbolic reference to a field of a class or interface, or a method of a class, or a method of an interface, depending on the kind of the method handle.
+A symbolic reference to a method handle is derived from a CONSTANT_MethodHandle_info structure (§4.4.8). Such a reference gives a symbolic reference to a field of a class or interface, or a method of a class, or a method of an interface, depending on the kind of the method handle.
 
-A symbolic reference to a method type is derived from a CONSTANT_MethodType_info structure (§4.4.9) in the binary representation of a class or interface. Such a reference gives a method descriptor (§4.3.3).
+A symbolic reference to a method type is derived from a CONSTANT_MethodType_info structure (§4.4.9). Such a reference gives a method descriptor (§4.3.3).
 
-A symbolic reference to a call site specifier is derived from a CONSTANT_InvokeDynamic_info structure (§4.4.10) in the binary representation of a class or interface. Such a reference gives:
+A symbolic reference to a dynamically-computed constant is derived from a CONSTANT_Dynamic_info structure (§4.4.10). Such a reference gives:
 
-a symbolic reference to a method handle, which will serve as a bootstrap method for an invokedynamic instruction (§invokedynamic);
+a symbolic reference to a method handle, which will be invoked to compute the constant's value;
 
-a sequence of symbolic references (to classes, method types, and method handles), string literals, and run-time constant values which will serve as static arguments to a bootstrap method;
+a sequence of symbolic references and static constants, which will serve as static arguments when the method handle is invoked;
 
-a method name and method descriptor.
+an unqualified name and a field descriptor.
 
-In addition, certain run-time values which are not symbolic references are derived from items found in the constant_pool table:
+A symbolic reference to a dynamically-computed call site is derived from a CONSTANT_InvokeDynamic_info structure (§4.4.10). Such a reference gives:
 
-A string literal is a reference to an instance of class String, and is derived from a CONSTANT_String_info structure (§4.4.3) in the binary representation of a class or interface. The CONSTANT_String_info structure gives the sequence of Unicode code points constituting the string literal.
+a symbolic reference to a method handle, which will be invoked in the course of an invokedynamic instruction (§invokedynamic) to compute an instance of java.lang.invoke.CallSite;
 
-The Java programming language requires that identical string literals (that is, literals that contain the same sequence of code points) must refer to the same instance of class String (JLS §3.10.5). In addition, if the method String.intern is called on any string, the result is a reference to the same class instance that would be returned if that string appeared as a literal. Thus, the following expression must have the value true:
+a sequence of symbolic references and static constants, which will serve as static arguments when the method handle is invoked;
 
-("a" + "b" + "c").intern() == "abc"
-    
+an unqualified name and a method descriptor.
 
-To derive a string literal, the Java Virtual Machine examines the sequence of code points given by the CONSTANT_String_info structure.
+The static constants in the run-time constant pool are also derived from entries in the constant_pool table in accordance with the structure of each entry:
 
-If the method String.intern has previously been called on an instance of class String containing a sequence of Unicode code points identical to that given by the CONSTANT_String_info structure, then the result of string literal derivation is a reference to that same instance of class String.
+A string constant is a reference to an instance of class String, and is derived from a CONSTANT_String_info structure (§4.4.3). To derive a string constant, the Java Virtual Machine examines the sequence of code points given by the CONSTANT_String_info structure:
 
-Otherwise, a new instance of class String is created containing the sequence of Unicode code points given by the CONSTANT_String_info structure; a reference to that class instance is the result of string literal derivation. Finally, the intern method of the new String instance is invoked.
+If the method String.intern has previously been invoked on an instance of class String containing a sequence of Unicode code points identical to that given by the CONSTANT_String_info structure, then the string constant is a reference to that same instance of class String.
 
-Run-time constant values are derived from CONSTANT_Integer_info, CONSTANT_Float_info, CONSTANT_Long_info, or CONSTANT_Double_info structures (§4.4.4, §4.4.5) in the binary representation of a class or interface.
+Otherwise, a new instance of class String is created containing the sequence of Unicode code points given by the CONSTANT_String_info structure. The string constant is a reference to the new instance. Finally, the method String.intern is invoked on the new instance.
 
-Note that CONSTANT_Float_info structures represent values in IEEE 754 single format and CONSTANT_Double_info structures represent values in IEEE 754 double format (§4.4.4, §4.4.5). The run-time constant values derived from these structures must thus be values that can be represented using IEEE 754 single and double formats, respectively.
+Numeric constants are derived from CONSTANT_Integer_info, CONSTANT_Float_info, CONSTANT_Long_info, and CONSTANT_Double_info structures (§4.4.4, §4.4.5).
 
-The remaining structures in the constant_pool table of the binary representation of a class or interface - the CONSTANT_NameAndType_info and CONSTANT_Utf8_info structures (§4.4.6, §4.4.7) - are only used indirectly when deriving symbolic references to classes, interfaces, methods, fields, method types, and method handles, and when deriving string literals and call site specifiers.
+Note that CONSTANT_Float_info structures represent values in IEEE 754 single format and CONSTANT_Double_info structures represent values in IEEE 754 double format. The numeric constants derived from these structures must thus be values that can be represented using IEEE 754 single and double formats, respectively.
+
+The remaining structures in the constant_pool table - the descriptive structures CONSTANT_NameAndType_info, CONSTANT_Module_info, and CONSTANT_Package_info, and the foundational structure CONSTANT_Utf8_info - are only used indirectly when constructing the run-time constant pool. No entries in the run-time constant pool correspond directly to these structures.
+
+Some entries in the run-time constant pool are loadable, which means:
+
+They may be pushed onto the stack by the ldc family of instructions (§ldc, §ldc_w, §ldc2_w).
+
+They may be static arguments to bootstrap methods for dynamically-computed constants and call sites (§5.4.3.6).
+
+An entry in the run-time constant pool is loadable if it is derived from an entry in the constant_pool table that is loadable (see Table 4.4-C). Accordingly, the following entries in the run-time constant pool are loadable:
+
+Symbolic references to classes and interfaces
+
+Symbolic references to method handles
+
+Symbolic references to method types
+
+Symbolic references to dynamically-computed constants
+
+Static constants
 
 5.2. Java Virtual Machine Startup
 
@@ -184,7 +206,7 @@ If the component type is a reference type, C is marked as having been defined by
 
 In any case, the Java Virtual Machine then records that L is an initiating loader for C (§5.3.4).
 
-If the component type is a reference type, the accessibility of the array class is determined by the accessibility of its component type. Otherwise, the accessibility of the array class is public.
+If the component type is a reference type, the accessibility of the array class is determined by the accessibility of its component type (§5.4.4). Otherwise, the array class is accessible to all classes and interfaces.
 
 5.3.4. Loading Constraints
 
@@ -264,7 +286,7 @@ In other words, the relationship between class loaders and run-time modules need
 
 Every run-time module created by defineModules is part of a layer. A layer represents a set of class loaders that jointly serve to create classes in a set of run-time modules. There are two kinds of layers: the boot layer supplied by the Java Virtual Machine, and user-defined layers. The boot layer is created at Java Virtual Machine startup in an implementation-dependent manner. It associates the standard run-time module java.base with standard run-time packages defined by the bootstrap class loader, such as java.lang. User-defined layers are created by programs in order to construct sets of run-time modules that depend on java.base and other standard run-time modules.
 
-A run-time module is implicitly part of exactly one layer, by the semantics of defineModules. On the other hand, a class loader may create classes in the run-time modules of more than one layer, because the same class loader may be specified to multiple invocations of defineModules. Access control is governed by a class's run-time module, not by the class loader which created the class or by the layer(s) which the class loader serves.
+A run-time module is implicitly part of exactly one layer, by the semantics of defineModules. However, a class loader may create classes in the run-time modules of different layers, because the same class loader may be specified to multiple invocations of defineModules. Access control is governed by a class's run-time module, not by the class loader which created the class or by the layer(s) which the class loader serves.
 
 The set of class loaders specified for a layer, and the set of run-time modules which are part of a layer, are immutable after the layer is created. However, the ModuleLayer class affords programs a degree of dynamic control over the relationships between the run-time modules in a user-defined layer.
 
@@ -284,7 +306,7 @@ Every unnamed module exports, to every run-time module, every run-time package a
 
 5.4. Linking
 
-Linking a class or interface involves verifying and preparing that class or interface, its direct superclass, its direct superinterfaces, and its element type (if it is an array type), if necessary. Resolution of symbolic references in the class or interface is an optional part of linking.
+Linking a class or interface involves verifying and preparing that class or interface, its direct superclass, its direct superinterfaces, and its element type (if it is an array type), if necessary. Linking also involves resolution of symbolic references in the class or interface, though not necessarily at the same time as the class or interface is verified and prepared.
 
 This specification allows an implementation flexibility as to when linking activities (and, because of recursion, loading) take place, provided that all of the following properties are maintained:
 
@@ -294,7 +316,11 @@ A class or interface is completely verified and prepared before it is initialize
 
 Errors detected during linkage are thrown at a point in the program where some action is taken by the program that might, directly or indirectly, require linkage to the class or interface involved in the error.
 
-For example, a Java Virtual Machine implementation may choose to resolve each symbolic reference in a class or interface individually when it is used ("lazy" or "late" resolution), or to resolve them all at once when the class is being verified ("eager" or "static" resolution). This means that the resolution process may continue, in some implementations, after a class or interface has been initialized. Whichever strategy is followed, any error detected during resolution must be thrown at a point in the program that (directly or indirectly) uses a symbolic reference to the class or interface.
+A symbolic reference to a dynamically-computed constant is not resolved until either (i) an ldc, ldc_w, or ldc2_w instruction that refers to it is executed, or (ii) a bootstrap method that refers to it as a static argument is invoked.
+
+A symbolic reference to a dynamically-computed call site is not resolved until a bootstrap method that refers to it as a static argument is invoked.
+
+For example, a Java Virtual Machine implementation may choose a "lazy" linkage strategy, where each symbolic reference in a class or interface (other than the symbolic references above) is resolved individually when it is used. Alternatively, an implementation may choose an "eager" linkage strategy, where all symbolic references are resolved at once when the class or interface is being verified. This means that the resolution process may continue, in some implementations, after a class or interface has been initialized. Whichever strategy is followed, any error detected during resolution must be thrown at a point in the program that (directly or indirectly) uses a symbolic reference to the class or interface.
 
 Because linking involves the allocation of new data structures, it may fail with an OutOfMemoryError.
 
@@ -310,23 +336,25 @@ If an attempt by the Java Virtual Machine to verify a class or interface fails b
 
 Preparation involves creating the static fields for a class or interface and initializing such fields to their default values (§2.3, §2.4). This does not require the execution of any Java Virtual Machine code; explicit initializers for static fields are executed as part of initialization (§5.5), not preparation.
 
-During preparation of a class or interface C, the Java Virtual Machine also imposes loading constraints (§5.3.4). Let L1 be the defining loader of C. For each method m declared in C that overrides (§5.4.5) a method declared in a superclass or superinterface <D, L2>, the Java Virtual Machine imposes the following loading constraints:
+During preparation of a class or interface C, the Java Virtual Machine also imposes loading constraints (§5.3.4):
 
-Given that the return type of m is Tr, and that the formal parameter types of m are Tf1, ..., Tfn, then:
+Let L1 be the defining loader of C. For each instance method m declared in C that can override (§5.4.5) an instance method declared in a superclass or superinterface <D, L2>, the Java Virtual Machine imposes loading constraints as follows.
 
-If Tr not an array type, let T0 be Tr; otherwise, let T0 be the element type (§2.4) of Tr.
+Given that the return type of m is Tr, and that the formal parameter types of m are Tf1, ..., Tfn:
 
-For i = 1 to n: If Tfi is not an array type, let Ti be Tfi; otherwise, let Ti be the element type (§2.4) of Tfi.
+If Tr not an array type, let T0 be Tr; otherwise, let T0 be the element type of Tr.
+
+For i = 1 to n: If Tfi is not an array type, let Ti be Tfi; otherwise, let Ti be the element type of Tfi.
 
 Then TiL1 = TiL2 for i = 0 to n.
 
-Furthermore, if C implements a method m declared in a superinterface <I, L3> of C, but C does not itself declare the method m, then let <D, L2> be the superclass of C that declares the implementation of method m inherited by C. The Java Virtual Machine imposes the following constraints:
+For each instance method m declared in a superinterface <I, L3> of C, if C does not itself declare an instance method that can override m, then a method is selected (§5.4.6) with respect to C and the method m in <I, L3>. Let <D, L2> be the class or interface that declares the selected method. The Java Virtual Machine imposes loading constraints as follows.
 
-Given that the return type of m is Tr, and that the formal parameter types of m are Tf1, ..., Tfn, then:
+Given that the return type of m is Tr, and that the formal parameter types of m are Tf1, ..., Tfn:
 
-If Tr not an array type, let T0 be Tr; otherwise, let T0 be the element type (§2.4) of Tr.
+If Tr not an array type, let T0 be Tr; otherwise, let T0 be the element type of Tr.
 
-For i = 1 to n: If Tfi is not an array type, let Ti be Tfi; otherwise, let Ti be the element type (§2.4) of Tfi.
+For i = 1 to n: If Tfi is not an array type, let Ti be Tfi; otherwise, let Ti be the element type of Tfi.
 
 Then TiL2 = TiL3 for i = 0 to n.
 
@@ -334,35 +362,39 @@ Preparation may occur at any time following creation but must be completed prior
 
 5.4.3. Resolution
 
-The Java Virtual Machine instructions anewarray, checkcast, getfield, getstatic, instanceof, invokedynamic, invokeinterface, invokespecial, invokestatic, invokevirtual, ldc, ldc_w, multianewarray, new, putfield, and putstatic make symbolic references to the run-time constant pool. Execution of any of these instructions requires resolution of its symbolic reference.
+Many Java Virtual Machine instructions - anewarray, checkcast, getfield, getstatic, instanceof, invokedynamic, invokeinterface, invokespecial, invokestatic, invokevirtual, ldc, ldc_w, ldc2_w, multianewarray, new, putfield, and putstatic - rely on symbolic references in the run-time constant pool. Execution of any of these instructions requires resolution of the symbolic reference.
 
-Resolution is the process of dynamically determining concrete values from symbolic references in the run-time constant pool.
+Resolution is the process of dynamically determining one or more concrete values from a symbolic reference in the run-time constant pool. Initially, all symbolic references in the run-time constant pool are unresolved.
 
-Resolution of the symbolic reference of one occurrence of an invokedynamic instruction does not imply that the same symbolic reference is considered resolved for any other invokedynamic instruction.
+Resolution of an unresolved symbolic reference to (i) a class or interface, (ii) a field, (iii) a method, (iv) a method type, (v) a method handle, or (vi) a dynamically-computed constant, proceeds in accordance with the rules given in §5.4.3.1 through §5.4.3.5. In the first three of those sections, the class or interface in whose run-time constant pool the symbolic reference appears is labeled D. Then:
 
-For all other instructions above, resolution of the symbolic reference of one occurrence of an instruction does imply that the same symbolic reference is considered resolved for any other non-invokedynamic instruction.
+If no error occurs during resolution of the symbolic reference, then resolution succeeds.
 
-(The above text implies that the concrete value determined by resolution for a specific invokedynamic instruction is a call site object bound to that specific invokedynamic instruction.)
+Subsequent attempts to resolve the symbolic reference always succeed trivially and result in the same entity produced by the initial resolution. If the symbolic reference is to a dynamically-computed constant, the bootstrap method is not re-executed for these subsequent attempts.
 
-Resolution can be attempted on a symbolic reference that has already been resolved. An attempt to resolve a symbolic reference that has already successfully been resolved always succeeds trivially and always results in the same entity produced by the initial resolution of that reference.
+If an error occurs during resolution of the symbolic reference, then it is either (i) an instance of IncompatibleClassChangeError (or a subclass); (ii) an instance of Error (or a subclass) that arose from resolution or invocation of a bootstrap method; or (iii) an instance of LinkageError (or a subclass) that arose because class loading failed or a loader constraint was violated. The error must be thrown at a point in the program that (directly or indirectly) uses the symbolic reference.
 
-If an error occurs during resolution of a symbolic reference, then an instance of IncompatibleClassChangeError (or a subclass) must be thrown at a point in the program that (directly or indirectly) uses the symbolic reference.
+Subsequent attempts to resolve the symbolic reference always fail with the same error that was thrown as a result of the initial resolution attempt. If the symbolic reference is to a dynamically-computed constant, the bootstrap method is not re-executed for these subsequent attempts.
 
-If an attempt by the Java Virtual Machine to resolve a symbolic reference fails because an error is thrown that is an instance of LinkageError (or a subclass), then subsequent attempts to resolve the reference always fail with the same error that was thrown as a result of the initial resolution attempt.
+Because errors occurring on an initial attempt at resolution are thrown again on subsequent attempts, a class in one module that attempts to access, via resolution of a symbolic reference in its run-time constant pool, an unexported public type in a different module will always receive the same error indicating an inaccessible type (§5.4.4), even if the Java SE Platform API is used to dynamically export the public type's package at some time after the class's first attempt.
 
-This means that a class in one module that attempts to access, via resolution of a symbolic reference in its run-time constant pool, an unexported public type in a different module will always receive the same error indicating an inaccessible type (§5.4.4), even if the Java SE Platform API is used to dynamically export the public type's package at some time after the class's first attempt.
+Resolution of an unresolved symbolic reference to a dynamically-computed call site proceeds in accordance with the rules given in §5.4.3.6. Then:
 
-A symbolic reference to a call site specifier by a specific invokedynamic instruction must not be resolved prior to execution of that instruction.
+If no error occurs during resolution of the symbolic reference, then resolution succeeds solely for the instruction in the class file that required resolution. This instruction necessarily has an opcode of invokedynamic.
 
-In the case of failed resolution of an invokedynamic instruction, the bootstrap method is not re-executed on subsequent resolution attempts.
+Subsequent attempts to resolve the symbolic reference by that instruction in the class file always succeed trivially and result in the same entity produced by the initial resolution. The bootstrap method is not re-executed for these subsequent attempts.
+
+The symbolic reference is still unresolved for all other instructions in the class file, of any opcode, which indicate the same entry in the run-time constant pool as the invokedynamic instruction above.
+
+If an error occurs during resolution of the symbolic reference, then it is either (i) an instance of IncompatibleClassChangeError (or a subclass); (ii) an instance of Error (or a subclass) that arose from resolution or invocation of a bootstrap method; or (iii) an instance of LinkageError (or a subclass) that arose because class loading failed or a loader constraint was violated. The error must be thrown at a point in the program that (directly or indirectly) uses the symbolic reference.
+
+Subsequent attempts by the same instruction in the class file to resolve the symbolic reference always fail with the same error that was thrown as a result of the initial resolution attempt. The bootstrap method is not re-executed for these subsequent attempts.
+
+The symbolic reference is still unresolved for all other instructions in the class file, of any opcode, which indicate the same entry in the run-time constant pool as the invokedynamic instruction above.
 
 Certain of the instructions above require additional linking checks when resolving symbolic references. For instance, in order for a getfield instruction to successfully resolve the symbolic reference to the field on which it operates, it must not only complete the field resolution steps given in §5.4.3.2 but also check that the field is not static. If it is a static field, a linking exception must be thrown.
 
-Notably, in order for an invokedynamic instruction to successfully resolve the symbolic reference to a call site specifier, the bootstrap method specified therein must complete normally and return a suitable call site object. If the bootstrap method completes abruptly or returns an unsuitable call site object, a linking exception must be thrown.
-
 Linking exceptions generated by checks that are specific to the execution of a particular Java Virtual Machine instruction are given in the description of that instruction and are not covered in this general discussion of resolution. Note that such exceptions, although described as part of the execution of Java Virtual Machine instructions rather than resolution, are still properly considered failures of resolution.
-
-The following sections describe the process of resolving a symbolic reference in the run-time constant pool (§5.1) of a class or interface D. Details of resolution differ with the kind of symbolic reference to be resolved.
 
 5.4.3.1. Class and Interface Resolution
 
@@ -374,11 +406,7 @@ Any exception that can be thrown as a result of failure of class or interface cr
 
 If C is an array class and its element type is a reference type, then a symbolic reference to the class or interface representing the element type is resolved by invoking the algorithm in §5.4.3.1 recursively.
 
-Finally, access permissions to C are checked.
-
-If C is not accessible (§5.4.4) to D, class or interface resolution throws an IllegalAccessError.
-
-This condition can occur, for example, if C is a class that was originally declared to be public but was changed to be non-public after D was compiled.
+Finally, access control is applied for the access from D to C (§5.4.4).
 
 If steps 1 and 2 succeed but step 3 fails, C is still valid and usable. Nevertheless, resolution fails, and D is prohibited from accessing C.
 
@@ -396,17 +424,21 @@ Otherwise, if C has a superclass S, field lookup is applied recursively to S.
 
 Otherwise, field lookup fails.
 
-Then:
+Then, the result of field resolution is determined:
 
-If field lookup fails, field resolution throws a NoSuchFieldError.
+If field lookup failed, field resolution throws a NoSuchFieldError.
 
-Otherwise, if field lookup succeeds but the referenced field is not accessible (§5.4.4) to D, field resolution throws an IllegalAccessError.
+Otherwise, field lookup succeeded. Access control is applied for the access from D to the field which is the result of field lookup (§5.4.4). Then:
 
-Otherwise, let <E, L1> be the class or interface in which the referenced field is actually declared and let L2 be the defining loader of D.
+If access control failed, field resolution fails for the same reason.
 
-Given that the type of the referenced field is Tf, let T be Tf if Tf is not an array type, and let T be the element type (§2.4) of Tf otherwise.
+Otherwise, access control succeeded. Loading constraints are imposed, as follows.
 
-The Java Virtual Machine must impose the loading constraint that TL1 = TL2 (§5.3.4).
+Let <E, L1> be the class or interface in which the referenced field is actually declared. Let L2 be the defining loader of D. Given that the type of the referenced field is Tf: if Tf is not an array type, let T be Tf; otherwise, let T be the element type of Tf.
+
+The Java Virtual Machine imposes the loading constraint that TL1 = TL2.
+
+If imposing this constraint results in any loading constraints being violated (§5.3.4), then field resolution fails. Otherwise, field resolution succeeds.
 
 5.4.3.3. Method Resolution
 
@@ -444,21 +476,25 @@ The method has neither its ACC_PRIVATE flag nor its ACC_STATIC flag set.
 
 Where the method is declared in interface I, there exists no other maximally-specific superinterface method of C with the specified name and descriptor that is declared in a subinterface of I.
 
-The result of method resolution is determined by whether method lookup succeeds or fails:
+The result of method resolution is determined as follows:
 
-If method lookup fails, method resolution throws a NoSuchMethodError.
+If method lookup failed, method resolution throws a NoSuchMethodError.
 
-Otherwise, if method lookup succeeds and the referenced method is not accessible (§5.4.4) to D, method resolution throws an IllegalAccessError.
+Otherwise, method lookup succeeded. Access control is applied for the access from D to the method which is the result of method lookup (§5.4.4). Then:
 
-Otherwise, let <E, L1> be the class or interface in which the referenced method m is actually declared, and let L2 be the defining loader of D.
+If access control failed, method resolution fails for the same reason.
 
-Given that the return type of m is Tr, and that the formal parameter types of m are Tf1, ..., Tfn, then:
+Otherwise, access control succeeded. Loading constraints are imposed, as follows.
 
-If Tr is not an array type, let T0 be Tr; otherwise, let T0 be the element type (§2.4) of Tr.
+Let <E, L1> be the class or interface in which the referenced method m is actually declared. Let L2 be the defining loader of D. Given that the return type of m is Tr, and that the formal parameter types of m are Tf1, ..., Tfn:
 
-For i = 1 to n: If Tfi is not an array type, let Ti be Tfi; otherwise, let Ti be the element type (§2.4) of Tfi.
+If Tr is not an array type, let T0 be Tr; otherwise, let T0 be the element type of Tr.
 
-The Java Virtual Machine must impose the loading constraints TiL1 = TiL2 for i = 0 to n (§5.3.4).
+For i = 1 to n: If Tfi is not an array type, let Ti be Tfi; otherwise, let Ti be the element type of Tfi.
+
+The Java Virtual Machine imposes the loading constraints TiL1 = TiL2 for i = 0 to n.
+
+If imposing these constraints results in any loading constraints being violated (§5.3.4), then method resolution fails. Otherwise, method resolution succeeds.
 
 When resolution searches for a method in the class's superinterfaces, the best outcome is to identify a maximally-specific non-abstract method. It is possible that this method will be chosen by method selection, so it is desirable to add class loader constraints for it.
 
@@ -488,23 +524,27 @@ Otherwise, if any superinterface of C declares a method with the name and descri
 
 Otherwise, method lookup fails.
 
-The result of interface method resolution is determined by whether method lookup succeeds or fails:
+The result of interface method resolution is determined as follows:
 
-If method lookup fails, interface method resolution throws a NoSuchMethodError.
+If method lookup failed, interface method resolution throws a NoSuchMethodError.
 
-If method lookup succeeds and the referenced method is not accessible (§5.4.4) to D, interface method resolution throws an IllegalAccessError.
+Otherwise, method lookup succeeded. Access control is applied for the access from D to the method which is the result of method lookup (§5.4.4). Then:
 
-Otherwise, let <E, L1> be the class or interface in which the referenced interface method m is actually declared, and let L2 be the defining loader of D.
+If access control failed, interface method resolution fails for the same reason.
 
-Given that the return type of m is Tr, and that the formal parameter types of m are Tf1, ..., Tfn, then:
+Otherwise, access control succeeded. Loading constraints are imposed, as follows.
 
-If Tr is not an array type, let T0 be Tr; otherwise, let T0 be the element type (§2.4) of Tr.
+Let <E, L1> be the class or interface in which the referenced interface method m is actually declared. Let L2 be the defining loader of D. Given that the return type of m is Tr, and that the formal parameter types of m are Tf1, ..., Tfn:
 
-For i = 1 to n: If Tfi is not an array type, let Ti be Tfi; otherwise, let Ti be the element type (§2.4) of Tfi.
+If Tr is not an array type, let T0 be Tr; otherwise, let T0 be the element type of Tr.
 
-The Java Virtual Machine must impose the loading constraints TiL1 = TiL2 for i = 0 to n (§5.3.4).
+For i = 1 to n: If Tfi is not an array type, let Ti be Tfi; otherwise, let Ti be the element type of Tfi.
 
-The clause about accessibility is necessary because interface method resolution may pick a private method of interface C. (Prior to Java SE 8, the result of interface method resolution could be a non-public method of class Object or a static method of class Object; such results were not consistent with the inheritance model of the Java programming language, and are disallowed in Java SE 8 and above.)
+The Java Virtual Machine imposes the loading constraints TiL1 = TiL2 for i = 0 to n.
+
+If imposing these constraints results in any loading constraints being violated (§5.3.4), then interface method resolution fails. Otherwise, interface method resolution succeeds.
+
+Access control is necessary because interface method resolution may pick a private method of interface C. (Prior to Java SE 8, the result of interface method resolution could be a non-public method of class Object or a static method of class Object; such results were not consistent with the inheritance model of the Java programming language, and are disallowed in Java SE 8 and above.)
 
 5.4.3.5. Method Type and Method Handle Resolution
 
@@ -514,7 +554,7 @@ Any exception that can be thrown as a result of failure of resolution of a class
 
 The result of successful method type resolution is a reference to an instance of java.lang.invoke.MethodType which represents the method descriptor.
 
-Method type resolution occurs regardless of whether the run time constant pool actually contains symbolic references to classes and interfaces indicated in the method descriptor. Also, the resolution is deemed to occur on unresolved symbolic references, so a failure to resolve one method type will not necessarily lead to a later failure to resolve another method type with the same textual method descriptor, if suitable classes and interfaces can be loaded by the later time.
+Method type resolution occurs regardless of whether the run-time constant pool actually contains symbolic references to classes and interfaces indicated in the method descriptor. Also, the resolution is deemed to occur on unresolved symbolic references, so a failure to resolve one method type will not necessarily lead to a later failure to resolve another method type with the same textual method descriptor, if suitable classes and interfaces can be loaded by the later time.
 
 Resolution of an unresolved symbolic reference to a method handle is more complicated. Each method handle resolved by the Java Virtual Machine has an equivalent instruction sequence called its bytecode behavior, indicated by the method handle's kind. The integer values and descriptions of the nine kinds of method handle are given in Table 5.4.3.5-A.
 
@@ -551,13 +591,11 @@ T and A* are derived from the CONSTANT_NameAndType structure referred to by the 
 
 To resolve MH, all symbolic references to classes, interfaces, fields, and methods in MH's bytecode behavior are resolved, using the following four steps:
 
-First, R is resolved. This occurs as if by field resolution (§5.4.3.2) when MH's bytecode behavior is kind 1, 2, 3, or 4, and as if by method resolution (§5.4.3.3) when MH's bytecode behavior is kind 5, 6, 7, or 8, and as if by interface method resolution (§5.4.3.4) when MH's bytecode behavior is kind 9.
+R is resolved. This occurs as if by field resolution (§5.4.3.2) when MH's bytecode behavior is kind 1, 2, 3, or 4, and as if by method resolution (§5.4.3.3) when MH's bytecode behavior is kind 5, 6, 7, or 8, and as if by interface method resolution (§5.4.3.4) when MH's bytecode behavior is kind 9.
 
-Second, the following constraints apply to the result of resolving R. These constraints correspond to those that would be enforced during verification or execution of the instruction sequence for the relevant bytecode behavior.
+The following constraints apply to the result of resolving R. These constraints correspond to those that would be enforced during verification or execution of the instruction sequence for the relevant bytecode behavior.
 
 If MH's bytecode behavior is kind 8 (REF_newInvokeSpecial), then R must resolve to an instance initialization method declared in class C.
-
-If MH's bytecode behavior is kind 9 (REF_invokeInterface), then R must resolve to a non-private method.
 
 If R resolves to a protected member, then the following rules apply depending on the kind of MH's bytecode behavior:
 
@@ -571,9 +609,9 @@ For kinds 1, 3, 5, 7, and 9 (REF_getField, REF_putField, REF_invokeVirtual, REF_
 
 For kinds 2, 4, and 6 (REF_getStatic, REF_putStatic, and REF_invokeStatic): C.f or C.m must resolve to a static field or method.
 
-Third, resolution occurs as if of unresolved symbolic references to classes and interfaces whose names correspond to each type in A*, and to the type T, in that order.
+Resolution occurs as if of unresolved symbolic references to classes and interfaces whose names correspond to each type in A*, and to the type T, in that order.
 
-Fourth, a reference to an instance of java.lang.invoke.MethodType is obtained as if by resolution of an unresolved symbolic reference to a method type that contains the method descriptor specified in Table 5.4.3.5-B for the kind of MH.
+A reference to an instance of java.lang.invoke.MethodType is obtained as if by resolution of an unresolved symbolic reference to a method type that contains the method descriptor specified in Table 5.4.3.5-B for the kind of MH.
 
 It is as if the symbolic reference to a method handle contains a symbolic reference to the method type that the resolved method handle will eventually have. The detailed structure of the method type is obtained by inspecting Table 5.4.3.5-B.
 
@@ -612,27 +650,109 @@ An implementation of the Java Virtual Machine is not required to intern method t
 
 The java.lang.invoke.MethodHandles class in the Java SE Platform API allows creation of method handles with no bytecode behavior. Their behavior is defined by the method of java.lang.invoke.MethodHandles that creates them. For example, a method handle may, when invoked, first apply transformations to its argument values, then supply the transformed values to the invocation of another method handle, then apply a transformation to the value returned from that invocation, then return the transformed value as its own result.
 
-5.4.3.6. Call Site Specifier Resolution
+5.4.3.6. Dynamically-Computed Constant and Call Site Resolution
 
-To resolve an unresolved symbolic reference to a call site specifier involves three steps:
+To resolve an unresolved symbolic reference R to a dynamically-computed constant or call site, there are three tasks. First, R is examined to determine which code will serve as its bootstrap method, and which arguments will be passed to that code. Second, the arguments are packaged into an array and the bootstrap method is invoked. Third, the result of the bootstrap method is validated, and used as the result of resolution.
 
-A call site specifier gives a symbolic reference to a method handle which is to serve as the bootstrap method for a dynamic call site (§4.7.23). The method handle is resolved to obtain a reference to an instance of java.lang.invoke.MethodHandle (§5.4.3.5).
+The first task involves the following steps:
 
-A call site specifier gives a method descriptor, TD. A reference to an instance of java.lang.invoke.MethodType is obtained as if by resolution of a symbolic reference to a method type with the same parameter and return types as TD (§5.4.3.5).
+R gives a symbolic reference to a bootstrap method handle. The bootstrap method handle is resolved (§5.4.3.5) to obtain a reference to an instance of java.lang.invoke.MethodHandle.
 
-A call site specifier gives zero or more static arguments, which communicate application-specific metadata to the bootstrap method. Any static arguments which are symbolic references to classes, method handles, or method types are resolved, as if by invocation of the ldc instruction (§ldc), to obtain references to Class objects, java.lang.invoke.MethodHandle objects, and java.lang.invoke.MethodType objects respectively. Any static arguments that are string literals are used to obtain references to String objects.
+Any exception that can be thrown as a result of failure of resolution of a symbolic reference to a method handle can be thrown in this step.
 
-The result of call site specifier resolution is a tuple consisting of:
+If R is a symbolic reference to a dynamically-computed constant, then let D be the type descriptor of the bootstrap method handle. (That is, D is a reference to an instance of java.lang.invoke.MethodType.) The first parameter type indicated by D must be java.lang.invoke.MethodHandles.Lookup, or else resolution fails with a BootstrapMethodError. For historical reasons, the bootstrap method handle for a dynamically-computed call site is not similarly constrained.
 
-the reference to an instance of java.lang.invoke.MethodHandle,
+If R is a symbolic reference to a dynamically-computed constant, then it gives a field descriptor.
 
-the reference to an instance of java.lang.invoke.MethodType,
+If the field descriptor indicates a primitive type, then a reference to the pre-defined Class object representing that type is obtained (see the method isPrimitive in class Class).
 
-the references to instances of Class, java.lang.invoke.MethodHandle, java.lang.invoke.MethodType, and String.
+Otherwise, the field descriptor indicates a class or interface type, or an array type. A reference to the Class object representing the type indicated by the field descriptor is obtained, as if by resolution of an unresolved symbolic reference to a class or interface (§5.4.3.1) whose name corresponds to the type indicated by the field descriptor.
 
-During resolution of the symbolic reference to the method handle in the call site specifier, or resolution of the symbolic reference to the method type for the method descriptor in the call site specifier, or resolution of a symbolic reference to any static argument, any of the exceptions pertaining to method type or method handle resolution may be thrown (§5.4.3.5).
+Any exception that can be thrown as a result of failure of resolution of a symbolic reference to a class or interface can be thrown in this step.
+
+If R is a symbolic reference to a dynamically-computed call site, then it gives a method descriptor.
+
+A reference to an instance of java.lang.invoke.MethodType is obtained, as if by resolution of an unresolved symbolic reference to a method type (§5.4.3.5) with the same parameter and return types as the method descriptor.
+
+Any exception that can be thrown as a result of failure of resolution of a symbolic reference to a method type can be thrown in this step.
+
+R gives zero or more static arguments, which communicate application-specific metadata to the bootstrap method. Each static argument A is resolved, in the order given by R, as follows:
+
+If A is a string constant, then a reference to its instance of class String is obtained.
+
+If A is a numeric constant, then a reference to an instance of java.lang.invoke.MethodHandle is obtained by the following procedure:
+
+Let v be the value of the numeric constant, and let T be a field descriptor which corresponds to the type of the numeric constant.
+
+Let MH be a method handle produced as if by invocation of the identity method of java.lang.invoke.MethodHandles with an argument representing the class Object.
+
+A reference to an instance of java.lang.invoke.MethodHandle is obtained as if by the invocation MH.invoke(v) with method descriptor (T)Ljava/lang/Object;.
+
+If A is a symbolic reference to a dynamically-computed constant with a field descriptor indicating a primitive type T, then A is resolved, producing a primitive value v. Given v and T, a reference is obtained to an instance of java.lang.invoke.MethodHandle according to the procedure specified above for numeric constants.
+
+If A is any other kind of symbolic reference, then the result is the result of resolving A.
+
+Among the symbolic references in the run-time constant pool, symbolic references to dynamically-computed constants are special because they are derived from constant_pool entries that can syntactically refer to themselves via the BootstrapMethods attribute (§4.7.23). However, the Java Virtual Machine does not support resolving a symbolic reference to a dynamically-computed constant that depends on itself (that is, as a static argument to its own bootstrap method). Accordingly, when both R and A are symbolic references to dynamically-computed constants, if A is the same as R or A gives a static argument that (directly or indirectly) references R, then resolution fails with a StackOverflowError at the point where re-resolution of R would be required.
+
+Unlike class initialization (§5.5), where cycles are allowed between uninitialized classes, resolution does not allow cycles in symbolic references to dynamically-computed constants. If an implementation of resolution makes recursive use of a stack, then a StackOverflowError will occur naturally. If not, the implementation is required to detect the cycle rather than, say, looping infinitely or returning a default value for the dynamically-computed constant.
+
+A similar cycle may arise if the body of a bootstrap method makes reference to a dynamically-computed constant currently being resolved. This has always been possible for invokedynamic bootstraps, and does not require special treatment in resolution; the recursive invokeWithArguments calls will naturally lead to a StackOverflowError.
+
+Any exception that can be thrown as a result of failure of resolution of a symbolic reference can be thrown in this step.
+
+The second task, to invoke the bootstrap method handle, involves the following steps:
+
+An array is allocated with component type Object and length n+3, where n is the number of static arguments given by R (n ≥ 0).
+
+The zeroth component of the array is set to a reference to an instance of java.lang.invoke.MethodHandles.Lookup for the class in which R occurs, produced as if by invocation of the lookup method of java.lang.invoke.MethodHandles.
+
+The first component of the array is set to a reference to an instance of String that denotes N, the unqualified name given by R.
+
+The second component of the array is set to the reference to an instance of Class or java.lang.invoke.MethodType that was obtained earlier for the field descriptor or method descriptor given by R.
+
+Subsequent components of the array are set to the references that were obtained earlier from resolving R's static arguments, if any. The references appear in the array in the same order as the corresponding static arguments are given by R.
+
+A Java Virtual Machine implementation may be able to skip allocation of the array and, without any change in observable behavior, pass the arguments directly to the bootstrap method.
+
+The bootstrap method handle is invoked, as if by the invocation BMH.invokeWithArguments(args), where BMH is the bootstrap method handle and args is the array allocated above.
+
+Due to the behavior of the invokeWithArguments method of java.lang.invoke.MethodHandle, the type descriptor of the bootstrap method handle need not exactly match the run-time types of the arguments. For example, the second parameter type of the bootstrap method handle (corresponding to the unqualified name given in the first component of the array above) could be Object instead of String. If the bootstrap method handle is variable arity, then some or all of the arguments may be collected into a trailing array parameter.
+
+The invocation occurs within a thread that is attempting resolution of this symbolic reference. If there are several such threads, the bootstrap method handle may be invoked concurrently. Bootstrap methods which access global application data should take the usual precautions against race conditions.
+
+If the invocation fails by throwing an instance of Error or a subclass of Error, resolution fails with that exception.
+
+If the invocation fails by throwing an exception that is not an instance of Error or a subclass of Error, resolution fails with a BootstrapMethodError whose cause is the thrown exception.
+
+If several threads concurrently invoke the bootstrap method handle for this symbolic reference, the Java Virtual Machine chooses the result of one invocation and installs it visibly to all threads. Any other bootstrap methods executing for this symbolic reference are allowed to complete, but their results are ignored.
+
+The third task, to validate the reference, o, produced by invocation of the bootstrap method handle, is as follows:
+
+If R is a symbolic reference to a dynamically-computed constant, then o is converted to type T, the type indicated by the field descriptor given by R.
+
+o's conversion occurs as if by the invocation MH.invoke(o) with method descriptor (Ljava/lang/Object;)T, where MH is a method handle produced as if by invocation of the identity method of java.lang.invoke.MethodHandles with an argument representing the class Object.
+
+The result of o's conversion is the result of resolution.
+
+If the conversion fails by throwing a NullPointerException or a ClassCastException, resolution fails with a BootstrapMethodError.
+
+If R is a symbolic reference to a dynamically-computed call site, then o is the result of resolution if it has all of the following properties:
+
+o is not null.
+
+o is an instance of java.lang.invoke.CallSite or a subclass of java.lang.invoke.CallSite.
+
+The type of the java.lang.invoke.CallSite is semantically equal to the method descriptor given by R.
+
+If o does not have these properties, resolution fails with a BootstrapMethodError.
+
+Many of the steps above perform computations "as if by invocation" of certain methods. In each case, the invocation behavior is given in detail by the specifications for invokestatic and invokevirtual. The invocation occurs in the thread and from the class that is attempting resolution of the symbolic reference R. However, no corresponding method references are required to appear in the run-time constant pool, no particular method's operand stack is necessarily used, and the value of the max_stack item of any method's Code attribute is not enforced for the invocation.
+
+If several threads attempt resolution of R at the same time, the bootstrap method may be invoked concurrently. Therefore, bootstrap methods which access global application data must take precautions against race conditions.
 
 5.4.4. Access Control
+
+Access control is applied during resolution (§5.4.3) to ensure that a reference to a class, interface, field, or method is permitted. Access control succeeds if a specified class, interface, field, or method is accessible to the referring class or interface.
 
 A class or interface C is accessible to a class or interface D if and only if one of the following is true:
 
@@ -642,23 +762,65 @@ C is public, and a member of a different run-time module than D, and C's run-tim
 
 C is not public, and C and D are members of the same run-time package.
 
+If C is not accessible to D, access control throws an IllegalAccessError. Otherwise, access control succeeds.
+
 A field or method R is accessible to a class or interface D if and only if any of the following is true:
 
 R is public.
 
-R is protected and is declared in a class C, and D is either a subclass of C or C itself. Furthermore, if R is not static, then the symbolic reference to R must contain a symbolic reference to a class T, such that T is either a subclass of D, a superclass of D, or D itself.
+R is protected and is declared in a class C, and D is either a subclass of C or C itself.
+
+Furthermore, if R is not static, then the symbolic reference to R must contain a symbolic reference to a class T, such that T is either a subclass of D, a superclass of D, or D itself.
+
+During verification of D, it was required that, even if T is a superclass of D, the target reference of a protected field access or method invocation must be an instance of D or a subclass of D (§4.10.1.8).
 
 R is either protected or has default access (that is, neither public nor protected nor private), and is declared by a class in the same run-time package as D.
 
-R is private and is declared in D.
+R is private and is declared by a class or interface C that belongs to the same nest as D, according to the nestmate test below.
 
-This discussion of access control omits a related restriction on the target of a protected field access or method invocation (the target must be of class D or a subtype of D). That requirement is checked as part of the verification process (§4.10.1.8); it is not part of link-time access control.
+If R is not accessible to D, then:
 
-5.4.5. Overriding
+If R is public, protected, or has default access, then access control throws an IllegalAccessError.
 
-An instance method mC declared in class C overrides another instance method mA declared in class A iff either mC is the same as mA, or all of the following are true:
+If R is private, then the nestmate test failed, and access control fails for the same reason.
 
-C is a subclass of A.
+Otherwise, access control succeeds.
+
+A nest is a set of classes and interfaces that allow mutual access to their private members. One of the classes or interfaces is the nest host. It enumerates the classes and interfaces which belong to the nest, using the NestMembers attribute (§4.7.29). Each of them in turn designates it as the nest host, using the NestHost attribute (§4.7.28). A class or interface which lacks a NestHost attribute belongs to the nest hosted by itself; if it also lacks a NestMembers attribute, this nest is a singleton consisting only of the class or interface itself.
+
+To determine whether a class or interface C belongs to the same nest as a class or interface D, the nestmate test is applied. C and D belong to the same nest if and only if the nestmate test succeeds. The nestmate test is as follows:
+
+If C and D are the same class or interface, then the nestmate test succeeds.
+
+Otherwise, the following steps are performed, in order:
+
+The nest host of D, H, is determined (below). If an exception is thrown, then the nestmate test fails for the same reason.
+
+The nest host of C, H', is determined (below). If an exception is thrown, then the nestmate test fails for the same reason.
+
+H and H' are compared. If H and H' are the same class or interface, then the nestmate test succeeds. Otherwise, the nestmate test fails by throwing an IllegalAccessError.
+
+The nest host of a class or interface M is determined as follows:
+
+If M lacks a NestHost attribute, then M is its own nest host.
+
+Otherwise, M has a NestHost attribute, and its host_class_index item is used as an index into the run-time constant pool of M. The symbolic reference at that index is resolved to a class or interface H (§5.4.3.1).
+
+During resolution of this symbolic reference, any of the exceptions pertaining to class or interface resolution can be thrown. Otherwise, resolution of H succeeds.
+
+If any of the following is true, an IncompatibleClassChangeError is thrown:
+
+H is not in the same run-time package as M.
+
+H lacks a NestMembers attribute.
+
+H has a NestMembers attribute, but there is no entry in its classes array that refers to a class or interface with the name N, where N is the name of M.
+
+Otherwise, H is the nest host of M.
+
+5.4.5. Method Overriding
+
+An instance method mC can override another instance method mA iff all of the following are true:
 
 mC has the same name and descriptor as mA.
 
@@ -666,9 +828,49 @@ mC is not marked ACC_PRIVATE.
 
 One of the following is true:
 
-mA is marked ACC_PUBLIC; or is marked ACC_PROTECTED; or is marked neither ACC_PUBLIC nor ACC_PROTECTED nor ACC_PRIVATE and A belongs to the same run-time package as C.
+mA is marked ACC_PUBLIC.
 
-mC overrides a method m' (m' distinct from mC and mA) such that m' overrides mA.
+mA is marked ACC_PROTECTED.
+
+mA is marked neither ACC_PUBLIC nor ACC_PROTECTED nor ACC_PRIVATE, and either (a) the declaration of mA appears in the same run-time package as the declaration of mC, or (b) if mA is declared in a class A and mC is declared in a class C, then there exists a method mB declared in a class B such that C is a subclass of B and B is a subclass of A and mC can override mB and mB can override mA.
+
+Part (b) of the final case allows for "transitive overriding" of methods with default access. For example, given the following class declarations in a package P:
+
+public class A           {        void m() {} }
+public class B extends A { public void m() {} }
+public class C extends B {        void m() {} }
+
+
+and the following class declaration in a different package:
+
+public class D extends P.C { void m() {} }
+
+
+then:
+
+B.m can override A.m.
+
+C.m can override B.m and A.m.
+
+D.m can override B.m and, transitively, A.m, but it cannot override C.m.
+
+5.4.6. Method Selection
+
+During execution of an invokeinterface or invokevirtual instruction, a method is selected with respect to (i) the run-time type of the object on the stack, and (ii) a method that was previously resolved by the instruction. The rules to select a method with respect to a class or interface C and a method mR are as follows:
+
+If mR is marked ACC_PRIVATE, then it is the selected method.
+
+Otherwise, the selected method is determined by the following lookup procedure:
+
+If C contains a declaration of an instance method m that can override mR (§5.4.5), then m is the selected method.
+
+Otherwise, if C has a superclass, a search for a declaration of an instance method that can override mR is performed, starting with the direct superclass of C and continuing with the direct superclass of that class, and so forth, until a method is found or no further superclasses exist. If a method is found, it is the selected method.
+
+Otherwise, the maximally-specific superinterface methods of C are determined (§5.4.3.3). If exactly one matches mR's name and descriptor and is not abstract, then it is the selected method.
+
+Any maximally-specific superinterface method selected in this step can override mR; there is no need to check this explicitly.
+
+While C will typically be a class, it may be an interface when these rules are applied during preparation (§5.4.2).
 
 5.5. Initialization
 
