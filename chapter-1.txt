@@ -31,7 +31,7 @@ The Java Virtual Machine knows nothing of the Java programming language, only of
 
 For the sake of security, the Java Virtual Machine imposes strong syntactic and structural constraints on the code in a class file. However, any language with functionality that can be expressed in terms of a valid class file can be hosted by the Java Virtual Machine. Attracted by a generally available, machine-independent platform, implementors of other languages can turn to the Java Virtual Machine as a delivery vehicle for their languages.
 
-The Java Virtual Machine specified here is compatible with the Java SE 15 platform, and supports the Java programming language specified in The Java Language Specification, Java SE 15 Edition.
+The Java Virtual Machine specified here is compatible with the Java SE 16 platform, and supports the Java programming language specified in The Java Language Specification, Java SE 16 Edition.
 
 1.3. Organization of the Specification
 
@@ -47,9 +47,9 @@ Chapter 6 specifies the instruction set of the Java Virtual Machine, presenting 
 
 Chapter 7 gives a table of Java Virtual Machine opcode mnemonics indexed by opcode value.
 
-In the Second Edition of The Java® Virtual Machine Specification, Chapter 2 gave an overview of the Java programming language that was intended to support the specification of the Java Virtual Machine but was not itself a part of the specification. In The Java Virtual Machine Specification, Java SE 15 Edition, the reader is referred to The Java Language Specification, Java SE 15 Edition for information about the Java programming language. References of the form: (JLS §x.y) indicate where this is necessary.
+In the Second Edition of The Java® Virtual Machine Specification, Chapter 2 gave an overview of the Java programming language that was intended to support the specification of the Java Virtual Machine but was not itself a part of the specification. In The Java Virtual Machine Specification, Java SE 16 Edition, the reader is referred to The Java Language Specification, Java SE 16 Edition for information about the Java programming language. References of the form: (JLS §x.y) indicate where this is necessary.
 
-In the Second Edition of The Java® Virtual Machine Specification, Chapter 8 detailed the low-level actions that explained the interaction of Java Virtual Machine threads with a shared main memory. In The Java Virtual Machine Specification, Java SE 15 Edition, the reader is referred to Chapter 17 of The Java Language Specification, Java SE 15 Edition for information about threads and locks. Chapter 17 reflects The Java Memory Model and Thread Specification produced by the JSR 133 Expert Group.
+In the Second Edition of The Java® Virtual Machine Specification, Chapter 8 detailed the low-level actions that explained the interaction of Java Virtual Machine threads with a shared main memory. In The Java Virtual Machine Specification, Java SE 16 Edition, the reader is referred to Chapter 17 of The Java Language Specification, Java SE 16 Edition for information about threads and locks. Chapter 17 reflects The Java Memory Model and Thread Specification produced by the JSR 133 Expert Group.
 
 1.4. Notation
 

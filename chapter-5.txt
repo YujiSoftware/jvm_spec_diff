@@ -254,17 +254,19 @@ If C has a direct superclass, the symbolic reference from C to its direct superc
 
 Any exceptions that can be thrown due to class or interface resolution can be thrown as a result of this phase of loading. In addition, this phase of loading must detect the following errors:
 
-If the class or interface named as the direct superclass of C is in fact an interface, loading throws an IncompatibleClassChangeError.
+If any of the superclasses of C is C itself, loading throws a ClassCircularityError.
 
-Otherwise, if any of the superclasses of C is C itself, loading throws a ClassCircularityError.
+Otherwise, if the class or interface named as the direct superclass of C is in fact an interface or a final class, loading throws an IncompatibleClassChangeError.
+
+Otherwise, if C is a class and some instance method declared in C can override (§5.4.5) a final instance method declared in a superclass of C, loading throws an IncompatibleClassChangeError.
 
 If C has any direct superinterfaces, the symbolic references from C to its direct superinterfaces are resolved using the algorithm of §5.4.3.1.
 
 Any exceptions that can be thrown due to class or interface resolution can be thrown as a result of this phase of loading. In addition, this phase of loading must detect the following errors:
 
-If any of the classes or interfaces named as direct superinterfaces of C is not in fact an interface, loading throws an IncompatibleClassChangeError.
+If any of the superinterfaces of C is C itself, loading throws a ClassCircularityError.
 
-Otherwise, if any of the superinterfaces of C is C itself, loading throws a ClassCircularityError.
+Otherwise, if any of the classes or interfaces named as direct superinterfaces of C is not in fact an interface, loading throws an IncompatibleClassChangeError.
 
 The Java Virtual Machine marks C as having L as its defining class loader and records that L is an initiating loader of C (§5.3.4).
 
