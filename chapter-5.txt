@@ -21,7 +21,7 @@ Table of Contents
 5.4.3.5. Method Type and Method Handle Resolution
 5.4.3.6. Call Site Specifier Resolution
 5.4.4. Access Control
-5.4.5. Method overriding
+5.4.5. Overriding
 5.5. Initialization
 5.6. Binding Native Method Implementations
 5.7. Java Virtual Machine Exit
@@ -54,9 +54,9 @@ A symbolic reference to a method of a class is derived from a CONSTANT_Methodref
 
 A symbolic reference to a method of an interface is derived from a CONSTANT_InterfaceMethodref_info structure (§4.4.2) in the binary representation of a class or interface. Such a reference gives the name and descriptor of the interface method, as well as a symbolic reference to the interface in which the method is to be found.
 
-A symbolic reference to a method handle is derived from a CONSTANT_MethodHandle_info structure (§4.4.8) in the binary representation of a class or interface.
+A symbolic reference to a method handle is derived from a CONSTANT_MethodHandle_info structure (§4.4.8) in the binary representation of a class or interface. Such a reference gives a symbolic reference to a field of a class or interface, or a method of a class, or a method of an interface, depending on the kind of the method handle.
 
-A symbolic reference to a method type is derived from a CONSTANT_MethodType_info structure (§4.4.9) in the binary representation of a class or interface.
+A symbolic reference to a method type is derived from a CONSTANT_MethodType_info structure (§4.4.9) in the binary representation of a class or interface. Such a reference gives a method descriptor (§4.3.3).
 
 A symbolic reference to a call site specifier is derived from a CONSTANT_InvokeDynamic_info structure (§4.4.10) in the binary representation of a class or interface. Such a reference gives:
 
@@ -97,7 +97,7 @@ In an implementation of the Java Virtual Machine, the initial class could be pro
 
 Creation of a class or interface C denoted by the name N consists of the construction in the method area of the Java Virtual Machine (§2.5.4) of an implementation-specific internal representation of C. Class or interface creation is triggered by another class or interface D, which references C through its run-time constant pool. Class or interface creation may also be triggered by D invoking methods in certain Java SE platform class libraries (§2.12) such as reflection.
 
-If C is not an array class, it is created by loading a binary representation of C (§4) using a class loader. Array classes do not have an external binary representation; they are created by the Java Virtual Machine rather than by a class loader.
+If C is not an array class, it is created by loading a binary representation of C (§4 (The class File Format)) using a class loader. Array classes do not have an external binary representation; they are created by the Java Virtual Machine rather than by a class loader.
 
 There are two kinds of class loaders: the bootstrap class loader supplied by the Java Virtual Machine, and user-defined class loaders. Every user-defined class loader is an instance of a subclass of the abstract class ClassLoader. Applications employ user-defined class loaders in order to extend the manner in which the Java Virtual Machine dynamically loads and thereby creates classes. User-defined class loaders can be used to create classes that originate from user-defined sources. For example, a class could be downloaded across a network, generated on the fly, or extracted from an encrypted file.
 
@@ -331,9 +331,9 @@ The defining class loader of D is used to create a class or interface denoted by
 
 Any exception that can be thrown as a result of failure of class or interface creation can thus be thrown as a result of failure of class and interface resolution.
 
-If C is an array class and its element type is a reference type, then the symbolic reference to the class or interface representing the element type is resolved by invoking the algorithm in §5.4.3.1 recursively.
+If C is an array class and its element type is a reference type, then a symbolic reference to the class or interface representing the element type is resolved by invoking the algorithm in §5.4.3.1 recursively.
 
-Finally, access permissions to C are checked:
+Finally, access permissions to C are checked.
 
 If C is not accessible (§5.4.4) to D, class or interface resolution throws an IllegalAccessError.
 
@@ -343,7 +343,7 @@ If steps 1 and 2 succeed but step 3 fails, C is still valid and usable. Neverthe
 
 5.4.3.2. Field Resolution
 
-To resolve an unresolved symbolic reference from D to a field in a class or interface C, the symbolic reference to C given by the field reference must first be resolved (§5.4.3.1). Therefore, any exception that can be thrown as a result of failure of resolution of a class or interface reference can be thrown as a result of field resolution. If the reference to C can be successfully resolved, an exception relating to the failure of resolution of the field reference itself can be thrown.
+To resolve an unresolved symbolic reference from D to a field in a class or interface C, the symbolic reference to C given by the field reference must first be resolved (§5.4.3.1). Therefore, any exception that can be thrown as a result of failure of resolution of a class or interface reference can be thrown as a result of failure of field resolution. If the reference to C can be successfully resolved, an exception relating to the failure of resolution of the field reference itself can be thrown.
 
 When resolving a field reference, field resolution first attempts to look up the referenced field in C and its superclasses:
 
@@ -369,15 +369,13 @@ The Java Virtual Machine must impose the loading constraint that TL1 = TL2 (§5.
 
 5.4.3.3. Method Resolution
 
-To resolve an unresolved symbolic reference from D to a method in a class C, the symbolic reference to C given by the method reference is first resolved (§5.4.3.1). Therefore, any exception that can be thrown as a result of failure of resolution of a class reference can be thrown as a result of method resolution. If the reference to C can be successfully resolved, exceptions relating to the resolution of the method reference itself can be thrown.
+To resolve an unresolved symbolic reference from D to a method in a class C, the symbolic reference to C given by the method reference is first resolved (§5.4.3.1). Therefore, any exception that can be thrown as a result of failure of resolution of a class reference can be thrown as a result of failure of method resolution. If the reference to C can be successfully resolved, exceptions relating to the resolution of the method reference itself can be thrown.
 
 When resolving a method reference:
 
-Method resolution checks whether C is a class or an interface.
-
 If C is an interface, method resolution throws an IncompatibleClassChangeError.
 
-Method resolution attempts to look up the referenced method in C and its superclasses:
+Otherwise, method resolution attempts to locate the referenced method in C and its superclasses:
 
 If C declares exactly one method with the name specified by the method reference, and the declaration is a signature polymorphic method (§2.9), then method lookup succeeds. All the class names mentioned in the descriptor are resolved (§5.4.3.1).
 
@@ -385,21 +383,31 @@ The resolved method is the signature polymorphic method declaration. It is not n
 
 Otherwise, if C declares a method with the name and descriptor specified by the method reference, method lookup succeeds.
 
-Otherwise, if C has a superclass, step 2 of method lookup is recursively invoked on the direct superclass of C.
+Otherwise, if C has a superclass, step 2 of method resolution is recursively invoked on the direct superclass of C.
 
-Otherwise, method lookup attempts to locate the referenced method in any of the superinterfaces of the specified class C.
+Otherwise, method resolution attempts to locate the referenced method in the superinterfaces of the specified class C:
 
-If any superinterface of C declares a method with the name and descriptor specified by the method reference, method lookup succeeds.
+If the maximally-specific superinterface methods of C for the name and descriptor specified by the method reference include exactly one method that does not have its ACC_ABSTRACT flag set, then this method is chosen and method lookup succeeds.
+
+Otherwise, if any superinterface of C declares a method with the name and descriptor specified by the method reference that has neither its ACC_PRIVATE flag nor its ACC_STATIC flag set, one of these is arbitrarily chosen and method lookup succeeds.
 
 Otherwise, method lookup fails.
 
-Then:
+A maximally-specific superinterface method of a class or interface C for a particular method name and descriptor is any method for which all of the following are true:
+
+The method is declared in a superinterface (direct or indirect) of C.
+
+The method is declared with the specified name and descriptor.
+
+The method has neither its ACC_PRIVATE flag nor its ACC_STATIC flag set.
+
+Where the method is declared in interface I, there exists no other maximally-specific superinterface method of C with the specified name and descriptor that is declared in a subinterface of I.
+
+The result of method resolution is determined by whether method lookup succeeds or fails:
 
 If method lookup fails, method resolution throws a NoSuchMethodError.
 
-Otherwise, if method lookup succeeds and the method is abstract, but C is not abstract, method resolution throws an AbstractMethodError.
-
-Otherwise, if method lookup succeeds but the referenced method is not accessible (§5.4.4) to D, method resolution throws an IllegalAccessError.
+Otherwise, if method lookup succeeds and the referenced method is not accessible (§5.4.4) to D, method resolution throws an IllegalAccessError.
 
 Otherwise, let <E, L1> be the class or interface in which the referenced method m is actually declared, and let L2 be the defining loader of D.
 
@@ -411,15 +419,39 @@ For i = 1 to n: If Tfi is not an array type, let Ti be Tfi; otherwise, let Ti be
 
 The Java Virtual Machine must impose the loading constraints TiL1 = TiL2 for i = 0 to n (§5.3.4).
 
+When resolution searches for a method in the class's superinterfaces, the best outcome is to identify a maximally-specific non-abstract method. It is possible that this method will be chosen by method selection, so it is desirable to add class loader constraints for it.
+
+Otherwise, the result is nondeterministic. This is not new: The Java® Virtual Machine Specification has never identified exactly which method is chosen, and how "ties" should be broken. Prior to Java SE 8, this was mostly an unobservable distinction. However, beginning with Java SE 8, the set of interface methods is more heterogenous, so care must be taken to avoid problems with nondeterministic behavior. Thus:
+
+Superinterface methods that are private and static are ignored by resolution. This is consistent with the Java programming language, where such interface methods are not inherited.
+
+Any behavior controlled by the resolved method should not depend on whether the method is abstract or not.
+
+Note that if the result of resolution is an abstract method, the referenced class C may be non-abstract. Requiring C to be abstract would conflict with the nondeterministic choice of superinterface methods. Instead, resolution assumes that the run time class of the invoked object has a concrete implementation of the method.
+
 5.4.3.4. Interface Method Resolution
 
-To resolve an unresolved symbolic reference from D to an interface method in an interface C, the symbolic reference to C given by the interface method reference is first resolved (§5.4.3.1). Therefore, any exception that can be thrown as a result of failure of resolution of an interface reference can be thrown as a result of interface method resolution. If the reference to C can be successfully resolved, exceptions relating to the resolution of the interface method reference itself can be thrown.
+To resolve an unresolved symbolic reference from D to an interface method in an interface C, the symbolic reference to C given by the interface method reference is first resolved (§5.4.3.1). Therefore, any exception that can be thrown as a result of failure of resolution of an interface reference can be thrown as a result of failure of interface method resolution. If the reference to C can be successfully resolved, exceptions relating to the resolution of the interface method reference itself can be thrown.
 
 When resolving an interface method reference:
 
 If C is not an interface, interface method resolution throws an IncompatibleClassChangeError.
 
-Otherwise, if the referenced method does not have the same name and descriptor as a method in C or in one of the superinterfaces of C, or in class Object, interface method resolution throws a NoSuchMethodError.
+Otherwise, if C declares a method with the name and descriptor specified by the interface method reference, method lookup succeeds.
+
+Otherwise, if the class Object declares a method with the name and descriptor specified by the interface method reference, which has its ACC_PUBLIC flag set and does not have its ACC_STATIC flag set, method lookup succeeds.
+
+Otherwise, if the maximally-specific superinterface methods (§5.4.3.3) of C for the name and descriptor specified by the method reference include exactly one method that does not have its ACC_ABSTRACT flag set, then this method is chosen and method lookup succeeds.
+
+Otherwise, if any superinterface of C declares a method with the name and descriptor specified by the method reference that has neither its ACC_PRIVATE flag nor its ACC_STATIC flag set, one of these is arbitrarily chosen and method lookup succeeds.
+
+Otherwise, method lookup fails.
+
+The result of interface method resolution is determined by whether method lookup succeeds or fails:
+
+If method lookup fails, interface method resolution throws a NoSuchMethodError.
+
+If method lookup succeeds and the referenced method is not accessible (§5.4.4) to D, interface method resolution throws an IllegalAccessError.
 
 Otherwise, let <E, L1> be the class or interface in which the referenced interface method m is actually declared, and let L2 be the defining loader of D.
 
@@ -431,17 +463,23 @@ For i = 1 to n: If Tfi is not an array type, let Ti be Tfi; otherwise, let Ti be
 
 The Java Virtual Machine must impose the loading constraints TiL1 = TiL2 for i = 0 to n (§5.3.4).
 
+The clause about accessibility is necessary because interface method resolution may pick a private method of interface C. (Prior to Java SE 8, the result of interface method resolution could be a non-public method of class Object or a static method of class Object; such results were not consistent with the inheritance model of the Java programming language, and are disallowed in Java SE 8 and above.)
+
 5.4.3.5. Method Type and Method Handle Resolution
 
-To resolve an unresolved symbolic reference to a method type, all symbolic references to classes mentioned in the method descriptor encapsulated by the method type are resolved (§5.4.3.1). Therefore, any exception that can be thrown as a result of failure of resolution of a class reference can be thrown as a result of method type resolution.
+To resolve an unresolved symbolic reference to a method type, it is as if resolution occurs of unresolved symbolic references to classes and interfaces (§5.4.3.1) whose names correspond to the types given in the method descriptor (§4.3.3).
 
-The result of method type resolution is a reference to an instance of java.lang.invoke.MethodType which represents the method descriptor.
+Any exception that can be thrown as a result of failure of resolution of a class reference can thus be thrown as a result of failure of method type resolution.
 
-Resolution of an unresolved symbolic reference to a method handle is more complicated. Each method handle resolved by the Java Virtual Machine has an equivalent instruction sequence called its bytecode behavior, indicated by the method handle's kind. The integer values and descriptions of the nine kinds of method handle are given in Table 5.1.
+The result of successful method type resolution is a reference to an instance of java.lang.invoke.MethodType which represents the method descriptor.
+
+Method type resolution occurs regardless of whether the run time constant pool actually contains symbolic references to classes and interfaces indicated in the method descriptor. Also, the resolution is deemed to occur on unresolved symbolic references, so a failure to resolve one method type will not necessarily lead to a later failure to resolve another method type with the same textual method descriptor, if suitable classes and interfaces can be loaded by the later time.
+
+Resolution of an unresolved symbolic reference to a method handle is more complicated. Each method handle resolved by the Java Virtual Machine has an equivalent instruction sequence called its bytecode behavior, indicated by the method handle's kind. The integer values and descriptions of the nine kinds of method handle are given in Table 5.4.3.5-A.
 
 Symbolic references by an instruction sequence to fields or methods are indicated by C.x:T, where x and T are the name and descriptor (§4.3.2, §4.3.3) of the field or method, and C is the class or interface in which the field or method is to be found.
 
-Table 5.1. Bytecode Behaviors for Method Handles
+Table 5.4.3.5-A. Bytecode Behaviors for Method Handles
 
 Kind	Description	Interpretation
 1	REF_getField	getfield C.f:T
@@ -451,7 +489,7 @@ Kind	Description	Interpretation
 5	REF_invokeVirtual	invokevirtual C.m:(A*)T
 6	REF_invokeStatic	invokestatic C.m:(A*)T
 7	REF_invokeSpecial	invokespecial C.m:(A*)T
-8	REF_newInvokeSpecial	new C; dup; invokespecial C.<init>:(A*)void
+8	REF_newInvokeSpecial	new C; dup; invokespecial C.<init>:(A*)V
 9	REF_invokeInterface	invokeinterface C.m:(A*)T
 
 
@@ -462,25 +500,25 @@ Let R be the symbolic reference to the field or method contained within MH.
 
 (R is derived from the CONSTANT_Fieldref, CONSTANT_Methodref, or CONSTANT_InterfaceMethodref structure referred to by the reference_index item of the CONSTANT_MethodHandle from which MH is derived.)
 
-Let C be a symbolic reference to the type referenced by R.
-
-(C is derived from the CONSTANT_Class structure referred to by the class_index item in the CONSTANT_Fieldref, CONSTANT_Methodref, or CONSTANT_InterfaceMethodref represented by R.)
-
-Let f or m be the name of the field or method referenced by R.
-
-(f or m is derived from the CONSTANT_NameAndType structure referred to by the name_and_type_index item in the CONSTANT_Fieldref, CONSTANT_Methodref, or CONSTANT_InterfaceMethodref structure from which R is derived.)
-
-Let T and (in the case of a method) A* be the return type and argument type sequence of the field or method referenced by R.
+Let T be the type of the field referenced by R, or the return type of the method referenced by R. Let A* be the sequence (perhaps empty) of parameter types of the method referenced by R.
 
 (T and A* are derived from the CONSTANT_NameAndType structure referred to by the name_and_type_index item in the CONSTANT_Fieldref, CONSTANT_Methodref, or CONSTANT_InterfaceMethodref structure from which R is derived.)
 
-To resolve MH, all symbolic references to classes, fields, and methods in MH's bytecode behavior are resolved (§5.4.3.1, §5.4.3.2, §5.4.3.3, §5.4.3.4). That is, C, f, m, T, and A* are resolved. Therefore, any exception that can be thrown as a result of failure of resolution of a symbolic reference to a class, field, method, or interface method can be thrown as a result of method handle resolution.
+To resolve MH, all symbolic references to classes, interfaces, fields, and methods in MH's bytecode behavior are resolved, using the following three steps:
 
-(In general, resolving a method handle can be done in exactly the same circumstances that the Java Virtual Machine would successfully resolve the symbolic references in the bytecode behavior. In particular, method handles to private and protected members can be created in exactly those classes for which the corresponding normal accesses are legal.)
+First, R is resolved.
 
-If all such symbolic references can be resolved, then a reference to an instance of java.lang.invoke.MethodType is obtained as if by resolution of a symbolic reference to the method descriptor (§4.3.3) given for the kind of MH in Table 5.2.
+Second, resolution occurs as if of unresolved symbolic references to classes and interfaces whose names correspond to each type in A*, and to the type T, in that order.
 
-Table 5.2. Method Descriptors for Method Handles
+Third, a reference to an instance of java.lang.invoke.MethodType is obtained as if by resolution of an unresolved symbolic reference to a method type that contains the method descriptor specified in Table 5.4.3.5-B for the kind of MH.
+
+It is as if the symbolic reference to a method handle contains a symbolic reference to the method type that the resolved method handle will eventually have. The detailed structure of the method type is obtained by inspecting Table 5.4.3.5-B.
+
+In each step, any exception that can be thrown as a result of failure of resolution of a class or interface or field or method reference can be thrown as a result of failure of method handle resolution.
+
+The intent is that resolving a method handle can be done in exactly the same circumstances that the Java Virtual Machine would successfully resolve the symbolic references in the bytecode behavior. In particular, method handles to private and protected members can be created in exactly those classes for which the corresponding normal accesses are legal.
+
+Table 5.4.3.5-B. Method Descriptors for Method Handles
 
 Kind	Description	Method descriptor
 1	REF_getField	(C)T
@@ -495,15 +533,17 @@ Kind	Description	Method descriptor
 
 
 
-The result of method handle resolution is a reference o to an instance of java.lang.invoke.MethodHandle which represents the method handle MH. If the method m has the ACC_VARARGS flag set (§4.6), then o is a variable arity method handle; otherwise, o is a fixed arity method handle.
+The result of successful method handle resolution is a reference to an instance of java.lang.invoke.MethodHandle which represents the method handle MH.
 
-(A variable arity method handle performs argument list boxing (JLS §15.12.4.2) when invoked via invoke, while its behavior with respect to invokeExact is as if the ACC_VARARGS flag were not set.)
+The type descriptor of this java.lang.invoke.MethodHandle instance is the java.lang.invoke.MethodType instance produced in the third step of method handle resolution above.
 
-Method handle resolution throws an IncompatibleClassChangeError if m has the ACC_VARARGS flag set and either m's argument type sequence is empty or the last parameter in m's argument type sequence is not an array type. (That is, creation of a variable arity method handle fails.)
+The type descriptor of a method handle is such that a valid call to invokeExact in java.lang.invoke.MethodHandle on the method handle has exactly the same stack effects as the bytecode behavior. Calling this method handle on a valid set of arguments has exactly the same effect and returns the same result (if any) as the corresponding bytecode behavior.
 
-The type descriptor of the java.lang.invoke.MethodHandle instance referenced by o is the java.lang.invoke.MethodType instance produced by method type resolution mentioned earlier.
+If the method referenced by R has the ACC_VARARGS flag set (§4.6), then the java.lang.invoke.MethodHandle instance is a variable arity method handle; otherwise, it is a fixed arity method handle.
 
-(The type descriptor of a method handle is such that a valid call to invokeExact in java.lang.invoke.MethodHandle on the method handle has exactly the same stack effects as the bytecode behavior. Calling this method handle on a valid set of arguments has exactly the same effect and returns the same result (if any) as the corresponding bytecode behavior.)
+A variable arity method handle performs argument list boxing (JLS §15.12.4.2) when invoked via invoke, while its behavior with respect to invokeExact is as if the ACC_VARARGS flag were not set.
+
+Method handle resolution throws an IncompatibleClassChangeError if the method referenced by R has the ACC_VARARGS flag set and either A* is an empty sequence or the last parameter type in A* is not an array type. That is, creation of a variable arity method handle fails.
 
 An implementation of the Java Virtual Machine is not required to intern method types or method handles. That is, two distinct symbolic references to method types or method handles which are structurally identical might not resolve to the same instance of java.lang.invoke.MethodType or java.lang.invoke.MethodHandle respectively.
 
@@ -513,9 +553,9 @@ The java.lang.invoke.MethodHandles class in the Java SE platform API allows crea
 
 To resolve an unresolved symbolic reference to a call site specifier involves three steps:
 
-A call site specifier gives a symbolic reference to a method handle which is to serve as the bootstrap method for a dynamic call site. The method handle is resolved (§5.4.3.5) to obtain a reference to an instance of java.lang.invoke.MethodHandle.
+A call site specifier gives a symbolic reference to a method handle which is to serve as the bootstrap method for a dynamic call site (§4.7.23). The method handle is resolved to obtain a reference to an instance of java.lang.invoke.MethodHandle (§5.4.3.5).
 
-A call site specifier gives a method descriptor, TD. A reference to an instance of java.lang.invoke.MethodType is obtained as if by resolution of a symbolic reference to a method type (§5.4.3.5) with the same parameter and return types as TD.
+A call site specifier gives a method descriptor, TD. A reference to an instance of java.lang.invoke.MethodType is obtained as if by resolution of a symbolic reference to a method type with the same parameter and return types as TD (§5.4.3.5).
 
 A call site specifier gives zero or more static arguments, which communicate application-specific metadata to the bootstrap method. Any static arguments which are symbolic references to classes, method handles, or method types are resolved, as if by invocation of the ldc instruction (§ldc), to obtain references to Class objects, java.lang.invoke.MethodHandle objects, and java.lang.invoke.MethodType objects respectively. Any static arguments that are string literals are used to obtain references to String objects.
 
@@ -527,17 +567,17 @@ the reference to an instance of java.lang.invoke.MethodType,
 
 the references to instances of Class, java.lang.invoke.MethodHandle, java.lang.invoke.MethodType, and String.
 
-During resolution of the symbolic reference to the method handle in the call site specifier, or resolution of the symbolic reference to the method type for the method descriptor in the call site specifier, or resolution of a symbolic reference to any static argument, any of the exceptions pertaining to method type or method handle resolution (§5.4.3.5) may be thrown.
+During resolution of the symbolic reference to the method handle in the call site specifier, or resolution of the symbolic reference to the method type for the method descriptor in the call site specifier, or resolution of a symbolic reference to any static argument, any of the exceptions pertaining to method type or method handle resolution may be thrown (§5.4.3.5).
 
 5.4.4. Access Control
 
-A class or interface C is accessible to a class or interface D if and only if either of the following conditions is true:
+A class or interface C is accessible to a class or interface D if and only if either of the following is true:
 
 C is public.
 
 C and D are members of the same run-time package (§5.3).
 
-A field or method R is accessible to a class or interface D if and only if any of the following conditions are true:
+A field or method R is accessible to a class or interface D if and only if any of the following is true:
 
 R is public.
 
@@ -547,41 +587,47 @@ R is either protected or has default access (that is, neither public nor protect
 
 R is private and is declared in D.
 
-This discussion of access control omits a related restriction on the target of a protected field access or method invocation (the target must be of class D or a subtype of D). That requirement is checked as part of the verification process (§5.4.1); it is not part of link-time access control.
+This discussion of access control omits a related restriction on the target of a protected field access or method invocation (the target must be of class D or a subtype of D). That requirement is checked as part of the verification process (§4.10.1.8); it is not part of link-time access control.
 
-5.4.5. Method overriding
+5.4.5. Overriding
 
-An instance method m1 declared in class C overrides another instance method m2 declared in class A iff all of the following are true:
+An instance method mC declared in class C overrides another instance method mA declared in class A iff either mC is the same as mA, or all of the following are true:
 
 C is a subclass of A.
 
-m2 has the same name and descriptor as m1.
+mC has the same name and descriptor as mA.
 
-Either:
+mC is not marked ACC_PRIVATE.
 
-m2 is marked ACC_PUBLIC; or is marked ACC_PROTECTED; or is marked neither ACC_PUBLIC nor ACC_PROTECTED nor ACC_PRIVATE and belongs to the same run-time package as C, or
+One of the following is true:
 
-m1 overrides a method m3, m3 distinct from m1, m3 distinct from m2, such that m3 overrides m2.
+mA is marked ACC_PUBLIC; or is marked ACC_PROTECTED; or is marked neither ACC_PUBLIC nor ACC_PROTECTED nor ACC_PRIVATE and A belongs to the same run-time package as C.
+
+mC overrides a method m' (m' distinct from mC and mA) such that m' overrides mA.
 
 5.5. Initialization
 
 Initialization of a class or interface consists of executing its class or interface initialization method (§2.9).
 
-A class or interface may be initialized only as a result of:
+A class or interface C may be initialized only as a result of:
 
-The execution of any one of the Java Virtual Machine instructions new, getstatic, putstatic, or invokestatic that references the class or interface (§new, §getstatic, §putstatic, §invokestatic). All of these instructions reference a class directly or indirectly through either a field reference or a method reference.
+The execution of any one of the Java Virtual Machine instructions new, getstatic, putstatic, or invokestatic that references C (§new, §getstatic, §putstatic, §invokestatic). These instructions reference a class or interface directly or indirectly through either a field reference or a method reference.
 
-Upon execution of a new instruction, the referenced class or interface is initialized if it has not been initialized already.
+Upon execution of a new instruction, the referenced class is initialized if it has not been initialized already.
 
 Upon execution of a getstatic, putstatic, or invokestatic instruction, the class or interface that declared the resolved field or method is initialized if it has not been initialized already.
 
-The first invocation of a java.lang.invoke.MethodHandle instance which was the result of resolution of a method handle by the Java Virtual Machine (§5.4.3.5) and which has a kind of 2 (REF_getStatic), 4 (REF_putStatic), or 6 (REF_invokeStatic).
+The first invocation of a java.lang.invoke.MethodHandle instance which was the result of method handle resolution (§5.4.3.5) for a method handle of kind 2 (REF_getStatic), 4 (REF_putStatic), 6 (REF_invokeStatic), or 8 (REF_newInvokeSpecial).
+
+This implies that the class of a bootstrap method is initialized when the bootstrap method is invoked for an invokedynamic instruction (§invokedynamic), as part of the continuing resolution of the call site specifier.
 
 Invocation of certain reflective methods in the class library (§2.12), for example, in class Class or in package java.lang.reflect.
 
-The initialization of one of its subclasses.
+If C is a class, the initialization of one of its subclasses.
 
-Its designation as the initial class at Java Virtual Machine start-up (§5.2).
+If C is an interface that declares a non-abstract, non-static method, the initialization of a class that implements C directly or indirectly.
+
+If C is a class, its designation as the initial class at Java Virtual Machine startup (§5.2).
 
 Prior to initialization, a class or interface must be linked, that is, verified, prepared, and optionally resolved.
 
@@ -601,17 +647,23 @@ Synchronize on the initialization lock, LC, for C. This involves waiting until t
 
 If the Class object for C indicates that initialization is in progress for C by some other thread, then release LC and block the current thread until informed that the in-progress initialization has completed, at which time repeat this procedure.
 
+Thread interrupt status is unaffected by execution of the initialization procedure.
+
 If the Class object for C indicates that initialization is in progress for C by the current thread, then this must be a recursive request for initialization. Release LC and complete normally.
 
 If the Class object for C indicates that C has already been initialized, then no further action is required. Release LC and complete normally.
 
 If the Class object for C is in an erroneous state, then initialization is not possible. Release LC and throw a NoClassDefFoundError.
 
-Otherwise, record the fact that initialization of the Class object for C is in progress by the current thread, and release LC. Then, initialize each final static field of C with the constant value in its ConstantValue attribute (§4.7.2), in the order the fields appear in the ClassFile structure.
+Otherwise, record the fact that initialization of the Class object for C is in progress by the current thread, and release LC.
 
-Next, if C is a class rather than an interface, and its superclass SC has not yet been initialized, then recursively perform this entire procedure for SC. If necessary, verify and prepare SC first.
+Then, initialize each final static field of C with the constant value in its ConstantValue attribute (§4.7.2), in the order the fields appear in the ClassFile structure.
 
-If the initialization of SC completes abruptly because of a thrown exception, then acquire LC, label the Class object for C as erroneous, notify all waiting threads, release LC, and complete abruptly, throwing the same exception that resulted from initializing SC.
+Next, if C is a class rather than an interface, and its superclass has not yet been initialized, then let SC be its superclass and let SI1, ..., SIn be all superinterfaces of C (whether direct or indirect) that declare at least one non-abstract, non-static method. The order of superinterfaces is given by a recursive enumeration over the superinterface hierarchy of each interface directly implemented by C. For each interface I directly implemented by C (in the order of the interfaces array of C), the enumeration recurs on I's superinterfaces (in the order of the interfaces array of I) before returning I.
+
+For each S in the list [ SC, SI1, ..., SIn ], recursively perform this entire procedure for S. If necessary, verify and prepare S first.
+
+If the initialization of S completes abruptly because of a thrown exception, then acquire LC, label the Class object for C as erroneous, notify all waiting threads, release LC, and complete abruptly, throwing the same exception that resulted from initializing SC.
 
 Next, determine whether assertions are enabled for C by querying its defining class loader.
 
@@ -619,9 +671,7 @@ Next, execute the class or interface initialization method of C.
 
 If the execution of the class or interface initialization method completes normally, then acquire LC, label the Class object for C as fully initialized, notify all waiting threads, release LC, and complete this procedure normally.
 
-Otherwise, the class or interface initialization method must have completed abruptly by throwing some exception E. If the class of E is not Error or one of its subclasses, then create a new instance of the class ExceptionInInitializerError with E as the argument, and use this object in place of E in the following step.
-
-If a new instance of ExceptionInInitializerError cannot be created because an OutOfMemoryError occurs, then use an OutOfMemoryError object in place of E in the following step.
+Otherwise, the class or interface initialization method must have completed abruptly by throwing some exception E. If the class of E is not Error or one of its subclasses, then create a new instance of the class ExceptionInInitializerError with E as the argument, and use this object in place of E in the following step. If a new instance of ExceptionInInitializerError cannot be created because an OutOfMemoryError occurs, then use an OutOfMemoryError object in place of E in the following step.
 
 Acquire LC, label the Class object for C as erroneous, notify all waiting threads, release LC, and complete this procedure abruptly with reason E or its replacement as determined in the previous step.
 

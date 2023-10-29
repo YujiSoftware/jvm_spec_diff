@@ -162,13 +162,13 @@ A Java Virtual Machine instruction consists of an opcode specifying the operatio
 
 6.1. Assumptions: The Meaning of "Must"
 
-The description of each instruction is always given in the context of Java Virtual Machine code that satisfies the static and structural constraints of §4. In the description of individual Java Virtual Machine instructions, we frequently state that some situation "must" or "must not" be the case: "The value2 must be of type int." The constraints of §4 guarantee that all such expectations will in fact be met. If some constraint (a "must" or "must not") in an instruction description is not satisfied at run time, the behavior of the Java Virtual Machine is undefined.
+The description of each instruction is always given in the context of Java Virtual Machine code that satisfies the static and structural constraints of §4 (The class File Format). In the description of individual Java Virtual Machine instructions, we frequently state that some situation "must" or "must not" be the case: "The value2 must be of type int." The constraints of §4 (The class File Format) guarantee that all such expectations will in fact be met. If some constraint (a "must" or "must not") in an instruction description is not satisfied at run time, the behavior of the Java Virtual Machine is undefined.
 
-The Java Virtual Machine checks that Java Virtual Machine code satisfies the static and structural constraints at link time using a class file verifier (§4.10). Thus, a Java Virtual Machine will only attempt to execute code from valid class files. Performing verification at link time is attractive in that the checks are performed just once, substantially reducing the amount of work that must be done at run time. Other implementation strategies are possible, provided that they comply with The Java Language Specification, Java SE 7 Edition and The Java Virtual Machine Specification, Java SE 7 Edition.
+The Java Virtual Machine checks that Java Virtual Machine code satisfies the static and structural constraints at link time using a class file verifier (§4.10). Thus, a Java Virtual Machine will only attempt to execute code from valid class files. Performing verification at link time is attractive in that the checks are performed just once, substantially reducing the amount of work that must be done at run time. Other implementation strategies are possible, provided that they comply with The Java Language Specification, Java SE 8 Edition and The Java Virtual Machine Specification, Java SE 8 Edition.
 
 6.2. Reserved Opcodes
 
-In addition to the opcodes of the instructions specified later in this chapter, which are used in class files (§4), three opcodes are reserved for internal use by a Java Virtual Machine implementation. If the instruction set of the Java Virtual Machine is extended in the future, these reserved opcodes are guaranteed not to be used.
+In addition to the opcodes of the instructions specified later in this chapter, which are used in class files (§4 (The class File Format)), three opcodes are reserved for internal use by a Java Virtual Machine implementation. If the instruction set of the Java Virtual Machine is extended in the future, these reserved opcodes are guaranteed not to be used.
 
 Two of the reserved opcodes, numbers 254 (0xfe) and 255 (0xff), have the mnemonics impdep1 and impdep2, respectively. These instructions are intended to provide "back doors" or traps to implementation-specific functionality implemented in software and hardware, respectively. The third reserved opcode, number 202 (0xca), has the mnemonic breakpoint and is intended to be used by debuggers to implement breakpoints.
 
@@ -176,7 +176,7 @@ Although these opcodes have been reserved, they may be used only inside a Java V
 
 6.3. Virtual Machine Errors
 
-A Java Virtual Machine implementation throws an object that is an instance of a subclass of the class VirtualMethodError when an internal error or resource limitation prevents it from implementing the semantics described in this chapter. This specification cannot predict where internal errors or resource limitations may be encountered and does not mandate precisely when they can be reported. Thus, any of the VirtualMethodError subclasses defined below may be thrown at any time during the operation of the Java Virtual Machine:
+A Java Virtual Machine implementation throws an object that is an instance of a subclass of the class VirtualMachineError when an internal error or resource limitation prevents it from implementing the semantics described in this chapter. This specification cannot predict where internal errors or resource limitations may be encountered and does not mandate precisely when they can be reported. Thus, any of the VirtualMachineError subclasses defined below may be thrown at any time during the operation of the Java Virtual Machine:
 
 InternalError: An internal error has occurred in the Java Virtual Machine implementation because of a fault in the software implementing the virtual machine, a fault in the underlying host system software, or a fault in the hardware. This error is delivered asynchronously (§2.10) when it is detected and may occur at any point in a program.
 
@@ -226,7 +226,7 @@ Run-time Exceptions
 
 If any run-time exceptions can be thrown by the execution of an instruction, they are set off one to a line, in the order in which they must be thrown.
 
-Other than the linking and run-time exceptions, if any, listed for an instruction, that instruction must not throw any run-time exceptions except for instances of VirtualMethodError or its subclasses.
+Other than the linking and run-time exceptions, if any, listed for an instruction, that instruction must not throw any run-time exceptions except for instances of VirtualMachineError or its subclasses.
 
 Notes
 
@@ -252,7 +252,7 @@ shows an operation that begins by having value2 on top of the operand stack with
 
 Values of types long and double are represented by a single entry on the operand stack.
 
-In The Java Virtual Machine Specification, First Edition, values on the operand stack of types long and double were each represented in the stack diagram by two entries.
+In the First Edition of The Java® Virtual Machine Specification, values on the operand stack of types long and double were each represented in the stack diagram by two entries.
 
 6.5. Instructions
 aaload
@@ -2408,7 +2408,7 @@ Description
 
 The objectref, which must be of type reference, is popped from the operand stack. The unsigned indexbyte1 and indexbyte2 are used to construct an index into the run-time constant pool of the current class (§2.6), where the value of the index is (indexbyte1 << 8) | indexbyte2. The run-time constant pool item at that index must be a symbolic reference to a field (§5.1), which gives the name and descriptor of the field as well as a symbolic reference to the class in which the field is to be found. The referenced field is resolved (§5.4.3.2). The value of the referenced field in objectref is fetched and pushed onto the operand stack.
 
-The type of objectref must not be an array type. If the field is protected (§4.6), and it is a member of a superclass of the current class, and the field is not declared in the same run-time package (§5.3) as the current class, then the class of objectref must be either the current class or a subclass of the current class.
+The type of objectref must not be an array type. If the field is protected, and it is a member of a superclass of the current class, and the field is not declared in the same run-time package (§5.3) as the current class, then the class of objectref must be either the current class or a subclass of the current class.
 
 Linking Exceptions
 
@@ -2877,7 +2877,7 @@ Description
 
 Both value1 and value2 must be of type int. The values are popped from the operand stack. The int result is the value of the Java programming language expression value1 / value2. The result is pushed onto the operand stack.
 
-An int division rounds towards 0; that is, the quotient produced for int values in n/d is an int value q whose magnitude is as large as possible while satisfying |d · q| ≤ |n|. Moreover, q is positive when |n| ≥ |d| and n and d have the same sign, but q is negative when |n| ≥ |d| and n and d have opposite signs.
+An int division rounds towards 0; that is, the quotient produced for int values in n/d is an int value q whose magnitude is as large as possible while satisfying |d ⋅ q| ≤ |n|. Moreover, q is positive when |n| ≥ |d| and n and d have the same sign, but q is negative when |n| ≥ |d| and n and d have opposite signs.
 
 There is one special case that does not satisfy this rule: if the dividend is the negative integer of largest possible magnitude for the int type, and the divisor is -1, then overflow occurs, and the result is equal to the dividend. Despite the overflow, no exception is thrown in this case.
 
@@ -3205,7 +3205,7 @@ Description
 
 Both value1 and value2 must be of type int. The values are popped from the operand stack. The int result is value1 * value2. The result is pushed onto the operand stack.
 
-The result is the 32 low-order bits of the true mathematical result in a sufficiently wide two's-complement format, represented as a value of type int. If overflow occurs, then the sign of the result may not be the same as the sign of the mathematical sum of the two values.
+The result is the 32 low-order bits of the true mathematical result in a sufficiently wide two's-complement format, represented as a value of type int. If overflow occurs, then the sign of the result may not be the same as the sign of the mathematical multiplication of the two values.
 
 Despite the fact that overflow may occur, execution of an imul instruction never throws a run-time exception.
 
@@ -3334,23 +3334,21 @@ Each specific lexical occurrence of an invokedynamic instruction is called a dyn
 
 First, the unsigned indexbyte1 and indexbyte2 are used to construct an index into the run-time constant pool of the current class (§2.6), where the value of the index is (indexbyte1 << 8) | indexbyte2. The run-time constant pool item at that index must be a symbolic reference to a call site specifier (§5.1). The values of the third and fourth operand bytes must always be zero.
 
-The call site specifier is resolved (§5.4.3.6) for this specific dynamic call site to obtain a reference to a java.lang.invoke.MethodHandle instance, a reference to a java.lang.invoke.MethodType instance, and references to static arguments.
+The call site specifier is resolved (§5.4.3.6) for this specific dynamic call site to obtain a reference to a java.lang.invoke.MethodHandle instance that will serve as the bootstrap method, a reference to a java.lang.invoke.MethodType instance, and references to static arguments.
 
-Next, as part of the continuing resolution of the call site specifier, the bootstrap method is invoked as if by execution of an invokevirtual instruction (§invokevirtual) that contains a run-time constant pool index to a symbolic reference to a method (§5.1) with the following properties:
+Next, as part of the continuing resolution of the call site specifier, the bootstrap method is invoked as if by execution of an invokevirtual instruction (§invokevirtual) that contains a run-time constant pool index to a symbolic reference R where:
 
-The method's name is invoke;
+R is a symbolic reference to a method of a class (§5.1);
 
-The method's descriptor has a return type of java.lang.invoke.CallSite;
+for the symbolic reference to the class in which the method is to be found, R specifies java.lang.invoke.MethodHandle;
 
-The method's descriptor has parameter types derived from the items pushed on to the operand stack, as follows.
+for the name of the method, R specifies invoke;
 
-The first four parameter types in the descriptor are java.lang.invoke.MethodHandle, java.lang.invoke.MethodHandles.Lookup, String, and java.lang.invoke.MethodType, in that order.
+for the descriptor of the method, R specifies a return type of java.lang.invoke.CallSite and parameter types derived from the items pushed on the operand stack.
 
-If the call site specifier has any static arguments, then a parameter type for each argument is appended to the parameter types of the method descriptor in the order that the arguments were pushed on to the operand stack. These parameter types may be Class, java.lang.invoke.MethodHandle, java.lang.invoke.MethodType, String, int, long, float, or double.
+The first three parameter types are java.lang.invoke.MethodHandles.Lookup, String, and java.lang.invoke.MethodType, in that order. If the call site specifier has any static arguments, then a parameter type for each argument is appended to the parameter types of the method descriptor in the order that the arguments were pushed on to the operand stack. These parameter types may be Class, java.lang.invoke.MethodHandle, java.lang.invoke.MethodType, String, int, long, float, or double.
 
-The method's symbolic reference to the class in which the method is to be found indicates the class java.lang.invoke.MethodHandle.
-
-where it is as if the following items were pushed, in order, onto the operand stack:
+and where it is as if the following items were pushed, in order, on the operand stack:
 
 the reference to the java.lang.invoke.MethodHandle object for the bootstrap method;
 
@@ -3362,7 +3360,7 @@ the reference to the java.lang.invoke.MethodType object obtained for the method 
 
 references to classes, method types, method handles, and string literals denoted as static arguments in the call site specifier, and numeric values (§2.3.1, §2.3.2) denoted as static arguments in the call site specifier, in the order in which they appear in the call site specifier. (That is, no boxing occurs for primitive values.)
 
-As long as the bootstrap method can be correctly invoked by the invoke method, its descriptor is arbitrary. For example, the first parameter type could be Object instead of java.lang.invoke.MethodHandles.Lookup, and the return type could also be Object instead of java.lang.invoke.CallSite.
+The symbolic reference R describes a method which is signature polymorphic (§2.9). Due to the operation of invokevirtual on a signature polymorphic method called invoke, the type descriptor of the receiving method handle (representing the bootstrap method) need not be semantically equal to the method descriptor specified by R. For example, the first parameter type specified by R could be Object instead of java.lang.invoke.MethodHandles.Lookup, and the return type specified by R could be Object instead of java.lang.invoke.CallSite. As long as the bootstrap method can be invoked by the invoke method without a java.lang.invoke.WrongMethodTypeException being thrown, the type descriptor of the method handle which represents the bootstrap method is arbitrary.
 
 If the bootstrap method is a variable arity method, then some or all of the arguments on the operand stack specified above may be collected into a trailing array parameter.
 
@@ -3398,9 +3396,7 @@ Otherwise, during the continuing resolution of the call site specifier, if the t
 
 Run-time Exceptions
 
-If this specific dynamic call site completed resolution of its call site specifier, it implies that a non-null reference to an instance of java.lang.invoke.CallSite is bound to this dynamic call site. Therefore, the operand stack item which represents a reference to the target of the call site object is never null. Similarly, it implies that the method descriptor in the call site specifier is semantically equal to the type descriptor of the method handle to be invoked as if by execution of an invokevirtual instruction.
-
-These invariants mean that an invokedynamic instruction which is bound to a call site object never throws a NullPointerException or a java.lang.invoke.WrongMethodTypeException.
+If this specific dynamic call site completed resolution of its call site specifier, it implies that a non-null reference to an instance of java.lang.invoke.CallSite is bound to this dynamic call site. Therefore, the operand stack item which represents a reference to the target of the call site object is never null. Similarly, it implies that the method descriptor in the call site specifier is semantically equal to the type descriptor of the method handle to be invoked as if by execution of an invokevirtual instruction. Together, these invariants mean that an invokedynamic instruction which is bound to a call site object never throws a NullPointerException or a java.lang.invoke.WrongMethodTypeException.
 
 invokeinterface
 Operation
@@ -3429,17 +3425,19 @@ Operand Stack
 
 Description
 
-The unsigned indexbyte1 and indexbyte2 are used to construct an index into the run-time constant pool of the current class (§2.6), where the value of the index is (indexbyte1 << 8) | indexbyte2. The run-time constant pool item at that index must be a symbolic reference to an interface method (§5.1), which gives the name and descriptor (§4.3.3) of the interface method as well as a symbolic reference to the interface in which the interface method is to be found. The named interface method is resolved (§5.4.3.4). The resolved interface method must not be an instance initialization method (§2.9) or the class or interface initialization method (§2.9).
+The unsigned indexbyte1 and indexbyte2 are used to construct an index into the run-time constant pool of the current class (§2.6), where the value of the index is (indexbyte1 << 8) | indexbyte2. The run-time constant pool item at that index must be a symbolic reference to an interface method (§5.1), which gives the name and descriptor (§4.3.3) of the interface method as well as a symbolic reference to the interface in which the interface method is to be found. The named interface method is resolved (§5.4.3.4).
+
+The resolved interface method must not be an instance initialization method, or the class or interface initialization method (§2.9).
 
 The count operand is an unsigned byte that must not be zero. The objectref must be of type reference and must be followed on the operand stack by nargs argument values, where the number, type, and order of the values must be consistent with the descriptor of the resolved interface method. The value of the fourth operand byte must always be zero.
 
 Let C be the class of objectref. The actual method to be invoked is selected by the following lookup procedure:
 
-If C contains a declaration for an instance method with the same name and descriptor as the resolved method, then this is the method to be invoked, and the lookup procedure terminates.
+If C contains a declaration for an instance method with the same name and descriptor as the resolved method, then it is the method to be invoked.
 
-Otherwise, if C has a superclass, this same lookup procedure is performed recursively using the direct superclass of C; the method to be invoked is the result of the recursive invocation of this lookup procedure.
+Otherwise, if C has a superclass, a search for a declaration of an instance method with the same name and descriptor as the resolved method is performed, starting with the direct superclass of C and continuing with the direct superclass of that class, and so forth, until a match is found or no further superclasses exist. If a match is found, then it is the method to be invoked.
 
-Otherwise, an AbstractMethodError is raised.
+Otherwise, if there is exactly one maximally-specific method (§5.4.3.3) in the superinterfaces of C that matches the resolved method's name and descriptor and is not abstract, then it is the method to be invoked.
 
 If the method is synchronized, the monitor associated with objectref is entered or reentered as if by execution of a monitorenter instruction (§monitorenter) in the current thread.
 
@@ -3455,19 +3453,23 @@ Linking Exceptions
 
 During resolution of the symbolic reference to the interface method, any of the exceptions pertaining to interface method resolution (§5.4.3.4) can be thrown.
 
+Otherwise, if the resolved method is static or private, the invokeinterface instruction throws an IncompatibleClassChangeError.
+
 Run-time Exceptions
 
 Otherwise, if objectref is null, the invokeinterface instruction throws a NullPointerException.
 
 Otherwise, if the class of objectref does not implement the resolved interface, invokeinterface throws an IncompatibleClassChangeError.
 
-Otherwise, if no method matching the resolved name and descriptor is selected, invokeinterface throws an AbstractMethodError.
+Otherwise, if step 1 or step 2 of the lookup procedure selects a method that is not public, invokeinterface throws an IllegalAccessError.
 
-Otherwise, if the selected method is not public, invokeinterface throws an IllegalAccessError.
+Otherwise, if step 1 or step 2 of the lookup procedure selects an abstract method, invokeinterface throws an AbstractMethodError.
 
-Otherwise, if the selected method is abstract, invokeinterface throws an AbstractMethodError.
+Otherwise, if step 1 or step 2 of the lookup procedure selects a native method and the code that implements the method cannot be bound, invokeinterface throws an UnsatisfiedLinkError.
 
-Otherwise, if the selected method is native and the code that implements the method cannot be bound, invokeinterface throws an UnsatisfiedLinkError.
+Otherwise, if step 3 of the lookup procedure determines there are multiple maximally-specific methods in the superinterfaces of C that match the resolved method's name and descriptor and are not abstract, invokeinterface throws an IncompatibleClassChangeError
+
+Otherwise, if step 3 of the lookup procedure determines there are zero maximally-specific methods in the superinterfaces of C that match the resolved method's name and descriptor and are not abstract, invokeinterface throws an AbstractMethodError.
 
 Notes
 
@@ -3476,6 +3478,8 @@ The count operand of the invokeinterface instruction records a measure of the nu
 The fourth operand byte exists to reserve space for an additional operand used in certain of Oracle's Java Virtual Machine implementations, which replace the invokeinterface instruction by a specialized pseudo-instruction at run time. It must be retained for backwards compatibility.
 
 The nargs argument values and objectref are not one-to-one with the first nargs+1 local variables. Argument values of types long and double must be stored in two consecutive local variables, thus more than nargs local variables may be required to pass nargs argument values to the invoked method.
+
+The selection logic allows a non-abstract method declared in a superinterface to be selected. Methods in interfaces are only considered if there is no matching method in the class hierarchy. In the event that there are two non-abstract methods in the superinterface hierarchy, with neither more specific than the other, an error occurs; there is no attempt to disambiguate (for example, one may be the referenced method and one may be unrelated, but we do not prefer the referenced method). On the other hand, if there are many abstract methods but only one non-abstract method, the non-abstract method is selected (unless an abstract method is more specific).
 
 invokespecial
 Operation
@@ -3502,23 +3506,29 @@ Operand Stack
 
 Description
 
-The unsigned indexbyte1 and indexbyte2 are used to construct an index into the run-time constant pool of the current class (§2.6), where the value of the index is (indexbyte1 << 8) | indexbyte2. The run-time constant pool item at that index must be a symbolic reference to a method (§5.1), which gives the name and descriptor (§4.3.3) of the method as well as a symbolic reference to the class in which the method is to be found. The named method is resolved (§5.4.3.3). Finally, if the resolved method is protected (§4.6), and it is a member of a superclass of the current class, and the method is not declared in the same run-time package (§5.3) as the current class, then the class of objectref must be either the current class or a subclass of the current class.
+The unsigned indexbyte1 and indexbyte2 are used to construct an index into the run-time constant pool of the current class (§2.6), where the value of the index is (indexbyte1 << 8) | indexbyte2. The run-time constant pool item at that index must be a symbolic reference to a method or an interface method (§5.1), which gives the name and descriptor (§4.3.3) of the method as well as a symbolic reference to the class or interface in which the method is to be found. The named method is resolved (§5.4.3.3, §5.4.3.4).
 
-Next, the resolved method is selected for invocation unless all of the following conditions are true:
+If the resolved method is protected, and it is a member of a superclass of the current class, and the method is not declared in the same run-time package (§5.3) as the current class, then the class of objectref must be either the current class or a subclass of the current class.
 
-The ACC_SUPER flag (Table 4.1) is set for the current class.
-
-The class of the resolved method is a superclass of the current class.
+If all of the following are true, let C be the direct superclass of the current class:
 
 The resolved method is not an instance initialization method (§2.9).
 
-If the above conditions are true, the actual method to be invoked is selected by the following lookup procedure. Let C be the direct superclass of the current class:
+If the symbolic reference names a class (not an interface), then that class is a superclass of the current class.
 
-If C contains a declaration for an instance method with the same name and descriptor as the resolved method, then this method will be invoked. The lookup procedure terminates.
+The ACC_SUPER flag is set for the class file (§4.1).
 
-Otherwise, if C has a superclass, this same lookup procedure is performed recursively using the direct superclass of C. The method to be invoked is the result of the recursive invocation of this lookup procedure.
+Otherwise, let C be the class or interface named by the symbolic reference.
 
-Otherwise, an AbstractMethodError is raised.
+The actual method to be invoked is selected by the following lookup procedure:
+
+If C contains a declaration for an instance method with the same name and descriptor as the resolved method, then it is the method to be invoked.
+
+Otherwise, if C is a class and has a superclass, a search for a declaration of an instance method with the same name and descriptor as the resolved method is performed, starting with the direct superclass of C and continuing with the direct superclass of that class, and so forth, until a match is found or no further superclasses exist. If a match is found, then it is the method to be invoked.
+
+Otherwise, if C is an interface and the class Object contains a declaration of a public instance method with the same name and descriptor as the resolved method, then it is the method to be invoked.
+
+Otherwise, if there is exactly one maximally-specific method (§5.4.3.3) in the superinterfaces of C that matches the resolved method's name and descriptor and is not abstract, then it is the method to be invoked.
 
 The objectref must be of type reference and must be followed on the operand stack by nargs argument values, where the number, type, and order of the values must be consistent with the descriptor of the selected instance method.
 
@@ -3544,11 +3554,15 @@ Run-time Exceptions
 
 Otherwise, if objectref is null, the invokespecial instruction throws a NullPointerException.
 
-Otherwise, if no method matching the resolved name and descriptor is selected, invokespecial throws an AbstractMethodError.
+Otherwise, if the resolved method is a protected method of a superclass of the current class, declared in a different run-time package, and the class of objectref is not the current class or a subclass of the current class, then invokespecial throws an IllegalAccessError.
 
-Otherwise, if the selected method is abstract, invokespecial throws an AbstractMethodError.
+Otherwise, if step 1, step 2, or step 3 of the lookup procedure selects an abstract method, invokespecial throws an AbstractMethodError.
 
-Otherwise, if the selected method is native and the code that implements the method cannot be bound, invokespecial throws an UnsatisfiedLinkError.
+Otherwise, if step 1, step 2, or step 3 of the lookup procedure selects a native method and the code that implements the method cannot be bound, invokespecial throws an UnsatisfiedLinkError.
+
+Otherwise, if step 4 of the lookup procedure determines there are multiple maximally-specific methods in the superinterfaces of C that match the resolved method's name and descriptor and are not abstract, invokespecial throws an IncompatibleClassChangeError
+
+Otherwise, if step 4 of the lookup procedure determines there are zero maximally-specific methods in the superinterfaces of C that match the resolved method's name and descriptor and are not abstract, invokespecial throws an AbstractMethodError.
 
 Notes
 
@@ -3557,6 +3571,8 @@ The difference between the invokespecial instruction and the invokevirtual instr
 The invokespecial instruction was named invokenonvirtual prior to JDK release 1.0.2.
 
 The nargs argument values and objectref are not one-to-one with the first nargs+1 local variables. Argument values of types long and double must be stored in two consecutive local variables, thus more than nargs local variables may be required to pass nargs argument values to the invoked method.
+
+The invokespecial instruction handles invocation of a private interface method, a non-abstract interface method referenced via a direct superinterface, and a non-abstract interface method referenced via a superclass. In these cases, the rules for selection are essentially the same as those for invokeinterface (except that the search starts from a different class).
 
 invokestatic
 Operation
@@ -3583,9 +3599,13 @@ Operand Stack
 
 Description
 
-The unsigned indexbyte1 and indexbyte2 are used to construct an index into the run-time constant pool of the current class (§2.6), where the value of the index is (indexbyte1 << 8) | indexbyte2. The run-time constant pool item at that index must be a symbolic reference to a method (§5.1), which gives the name and descriptor (§4.3.3) of the method as well as a symbolic reference to the class in which the method is to be found. The named method is resolved (§5.4.3.3). The resolved method must not be an instance initialization method (§2.9) or the class or interface initialization method (§2.9). It must be static, and therefore cannot be abstract.
+The unsigned indexbyte1 and indexbyte2 are used to construct an index into the run-time constant pool of the current class (§2.6), where the value of the index is (indexbyte1 << 8) | indexbyte2. The run-time constant pool item at that index must be a symbolic reference to a method or an interface method (§5.1), which gives the name and descriptor (§4.3.3) of the method as well as a symbolic reference to the class or interface in which the method is to be found. The named method is resolved (§5.4.3.3).
 
-On successful resolution of the method, the class that declared the resolved method is initialized (§5.5) if that class has not already been initialized.
+The resolved method must not be an instance initialization method, or the class or interface initialization method (§2.9).
+
+The resolved method must be static, and therefore cannot be abstract.
+
+On successful resolution of the method, the class or interface that declared the resolved method is initialized (§5.5) if that class or interface has not already been initialized.
 
 The operand stack must contain nargs argument values, where the number, type, and order of the values must be consistent with the descriptor of the resolved method.
 
@@ -3607,7 +3627,7 @@ Otherwise, if the resolved method is an instance method, the invokestatic instru
 
 Run-time Exceptions
 
-Otherwise, if execution of this invokestatic instruction causes initialization of the referenced class, invokestatic may throw an Error as detailed in §5.5.
+Otherwise, if execution of this invokestatic instruction causes initialization of the referenced class or interface, invokestatic may throw an Error as detailed in §5.5.
 
 Otherwise, if the resolved method is native and the code that implements the method cannot be bound, invokestatic throws an UnsatisfiedLinkError.
 
@@ -3640,17 +3660,21 @@ Operand Stack
 
 Description
 
-The unsigned indexbyte1 and indexbyte2 are used to construct an index into the run-time constant pool of the current class (§2.6), where the value of the index is (indexbyte1 << 8) | indexbyte2. The run-time constant pool item at that index must be a symbolic reference to a method (§5.1), which gives the name and descriptor (§4.3.3) of the method as well as a symbolic reference to the class in which the method is to be found. The named method is resolved (§5.4.3.3). The resolved method must not be an instance initialization method (§2.9) or the class or interface initialization method (§2.9). Finally, if the resolved method is protected (§4.6), and it is a member of a superclass of the current class, and the method is not declared in the same run-time package (§5.3) as the current class, then the class of objectref must be either the current class or a subclass of the current class.
+The unsigned indexbyte1 and indexbyte2 are used to construct an index into the run-time constant pool of the current class (§2.6), where the value of the index is (indexbyte1 << 8) | indexbyte2. The run-time constant pool item at that index must be a symbolic reference to a method (§5.1), which gives the name and descriptor (§4.3.3) of the method as well as a symbolic reference to the class in which the method is to be found. The named method is resolved (§5.4.3.3).
+
+The resolved method must not be an instance initialization method, or the class or interface initialization method (§2.9).
+
+If the resolved method is protected, and it is a member of a superclass of the current class, and the method is not declared in the same run-time package (§5.3) as the current class, then the class of objectref must be either the current class or a subclass of the current class.
 
 If the resolved method is not signature polymorphic (§2.9), then the invokevirtual instruction proceeds as follows.
 
 Let C be the class of objectref. The actual method to be invoked is selected by the following lookup procedure:
 
-If C contains a declaration for an instance method m that overrides (§5.4.5) the resolved method, then m is the method to be invoked, and the lookup procedure terminates.
+If C contains a declaration for an instance method m that overrides (§5.4.5) the resolved method, then m is the method to be invoked.
 
-Otherwise, if C has a superclass, this same lookup procedure is performed recursively using the direct superclass of C; the method to be invoked is the result of the recursive invocation of this lookup procedure.
+Otherwise, if C has a superclass, a search for a declaration of an instance method that overrides the resolved method is performed, starting with the direct superclass of C and continuing with the direct superclass of that class, and so forth, until an overriding method is found or no further superclasses exist. If an overriding method is found, it is the method to be invoked.
 
-Otherwise, an AbstractMethodError is raised.
+Otherwise, if there is exactly one maximally-specific method (§5.4.3.3) in the superinterfaces of C that matches the resolved method's name and descriptor and is not abstract, then it is the method to be invoked.
 
 The objectref must be followed on the operand stack by nargs argument values, where the number, type, and order of the values must be consistent with the descriptor of the selected instance method.
 
@@ -3694,13 +3718,17 @@ Run-time Exceptions
 
 Otherwise, if objectref is null, the invokevirtual instruction throws a NullPointerException.
 
+Otherwise, if the resolved method is a protected method of a superclass of the current class, declared in a different run-time package, and the class of objectref is not the current class or a subclass of the current class, then invokevirtual throws an IllegalAccessError.
+
 Otherwise, if the resolved method is not signature polymorphic:
 
-If no method matching the resolved name and descriptor is selected, invokevirtual throws an AbstractMethodError.
+If step 1 or step 2 of the lookup procedure selects an abstract method, invokevirtual throws an AbstractMethodError.
 
-Otherwise, if the selected method is abstract, invokevirtual throws an AbstractMethodError.
+Otherwise, if step 1 or step 2 of the lookup procedure selects a native method and the code that implements the method cannot be bound, invokevirtual throws an UnsatisfiedLinkError.
 
-Otherwise, if the selected method is native and the code that implements the method cannot be bound, invokevirtual throws an UnsatisfiedLinkError.
+Otherwise, if step 3 of the lookup procedure determines there are multiple maximally-specific methods in the superinterfaces of C that match the resolved method's name and descriptor and are not abstract, invokevirtual throws an IncompatibleClassChangeError
+
+Otherwise, if step 3 of the lookup procedure determines there are zero maximally-specific methods in the superinterfaces of C that match the resolved method's name and descriptor and are not abstract, invokevirtual throws an AbstractMethodError.
 
 Otherwise, if the resolved method is signature polymorphic, then:
 
@@ -3711,6 +3739,8 @@ If the method name is invoke, and the obtained instance of java.lang.invoke.Meth
 Notes
 
 The nargs argument values and objectref are not one-to-one with the first nargs+1 local variables. Argument values of types long and double must be stored in two consecutive local variables, thus more than nargs local variables may be required to pass nargs argument values to the invoked method.
+
+It is possible that the symbolic reference of an invokevirtual instruction resolves to an interface method. In this case, it is possible that there is no overriding method in the class hierarchy, but that a non-abstract interface method matches the resolved method's descriptor. The selection logic matches such a method, using the same rules as for invokeinterface.
 
 ior
 Operation
@@ -3857,7 +3887,7 @@ Both value1 and value2 must be of type int. The values are popped from the opera
 
 Notes
 
-The resulting value is ⌊ value1 / 2s ⌋, where s is value2 & 0x1f. For non-negative value1, this is equivalent to truncating int division by 2 to the power s. The shift distance actually used is always in the range 0 to 31, inclusive, as if value2 were subjected to a bitwise logical AND with the mask value 0x1f.
+The resulting value is floor(value1 / 2s), where s is value2 & 0x1f. For non-negative value1, this is equivalent to truncating int division by 2 to the power s. The shift distance actually used is always in the range 0 to 31, inclusive, as if value2 were subjected to a bitwise logical AND with the mask value 0x1f.
 
 istore
 Operation
@@ -4483,7 +4513,7 @@ Description
 
 Both value1 and value2 must be of type long. The values are popped from the operand stack. The long result is the value of the Java programming language expression value1 / value2. The result is pushed onto the operand stack.
 
-A long division rounds towards 0; that is, the quotient produced for long values in n / d is a long value q whose magnitude is as large as possible while satisfying |d · q| ≤ |n|. Moreover, q is positive when |n| ≥ |d| and n and d have the same sign, but q is negative when |n| ≥ |d| and n and d have opposite signs.
+A long division rounds towards 0; that is, the quotient produced for long values in n / d is a long value q whose magnitude is as large as possible while satisfying |d ⋅ q| ≤ |n|. Moreover, q is positive when |n| ≥ |d| and n and d have the same sign, but q is negative when |n| ≥ |d| and n and d have opposite signs.
 
 There is one special case that does not satisfy this rule: if the dividend is the negative integer of largest possible magnitude for the long type and the divisor is -1, then overflow occurs and the result is equal to the dividend; despite the overflow, no exception is thrown in this case.
 
@@ -4581,7 +4611,7 @@ Description
 
 Both value1 and value2 must be of type long. The values are popped from the operand stack. The long result is value1 * value2. The result is pushed onto the operand stack.
 
-The result is the 64 low-order bits of the true mathematical result in a sufficiently wide two's-complement format, represented as a value of type long. If overflow occurs, the sign of the result may not be the same as the sign of the mathematical sum of the two values.
+The result is the 64 low-order bits of the true mathematical result in a sufficiently wide two's-complement format, represented as a value of type long. If overflow occurs, the sign of the result may not be the same as the sign of the mathematical multiplication of the two values.
 
 Despite the fact that overflow may occur, execution of an lmul instruction never throws a run-time exception.
 
@@ -4806,7 +4836,7 @@ The value1 must be of type long, and value2 must be of type int. The values are 
 
 Notes
 
-The resulting value is ⌊ value1 / 2s ⌋, where s is value2 & 0x3f. For non-negative value1, this is equivalent to truncating long division by 2 to the power s. The shift distance actually used is therefore always in the range 0 to 63, inclusive, as if value2 were subjected to a bitwise logical AND with the mask value 0x3f.
+The resulting value is floor(value1 / 2s), where s is value2 & 0x3f. For non-negative value1, this is equivalent to truncating long division by 2 to the power s. The shift distance actually used is therefore always in the range 0 to 63, inclusive, as if value2 were subjected to a bitwise logical AND with the mask value 0x3f.
 
 lstore
 Operation
@@ -4900,7 +4930,7 @@ Both value1 and value2 must be of type long. The values are popped from the oper
 
 For long subtraction, a-b produces the same result as a+(-b). For long values, subtraction from zero is the same as negation.
 
-The result is the 64 low-order bits of the true mathematical result in a sufficiently wide two's-complement format, represented as a value of type long. If overflow occurs, then the sign of the result may not be the same as the sign of the mathematical sum of the two values.
+The result is the 64 low-order bits of the true mathematical result in a sufficiently wide two's-complement format, represented as a value of type long. If overflow occurs, then the sign of the result may not be the same as the sign of the mathematical difference of the two values.
 
 Despite the fact that overflow may occur, execution of an lsub instruction never throws a run-time exception.
 
@@ -4927,7 +4957,7 @@ Operand Stack
 
 Description
 
-The value1 must be of type long, and value2 must be of type int. The values are popped from the operand stack. A long result is calculated by shifting value1 right logically (with zero extension) by the amount indicated by the low 6 bits of value2. The result is pushed onto the operand stack.
+The value1 must be of type long, and value2 must be of type int. The values are popped from the operand stack. A long result is calculated by shifting value1 right logically by s bit positions, with zero extension, where s is the value of the low 6 bits of value2. The result is pushed onto the operand stack.
 
 Notes
 
@@ -5169,7 +5199,7 @@ The count must be of type int. It is popped off the operand stack. The count rep
 
 The atype is a code that indicates the type of array to create. It must take one of the following values:
 
-Table 6.1. Array type codes
+Table 6.5.newarray-A. Array type codes
 
 Array Type	atype
 T_BOOLEAN	4
@@ -5305,7 +5335,7 @@ Operand Stack
 
 Description
 
-The unsigned indexbyte1 and indexbyte2 are used to construct an index into the run-time constant pool of the current class (§2.6), where the value of the index is (indexbyte1 << 8) | indexbyte2. The run-time constant pool item at that index must be a symbolic reference to a field (§5.1), which gives the name and descriptor of the field as well as a symbolic reference to the class in which the field is to be found. The class of objectref must not be an array. If the field is protected (§4.6), and it is a member of a superclass of the current class, and the field is not declared in the same run-time package (§5.3) as the current class, then the class of objectref must be either the current class or a subclass of the current class.
+The unsigned indexbyte1 and indexbyte2 are used to construct an index into the run-time constant pool of the current class (§2.6), where the value of the index is (indexbyte1 << 8) | indexbyte2. The run-time constant pool item at that index must be a symbolic reference to a field (§5.1), which gives the name and descriptor of the field as well as a symbolic reference to the class in which the field is to be found. The class of objectref must not be an array. If the field is protected, and it is a member of a superclass of the current class, and the field is not declared in the same run-time package (§5.3) as the current class, then the class of objectref must be either the current class or a subclass of the current class.
 
 The referenced field is resolved (§5.4.3.2). The type of a value stored by a putfield instruction must be compatible with the descriptor of the referenced field (§4.3.2). If the field descriptor type is boolean, byte, char, short, or int, then the value must be an int. If the field descriptor type is float, long, or double, then the value must be a float, long, or double, respectively. If the field descriptor type is a reference type, then the value must be of a type that is assignment compatible (JLS §5.2) with the field descriptor type. If the field is final, it must be declared in the current class, and the instruction must occur in an instance initialization method (<init>) of the current class (§2.9).
 
@@ -5526,7 +5556,7 @@ Operand Stack
 
 Description
 
-The immediate unsigned byte1 and byte2 values are assembled into an intermediate short where the value of the short is (byte1 << 8) | byte2. The intermediate value is then sign-extended to an int value. That value is pushed onto the operand stack.
+The immediate unsigned byte1 and byte2 values are assembled into an intermediate short, where the value of the short is (byte1 << 8) | byte2. The intermediate value is then sign-extended to an int value. That value is pushed onto the operand stack.
 
 swap
 Operation

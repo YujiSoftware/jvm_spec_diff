@@ -90,7 +90,7 @@ double, whose values are elements of the double value set or, where supported, t
 
 The values of the boolean type encode the truth values true and false, and the default value is false.
 
-The Java Virtual Machine Specification, First Edition did not consider boolean to be a Java Virtual Machine type. However, boolean values do have limited support in the Java Virtual Machine. The Java Virtual Machine Specification, Second Edition clarified the issue by treating boolean as a type.
+The First Edition of The Java® Virtual Machine Specification did not consider boolean to be a Java Virtual Machine type. However, boolean values do have limited support in the Java Virtual Machine. The Second Edition of The Java® Virtual Machine Specification clarified the issue by treating boolean as a type.
 
 The values of the returnAddress type are pointers to the opcodes of Java Virtual Machine instructions. Of the primitive types, only the returnAddress type is not directly associated with a Java programming language type.
 
@@ -118,9 +118,9 @@ Every implementation of the Java Virtual Machine is required to support two stan
 
 The finite nonzero values of any floating-point value set can all be expressed in the form s ⋅ m ⋅ 2(e − N + 1), where s is +1 or −1, m is a positive integer less than 2N, and e is an integer between Emin = −(2K−1−2) and Emax = 2K−1−1, inclusive, and where N and K are parameters that depend on the value set. Some values can be represented in this form in more than one way; for example, supposing that a value v in a value set might be represented in this form using certain values for s, m, and e, then if it happened that m were even and e were less than 2K-1, one could halve m and increase e by 1 to produce a second representation for the same value v. A representation in this form is called normalized if m ≥ 2N-1; otherwise the representation is said to be denormalized. If a value in a value set cannot be represented in such a way that m ≥ 2N-1, then the value is said to be a denormalized value, because it has no normalized representation.
 
-The constraints on the parameters N and K (and on the derived parameters Emin and Emax) for the two required and two optional floating-point value sets are summarized in Table 2.1.
+The constraints on the parameters N and K (and on the derived parameters Emin and Emax) for the two required and two optional floating-point value sets are summarized in Table 2.3.2-A.
 
-Table 2.1. Floating-point value set parameters
+Table 2.3.2-A. Floating-point value set parameters
 
 Parameter	float	float-extended-exponent	double	double-extended-exponent
 N	24	24	53	53
@@ -130,11 +130,11 @@ Emin	-126	≤ -1022	-1022	≤ -16382
 
 
 
-Where one or both extended-exponent value sets are supported by an implementation, then for each supported extended-exponent value set there is a specific implementation-dependent constant K, whose value is constrained by Table 2.1; this value K in turn dictates the values for Emin and Emax.
+Where one or both extended-exponent value sets are supported by an implementation, then for each supported extended-exponent value set there is a specific implementation-dependent constant K, whose value is constrained by Table 2.3.2-A; this value K in turn dictates the values for Emin and Emax.
 
 Each of the four value sets includes not only the finite nonzero values that are ascribed to it above, but also the five values positive zero, negative zero, positive infinity, negative infinity, and NaN.
 
-Note that the constraints in Table 2.1 are designed so that every element of the float value set is necessarily also an element of the float-extended-exponent value set, the double value set, and the double-extended-exponent value set. Likewise, each element of the double value set is necessarily also an element of the double-extended-exponent value set. Each extended-exponent value set has a larger range of exponent values than the corresponding standard value set, but does not have more precision.
+Note that the constraints in Table 2.3.2-A are designed so that every element of the float value set is necessarily also an element of the float-extended-exponent value set, the double value set, and the double-extended-exponent value set. Likewise, each element of the double value set is necessarily also an element of the double-extended-exponent value set. Each extended-exponent value set has a larger range of exponent values than the corresponding standard value set, but does not have more precision.
 
 The elements of the float value set are exactly the values that can be represented using the single floating-point format defined in the IEEE 754 standard, except that there is only one NaN value (IEEE 754 specifies 224-2 distinct NaN values). The elements of the double value set are exactly the values that can be represented using the double floating-point format defined in the IEEE 754 standard, except that there is only one NaN value (IEEE 754 specifies 253-2 distinct NaN values). Note, however, that the elements of the float-extended-exponent and double-extended-exponent value sets defined here do not correspond to the values that can be represented using IEEE 754 single extended and double extended formats, respectively. This specification does not mandate a specific representation for the values of the floating-point value sets except where floating-point values must be represented in the class file format (§4.4.4, §4.4.5).
 
@@ -168,7 +168,7 @@ An array type consists of a component type with a single dimension (whose length
 
 A reference value may also be the special null reference, a reference to no object, which will be denoted here by null. The null reference initially has no run-time type, but may be cast to any type. The default value of a reference type is null.
 
-The Java Virtual Machine specification does not mandate a concrete value encoding null.
+This specification does not mandate a concrete value encoding null.
 
 2.5. Run-Time Data Areas
 
@@ -182,7 +182,7 @@ The Java Virtual Machine can support many threads of execution at once (JLS §17
 
 Each Java Virtual Machine thread has a private Java Virtual Machine stack, created at the same time as the thread. A Java Virtual Machine stack stores frames (§2.6). A Java Virtual Machine stack is analogous to the stack of a conventional language such as C: it holds local variables and partial results, and plays a part in method invocation and return. Because the Java Virtual Machine stack is never manipulated directly except to push and pop frames, frames may be heap allocated. The memory for a Java Virtual Machine stack does not need to be contiguous.
 
-In The Java Virtual Machine Specification, First Edition, the Java Virtual Machine stack was known as the Java stack.
+In the First Edition of The Java® Virtual Machine Specification, the Java Virtual Machine stack was known as the Java stack.
 
 This specification permits Java Virtual Machine stacks either to be of a fixed size or to dynamically expand and contract as required by the computation. If the Java Virtual Machine stacks are of a fixed size, the size of each Java Virtual Machine stack may be chosen independently when that stack is created.
 
@@ -210,7 +210,7 @@ If a computation requires more heap than can be made available by the automatic 
 
 The Java Virtual Machine has a method area that is shared among all Java Virtual Machine threads. The method area is analogous to the storage area for compiled code of a conventional language or analogous to the "text" segment in an operating system process. It stores per-class structures such as the run-time constant pool, field and method data, and the code for methods and constructors, including the special methods (§2.9) used in class and instance initialization and interface initialization.
 
-The method area is created on virtual machine start-up. Although the method area is logically part of the heap, simple implementations may choose not to either garbage collect or compact it. This version of the Java Virtual Machine specification does not mandate the location of the method area or the policies used to manage compiled code. The method area may be of a fixed size or may be expanded as required by the computation and may be contracted if a larger method area becomes unnecessary. The memory for the method area does not need to be contiguous.
+The method area is created on virtual machine start-up. Although the method area is logically part of the heap, simple implementations may choose not to either garbage collect or compact it. This specification does not mandate the location of the method area or the policies used to manage compiled code. The method area may be of a fixed size or may be expanded as required by the computation and may be contracted if a larger method area becomes unnecessary. The memory for the method area does not need to be contiguous.
 
 A Java Virtual Machine implementation may provide the programmer or the user control over the initial size of the method area, as well as, in the case of a varying-size method area, control over the maximum and minimum method area size.
 
@@ -228,7 +228,7 @@ The following exceptional condition is associated with the construction of the r
 
 When creating a class or interface, if the construction of the run-time constant pool requires more memory than can be made available in the method area of the Java Virtual Machine, the Java Virtual Machine throws an OutOfMemoryError.
 
-See §5 for information about the construction of the run-time constant pool.
+See §5 (Loading, Linking, and Initializing) for information about the construction of the run-time constant pool.
 
 2.5.6. Native Method Stacks
 
@@ -372,11 +372,11 @@ Other methods named <clinit> in a class file are of no consequence. They are not
 
 In a class file whose version number is 51.0 or above, the method must additionally have its ACC_STATIC flag (§4.6) set in order to be the class or interface initialization method.
 
-This requirement is new in Java SE 7. In a class file whose version number is 50.0 or below, a method named <clinit> that is void and takes no arguments is considered the class or interface initialization method regardless of the setting of its ACC_STATIC flag.
+This requirement was introduced in Java SE 7. In a class file whose version number is 50.0 or below, a method named <clinit> that is void and takes no arguments is considered the class or interface initialization method regardless of the setting of its ACC_STATIC flag.
 
 The name <clinit> is supplied by a compiler. Because the name <clinit> is not a valid identifier, it cannot be used directly in a program written in the Java programming language. Class and interface initialization methods are invoked implicitly by the Java Virtual Machine; they are never invoked directly from any Java Virtual Machine instruction, but are invoked only indirectly as part of the class initialization process.
 
-A method is signature polymorphic if and only if all of the following conditions hold :
+A method is signature polymorphic if all of the following are true:
 
 It is declared in the java.lang.invoke.MethodHandle class.
 
@@ -386,9 +386,9 @@ It has a return type of Object.
 
 It has the ACC_VARARGS and ACC_NATIVE flags set.
 
-In Java SE 7, the only signature polymorphic methods are the invoke and invokeExact methods of the class java.lang.invoke.MethodHandle.
+In Java SE 8, the only signature polymorphic methods are the invoke and invokeExact methods of the class java.lang.invoke.MethodHandle.
 
-The Java Virtual Machine gives special treatment to signature polymorphic methods in the invokevirtual instruction (§invokevirtual), in order to effect invocation of a method handle. A method handle is a typed, directly executable reference to an underlying method, constructor, field, or similar low-level operation (§5.4.3.5), with optional transformations of arguments or return values. These transformations are quite general, and include such patterns as conversion, insertion, deletion, and substitution. See the java.lang.invoke package in the Java SE platform API for more information.
+The Java Virtual Machine gives special treatment to signature polymorphic methods in the invokevirtual instruction (§invokevirtual), in order to effect invocation of a method handle. A method handle is a strongly typed, directly executable reference to an underlying method, constructor, field, or similar low-level operation (§5.4.3.5), with optional transformations of arguments or return values. These transformations are quite general, and include such patterns as conversion, insertion, deletion, and substitution. See the java.lang.invoke package in the Java SE platform API for more information.
 
 2.10. Exceptions
 
@@ -457,11 +457,11 @@ For the majority of typed instructions, the instruction type is represented expl
 
 Given the Java Virtual Machine's one-byte opcode size, encoding types into opcodes places pressure on the design of its instruction set. If each typed instruction supported all of the Java Virtual Machine's run-time data types, there would be more instructions than could be represented in a byte. Instead, the instruction set of the Java Virtual Machine provides a reduced level of type support for certain operations. In other words, the instruction set is intentionally not orthogonal. Separate instructions can be used to convert between unsupported and supported data types as necessary.
 
-Table 2.2 summarizes the type support in the instruction set of the Java Virtual Machine. A specific instruction, with type information, is built by replacing the T in the instruction template in the opcode column by the letter in the type column. If the type column for some instruction template and type is blank, then no instruction exists supporting that type of operation. For instance, there is a load instruction for type int, iload, but there is no load instruction for type byte.
+Table 2.11.1-A summarizes the type support in the instruction set of the Java Virtual Machine. A specific instruction, with type information, is built by replacing the T in the instruction template in the opcode column by the letter in the type column. If the type column for some instruction template and type is blank, then no instruction exists supporting that type of operation. For instance, there is a load instruction for type int, iload, but there is no load instruction for type byte.
 
-Note that most instructions in Table 2.2 do not have forms for the integral types byte, char, and short. None have forms for the boolean type. A compiler encodes loads of literal values of types byte and short using Java Virtual Machine instructions that sign-extend those values to values of type int at compile-time or run-time. Loads of literal values of types boolean and char are encoded using instructions that zero-extend the literal to a value of type int at compile-time or run-time. Likewise, loads from arrays of values of type boolean, byte, short, and char are encoded using Java Virtual Machine instructions that sign-extend or zero-extend the values to values of type int. Thus, most operations on values of actual types boolean, byte, char, and short are correctly performed by instructions operating on values of computational type int.
+Note that most instructions in Table 2.11.1-A do not have forms for the integral types byte, char, and short. None have forms for the boolean type. A compiler encodes loads of literal values of types byte and short using Java Virtual Machine instructions that sign-extend those values to values of type int at compile-time or run-time. Loads of literal values of types boolean and char are encoded using instructions that zero-extend the literal to a value of type int at compile-time or run-time. Likewise, loads from arrays of values of type boolean, byte, short, and char are encoded using Java Virtual Machine instructions that sign-extend or zero-extend the values to values of type int. Thus, most operations on values of actual types boolean, byte, char, and short are correctly performed by instructions operating on values of computational type int.
 
-Table 2.2. Type support in the Java Virtual Machine instruction set
+Table 2.11.1-A. Type support in the Java Virtual Machine instruction set
 
 opcode	byte	short	int	long	float	double	char	reference
 Tipush	bipush	sipush	 	 	 	 	 	 
@@ -495,11 +495,11 @@ Treturn	 	 	ireturn	lreturn	freturn	dreturn	 	areturn
 
 
 
-The mapping between Java Virtual Machine actual types and Java Virtual Machine computational types is summarized by Table 2.3.
+The mapping between Java Virtual Machine actual types and Java Virtual Machine computational types is summarized by Table 2.11.1-B.
 
-Certain Java Virtual Machine instructions such as pop and swap operate on the operand stack without regard to type; however, such instructions are constrained to use only on values of certain categories of computational types, also given in Table 2.3.
+Certain Java Virtual Machine instructions such as pop and swap operate on the operand stack without regard to type; however, such instructions are constrained to use only on values of certain categories of computational types, also given in Table 2.11.1-B.
 
-Table 2.3. Actual and Computational types in the Java Virtual Machine
+Table 2.11.1-B. Actual and Computational types in the Java Virtual Machine
 
 Actual type	Computational type	Category
 boolean	int	1
@@ -586,13 +586,15 @@ long to float or double
 
 float to double
 
-The widening numeric conversion instructions are i2l, i2f, i2d, l2f, l2d, and f2d. The mnemonics for these opcodes are straightforward given the naming conventions for typed instructions and the punning use of 2 to mean "to." For instance, the i2d instruction converts an int value to a double. Widening numeric conversions do not lose information about the overall magnitude of a numeric value. Indeed, conversions widening from int to long and int to double do not lose any information at all; the numeric value is preserved exactly. Conversions widening from float to double that are FP-strict (§2.8.2) also preserve the numeric value exactly; however, such conversions that are not FP-strict may lose information about the overall magnitude of the converted value.
+The widening numeric conversion instructions are i2l, i2f, i2d, l2f, l2d, and f2d. The mnemonics for these opcodes are straightforward given the naming conventions for typed instructions and the punning use of 2 to mean "to." For instance, the i2d instruction converts an int value to a double.
 
-Conversion of an int or a long value to float, or of a long value to double, may lose precision, that is, may lose some of the least significant bits of the value; the resulting floating-point value is a correctly rounded version of the integer value, using IEEE 754 round to nearest mode.
+Most widening numeric conversions do not lose information about the overall magnitude of a numeric value. Indeed, conversions widening from int to long and int to double do not lose any information at all; the numeric value is preserved exactly. Conversions widening from float to double that are FP-strict (§2.8.2) also preserve the numeric value exactly; only such conversions that are not FP-strict may lose information about the overall magnitude of the converted value.
 
-A widening numeric conversion of an int to a long simply sign-extends the two's-complement representation of the int value to fill the wider format. A widening numeric conversion of a char to an integral type zero-extends the representation of the char value to fill the wider format.
+Conversions from int to float, or from long to float, or from long to double, may lose precision, that is, may lose some of the least significant bits of the value; the resulting floating-point value is a correctly rounded version of the integer value, using IEEE 754 round to nearest mode.
 
 Despite the fact that loss of precision may occur, widening numeric conversions never cause the Java Virtual Machine to throw a run-time exception (not to be confused with an IEEE 754 floating-point exception).
+
+A widening numeric conversion of an int to a long simply sign-extends the two's-complement representation of the int value to fill the wider format. A widening numeric conversion of a char to an integral type zero-extends the representation of the char value to fill the wider format.
 
 Note that widening numeric conversions do not exist from integral types byte, char, and short to type int. As noted in §2.11.1, values of type byte, char, and short are internally widened to type int, making these conversions implicit.
 
@@ -608,7 +610,7 @@ double to int, long, or float
 
 The narrowing numeric conversion instructions are i2b, i2c, i2s, l2i, f2i, f2l, d2i, d2l, and d2f. A narrowing numeric conversion can result in a value of different sign, a different order of magnitude, or both; it may thereby lose precision.
 
-A narrowing numeric conversion of an int or long to an integral type T simply discards all but the N lowest-order bits, where N is the number of bits used to represent type T. This may cause the resulting value not to have the same sign as the input value.
+A narrowing numeric conversion of an int or long to an integral type T simply discards all but the n lowest-order bits, where n is the number of bits used to represent type T. This may cause the resulting value not to have the same sign as the input value.
 
 In a narrowing numeric conversion of a floating-point value to an integral type T, where T is either int or long, the floating-point value is converted as follows:
 
@@ -638,7 +640,7 @@ Create a new class instance: new.
 
 Create a new array: newarray, anewarray, multianewarray.
 
-Access fields of classes (static fields, known as class variables) and fields of class instances (non-static fields, known as instance variables): getfield, putfield, getstatic, putstatic.
+Access fields of classes (static fields, known as class variables) and fields of class instances (non-static fields, known as instance variables): getstatic, putstatic, getfield, putfield.
 
 Load an array component onto the operand stack: baload, caload, saload, iaload, laload, faload, daload, aaload.
 

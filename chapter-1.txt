@@ -4,8 +4,9 @@ Table of Contents
 
 1.1. A Bit of History
 1.2. The Java Virtual Machine
-1.3. Summary of Chapters
+1.3. Organization of the Specification
 1.4. Notation
+1.5. Feedback
 1.1. A Bit of History
 
 The Java® programming language is a general-purpose, concurrent, object-oriented language. Its syntax is similar to C and C++, but it omits many of the features that make C and C++ complex, confusing, and unsafe. The Java platform was initially developed to address the problems of building software for networked consumer devices. It was designed to support multiple host architectures and to allow secure delivery of software components. To meet these requirements, compiled code had to survive transport across networks, operate on any client, and assure the client that it was safe to run.
@@ -30,11 +31,9 @@ The Java Virtual Machine knows nothing of the Java programming language, only of
 
 For the sake of security, the Java Virtual Machine imposes strong syntactic and structural constraints on the code in a class file. However, any language with functionality that can be expressed in terms of a valid class file can be hosted by the Java Virtual Machine. Attracted by a generally available, machine-independent platform, implementors of other languages can turn to the Java Virtual Machine as a delivery vehicle for their languages.
 
-The Java Virtual Machine specified here is compatible with the Java SE 7 platform, and supports the Java programming language specified in The Java Language Specification, Java SE 7 Edition.
+The Java Virtual Machine specified here is compatible with the Java SE 8 platform, and supports the Java programming language specified in The Java Language Specification, Java SE 8 Edition.
 
-1.3. Summary of Chapters
-
-The rest of this book is structured as follows:
+1.3. Organization of the Specification
 
 Chapter 2 gives an overview of the Java Virtual Machine architecture.
 
@@ -48,9 +47,9 @@ Chapter 6 specifies the instruction set of the Java Virtual Machine, presenting 
 
 Chapter 7 gives a table of Java Virtual Machine opcode mnemonics indexed by opcode value.
 
-In The Java Virtual Machine Specification, Second Edition, Chapter 2 gave an overview of the Java programming language that was intended to support the specification of the Java Virtual Machine but was not itself a part of the specification. In The Java Virtual Machine Specification, Java SE 7 Edition, the reader is referred to The Java Language Specification, Java SE 7 Edition for information about the Java programming language. References of the form: (JLS §x.y) indicate where this is necessary.
+In the Second Edition of The Java® Virtual Machine Specification, Chapter 2 gave an overview of the Java programming language that was intended to support the specification of the Java Virtual Machine but was not itself a part of the specification. In The Java Virtual Machine Specification, Java SE 8 Edition, the reader is referred to The Java Language Specification, Java SE 8 Edition for information about the Java programming language. References of the form: (JLS §x.y) indicate where this is necessary.
 
-In The Java Virtual Machine Specification, Second Edition, Chapter 8 detailed the low-level actions that explained the interaction of Java Virtual Machine threads with a shared main memory. In The Java Virtual Machine Specification, Java SE 7 Edition, the reader is referred to Chapter 17 of The Java Language Specification, Java SE 7 Edition for information about threads and locks. Chapter 17 reflects The Java Memory Model and Thread Specification produced by the JSR 133 Expert Group.
+In the Second Edition of The Java® Virtual Machine Specification, Chapter 8 detailed the low-level actions that explained the interaction of Java Virtual Machine threads with a shared main memory. In The Java Virtual Machine Specification, Java SE 8 Edition, the reader is referred to Chapter 17 of The Java Language Specification, Java SE 8 Edition for information about threads and locks. Chapter 17 reflects The Java Memory Model and Thread Specification produced by the JSR 133 Expert Group.
 
 1.4. Notation
 
@@ -69,3 +68,9 @@ Italic is used for Java Virtual Machine "assembly language", its opcodes and ope
 Non-normative information, designed to clarify the specification, is given in smaller, indented text.
 
 This is non-normative information. It provides intuition, rationale, advice, examples, etc.
+
+1.5. Feedback
+
+Readers are invited to report technical errors and ambiguities in The Java® Virtual Machine Specification to jls-jvms-spec-comments@openjdk.java.net.
+
+Questions concerning the generation and manipulation of class files by javac (the reference compiler for the Java programming language) may be sent to compiler-dev@openjdk.java.net.

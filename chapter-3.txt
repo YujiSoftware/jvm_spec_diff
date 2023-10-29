@@ -28,8 +28,7 @@ This chapter consists mainly of examples of source code together with annotated 
 
 The format of the examples should be familiar to anyone who has read assembly code. Each instruction takes the form:
 
-
-<index> <opcode> [ <operand1> [ <operand2>... ]] [<comment>]
+<index> <opcode> [ <operand1> [ <operand2>... ]] [<comment>]
 
 
 The <index> is the index of the opcode of the instruction in the array that contains the bytes of Java Virtual Machine code for this method. Alternatively, the <index> may be thought of as a byte offset from the beginning of the method. The <opcode> is the mnemonic for the instruction's opcode, and the zero or more <operandN> are the operands of the instruction. The optional <comment> is given in end-of-line comment syntax:
@@ -154,7 +153,7 @@ Method double doubleLocals(double,double)
 
 Note that local variables of the local variable pairs used to store double values in doubleLocals must never be manipulated individually.
 
-The Java Virtual Machine's opcode size of 1 byte results in its compiled code being very compact. However, 1-byte opcodes also mean that the Java Virtual Machine instruction set must stay small. As a compromise, the Java Virtual Machine does not provide equal support for all data types: it is not completely orthogonal (Table 2.2).
+The Java Virtual Machine's opcode size of 1 byte results in its compiled code being very compact. However, 1-byte opcodes also mean that the Java Virtual Machine instruction set must stay small. As a compromise, the Java Virtual Machine does not provide equal support for all data types: it is not completely orthogonal (Table 2.11.1-A).
 
 For example, the comparison of values of type int in the for statement of example spin can be implemented using a single if_icmplt instruction; however, there is no single instruction in the Java Virtual Machine instruction set that performs a conditional branch on values of type double. Thus, dspin must implement its comparison of values of type double using a dcmpg instruction followed by an iflt instruction.
 
@@ -1119,8 +1118,20 @@ The compiler ensures that at any method invocation completion, a monitorexit ins
 
 3.15. Annotations
 
-The representation of annotations in class files is described in §4.7.16 and §4.7.17, which make it clear how to represent annotations on types, fields, and methods in the class file format. Package annotations require additional rules, given here.
+The representation of annotations in class files is described in §4.7.16-§4.7.22. These sections make it clear how to represent annotations on declarations of classes, interfaces, fields, methods, method parameters, and type parameters, as well as annotations on types used in those declarations. Annotations on package declarations require additional rules, given here.
 
-When the compiler encounters an annotated package declaration that must be made available at run time, it emits a class file that represents an interface whose name is the internal form (§4.2.1) of package-name.package-info. The interface has default access (JLS §6.6.1) and no superinterfaces. The ACC_INTERFACE and ACC_ABSTRACT flags (Table 4.1) of the ClassFile structure (§4.1) are set. If the emitted class file version number is less than 50.0, then the ACC_SYNTHETIC flag is unset; if the class file version number is 50.0 or above, then the ACC_SYNTHETIC flag is set. The only members of the interface are those implied by The Java Language Specification, Java SE 7 Edition (JLS §9.2).
+When the compiler encounters an annotated package declaration that must be made available at run time, it emits a class file with the following properties:
 
-The package annotations are stored in the RuntimeVisibleAnnotations (§4.7.16) and RuntimeInvisibleAnnotations (§4.7.17) attributes of the ClassFile structure (§4.1) of this interface.
+The class file represents an interface, that is, the ACC_INTERFACE and ACC_ABSTRACT flags of the ClassFile structure are set (§4.1).
+
+If the class file version number is less than 50.0, then the ACC_SYNTHETIC flag is unset; if the class file version number is 50.0 or above, then the ACC_SYNTHETIC flag is set.
+
+The interface has package access (JLS §6.6.1).
+
+The interface's name is the internal form (§4.2.1) of package-name.package-info.
+
+The interface has no superinterfaces.
+
+The interface's only members are those implied by The Java Language Specification, Java SE 8 Edition (JLS §9.2).
+
+The annotations on the package declaration are stored as RuntimeVisibleAnnotations and RuntimeInvisibleAnnotations attributes in the attributes table of the ClassFile structure.
