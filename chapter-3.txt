@@ -1121,7 +1121,7 @@ The interface's name is the internal form (§4.2.1) of package-name.package-info
 
 The interface has no superinterfaces.
 
-The interface's only members are those implied by The Java Language Specification, Java SE 11 Edition (JLS §9.2).
+The interface's only members are those implied by The Java Language Specification, Java SE 12 Edition (JLS §9.2).
 
 The annotations on the package declaration are stored as RuntimeVisibleAnnotations and RuntimeInvisibleAnnotations attributes in the attributes table of the ClassFile structure.
 

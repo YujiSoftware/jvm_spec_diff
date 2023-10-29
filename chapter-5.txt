@@ -188,7 +188,7 @@ The class loader L can delegate the loading of C to some other class loader L'. 
 
 In either (1) or (2), if the class loader L is unable to load a class or interface denoted by N for any reason, it must throw an instance of ClassNotFoundException.
 
-Since JDK release 1.1, Oracle’s Java Virtual Machine implementation has invoked the loadClass method of a class loader in order to cause it to load a class or interface. The argument to loadClass is the name of the class or interface to be loaded. There is also a two-argument version of the loadClass method, where the second argument is a boolean that indicates whether the class or interface is to be linked or not. Only the two-argument version was supplied in JDK release 1.0.2, and Oracle’s Java Virtual Machine implementation relied on it to link the loaded class or interface. From JDK release 1.1 onward, Oracle’s Java Virtual Machine implementation links the class or interface directly, without relying on the class loader.
+Since JDK 1.1, Oracle’s Java Virtual Machine implementation has invoked the loadClass method of a class loader in order to cause it to load a class or interface. The argument to loadClass is the name of the class or interface to be loaded. There is also a two-argument version of the loadClass method, where the second argument is a boolean that indicates whether the class or interface is to be linked or not. Only the two-argument version was supplied in JDK 1.0.2, and Oracle’s Java Virtual Machine implementation relied on it to link the loaded class or interface. From JDK 1.1 onward, Oracle’s Java Virtual Machine implementation links the class or interface directly, without relying on the class loader.
 
 5.3.3. Creating Array Classes
 
@@ -244,7 +244,7 @@ If the purported representation is not a ClassFile structure (§4.1, §4.8), loa
 
 Otherwise, if the purported representation is not of a supported major or minor version (§4.1), loading throws an instance of UnsupportedClassVersionError.
 
-UnsupportedClassVersionError, a subclass of ClassFormatError, was introduced to enable easy identification of a ClassFormatError caused by an attempt to load a class whose representation uses an unsupported version of the class file format. In JDK release 1.1 and earlier, an instance of NoClassDefFoundError or ClassFormatError was thrown in case of an unsupported version, depending on whether the class was being loaded by the system class loader or a user-defined class loader.
+UnsupportedClassVersionError, a subclass of ClassFormatError, was introduced to enable easy identification of a ClassFormatError caused by an attempt to load a class whose representation uses an unsupported version of the class file format. In JDK 1.1 and earlier, an instance of NoClassDefFoundError or ClassFormatError was thrown in case of an unsupported version, depending on whether the class was being loaded by the system class loader or a user-defined class loader.
 
 Otherwise, if the purported representation does not actually represent a class named N, loading throws an instance of NoClassDefFoundError or an instance of one of its subclasses.
 
