@@ -17,6 +17,7 @@ Table of Contents
 3.13. Compiling finally
 3.14. Synchronization
 3.15. Annotations
+3.16. Modules
 
 The Java Virtual Machine machine is designed to support the Java programming language. Oracle's JDK software contains a compiler from source code written in the Java programming language to the instruction set of the Java Virtual Machine, and a run-time system that implements the Java Virtual Machine itself. Understanding how one compiler utilizes the Java Virtual Machine is useful to the prospective compiler writer, as well as to one trying to understand the Java Virtual Machine itself. The numbered sections in this chapter are not normative.
 
@@ -1132,6 +1133,20 @@ The interface's name is the internal form (§4.2.1) of package-name.package-info
 
 The interface has no superinterfaces.
 
-The interface's only members are those implied by The Java Language Specification, Java SE 8 Edition (JLS §9.2).
+The interface's only members are those implied by The Java Language Specification, Java SE 9 Edition (JLS §9.2).
 
 The annotations on the package declaration are stored as RuntimeVisibleAnnotations and RuntimeInvisibleAnnotations attributes in the attributes table of the ClassFile structure.
+
+3.16. Modules
+
+A compilation unit that contains a module declaration (JLS §7.7) is compiled to a class file that contains a Module attribute.
+
+By convention, the name of a compilation unit that contains a module declaration is module-info.java, echoing the package-info.java convention for a compilation unit that contains solely a package declaration. Consequently, by convention, the name for the compiled form of a module declaration is module-info.class.
+
+A flag in the access_flags item of the ClassFile structure, ACC_MODULE (0x8000), indicates that this class file declares a module. ACC_MODULE plays a similar role to ACC_ANNOTATION (0x2000) and ACC_ENUM (0x4000) in flagging this class file as "not an ordinary class". ACC_MODULE does not describe accessibility of a class or interface.
+
+The Module attribute is explicit about the module's dependences; there are no implicit requires directives at the ClassFile level. If the requires_count item is zero, then the Java SE Platform does not infer the existence of a requires table nor any particular entry therein. java.base is the only module in which a zero requires_count is legal, because it is the primordial module. For every other module, the Module attribute must have a requires table of at least length one, because every other module depends on java.base. If a compilation unit contains a module declaration (except java.base) that does not state its dependence on java.base explicitly, then a compiler must emit an entry for java.base in the requires table and flag it as ACC_MANDATED to denote that it was implicitly declared.
+
+For encapsulation, the Module attribute is explicit about the packages exported and opened by a normal module; there are no implicit exports or opens directives at the ClassFile level for a normal module. If the exports_count item or opens_count item is zero, then the Java SE Platform does not infer the existence of an exports table or opens table, nor any particular entry therein. On the other hand, for an open module, the Module attribute is implicit about the packages opened by the module. All packages of an open module are opened to all other modules, even though the opens_count item is zero.
+
+The Module attribute is explicit about the module's consumption and provision of services; there are no implicit uses or provides directives at the ClassFile level.

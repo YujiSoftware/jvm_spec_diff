@@ -10,6 +10,7 @@ Table of Contents
 5.3.3. Creating Array Classes
 5.3.4. Loading Constraints
 5.3.5. Deriving a Class from a class File Representation
+5.3.6. Modules and Layers
 5.4. Linking
 5.4.1. Verification
 5.4.2. Preparation
@@ -26,7 +27,7 @@ Table of Contents
 5.6. Binding Native Method Implementations
 5.7. Java Virtual Machine Exit
 
-The Java Virtual Machine dynamically loads, links and initializes classes and interfaces. Loading is the process of finding the binary representation of a class or interface type with a particular name and creating a class or interface from that binary representation. Linking is the process of taking a class or interface and combining it into the run-time state of the Java Virtual Machine so that it can be executed. Initialization of a class or interface consists of executing the class or interface initialization method <clinit> (§2.9).
+The Java Virtual Machine dynamically loads, links and initializes classes and interfaces. Loading is the process of finding the binary representation of a class or interface type with a particular name and creating a class or interface from that binary representation. Linking is the process of taking a class or interface and combining it into the run-time state of the Java Virtual Machine so that it can be executed. Initialization of a class or interface consists of executing the class or interface initialization method <clinit> (§2.9.2).
 
 In this chapter, §5.1 describes how the Java Virtual Machine derives symbolic references from the binary representation of a class or interface. §5.2 explains how the processes of loading, linking, and initialization are first initiated by the Java Virtual Machine. §5.3 specifies how binary representations of classes and interfaces are loaded by class loaders and how classes and interfaces are created. Linking is described in §5.4. §5.5 details how classes and interfaces are initialized. §5.6 introduces the notion of binding native methods. Finally, §5.7 describes when a Java Virtual Machine exits.
 
@@ -89,13 +90,13 @@ The remaining structures in the constant_pool table of the binary representation
 
 5.2. Java Virtual Machine Startup
 
-The Java Virtual Machine starts up by creating an initial class, which is specified in an implementation-dependent manner, using the bootstrap class loader (§5.3.1). The Java Virtual Machine then links the initial class, initializes it, and invokes the public class method void main(String[]). The invocation of this method drives all further execution. Execution of the Java Virtual Machine instructions constituting the main method may cause linking (and consequently creation) of additional classes and interfaces, as well as invocation of additional methods.
+The Java Virtual Machine starts up by creating an initial class or interface using the bootstrap class loader (§5.3.1). The Java Virtual Machine then links the initial class or interface, initializes it, and invokes the public static method void main(String[]). The invocation of this method drives all further execution. Execution of the Java Virtual Machine instructions constituting the main method may cause linking (and consequently creation) of additional classes and interfaces, as well as invocation of additional methods.
 
-In an implementation of the Java Virtual Machine, the initial class could be provided as a command line argument. Alternatively, the implementation could provide an initial class that sets up a class loader which in turn loads an application. Other choices of the initial class are possible so long as they are consistent with the specification given in the previous paragraph.
+The initial class or interface is specified in an implementation-dependent manner. For example, the initial class or interface could be provided as a command line argument. Alternatively, the implementation of the Java Virtual Machine could itself provide an initial class that sets up a class loader which in turn loads an application. Other choices of the initial class or interface are possible so long as they are consistent with the specification given in the previous paragraph.
 
 5.3. Creation and Loading
 
-Creation of a class or interface C denoted by the name N consists of the construction in the method area of the Java Virtual Machine (§2.5.4) of an implementation-specific internal representation of C. Class or interface creation is triggered by another class or interface D, which references C through its run-time constant pool. Class or interface creation may also be triggered by D invoking methods in certain Java SE platform class libraries (§2.12) such as reflection.
+Creation of a class or interface C denoted by the name N consists of the construction in the method area of the Java Virtual Machine (§2.5.4) of an implementation-specific internal representation of C. Class or interface creation is triggered by another class or interface D, which references C through its run-time constant pool. Class or interface creation may also be triggered by D invoking methods in certain Java SE Platform class libraries (§2.12) such as reflection.
 
 If C is not an array class, it is created by loading a binary representation of C (§4 (The class File Format)) using a class loader. Array classes do not have an external binary representation; they are created by the Java Virtual Machine rather than by a class loader.
 
@@ -225,6 +226,8 @@ UnsupportedClassVersionError, a subclass of ClassFormatError, was introduced to 
 
 Otherwise, if the purported representation does not actually represent a class named N, loading throws an instance of NoClassDefFoundError or an instance of one of its subclasses.
 
+This occurs when the purported representation has either a this_class item which specifies a name other than N, or an access_flags item which has the ACC_MODULE flag set.
+
 If C has a direct superclass, the symbolic reference from C to its direct superclass is resolved using the algorithm of §5.4.3.1. Note that if C is an interface it must have Object as its direct superclass, which must already have been loaded. Only Object has no direct superclass.
 
 Any exceptions that can be thrown due to class or interface resolution can be thrown as a result of this phase of loading. In addition, this phase of loading must detect the following errors:
@@ -242,6 +245,42 @@ If any of the classes or interfaces named as direct superinterfaces of C is not 
 Otherwise, if any of the superinterfaces of C is C itself, loading throws a ClassCircularityError.
 
 The Java Virtual Machine marks C as having L as its defining class loader and records that L is an initiating loader of C (§5.3.4).
+
+5.3.6. Modules and Layers
+
+The Java Virtual Machine supports the organization of classes and interfaces into modules. The membership of a class or interface C in a module M is used to control access to C from classes and interfaces in modules other than M (§5.4.4).
+
+Module membership is defined in terms of run-time packages (§5.3). A program determines the names of the packages in each module, and the class loaders that will create the classes and interfaces of the named packages; it then specifies the packages and class loaders to an invocation of the defineModules method of the class ModuleLayer. Invoking defineModules causes the Java Virtual Machine to create new run-time modules that are associated with the run-time packages of the class loaders.
+
+Every run-time module indicates the run-time packages that it exports, which influences access to the public classes and interfaces in those run-time packages. Every run-time module also indicates the other run-time modules that it reads, which influences access by its own code to the public types and interfaces in those run-time modules.
+
+We say that a class is in a run-time module iff the class's run-time package is associated (or will be associated, if the class is actually created) with that run-time module.
+
+A class created by a class loader is in exactly one run-time package and therefore exactly one run-time module, because the Java Virtual Machine does not support a run-time package being associated with (or more evocatively, "split across") multiple run-time modules.
+
+A run-time module is implicitly bound to exactly one class loader, by the semantics of defineModules. On the other hand, a class loader may create classes in more than one run-time module, because the Java Virtual Machine does not require all the run-time packages of a class loader to be associated with the same run-time module.
+
+In other words, the relationship between class loaders and run-time modules need not be 1:1. For a given set of modules to be loaded, if a program can determine that the names of the packages in each module are found only in that module, then the program may specify only one class loader to the invocation of defineModules. This class loader will create classes across multiple run-time modules.
+
+Every run-time module created by defineModules is part of a layer. A layer represents a set of class loaders that jointly serve to create classes in a set of run-time modules. There are two kinds of layers: the boot layer supplied by the Java Virtual Machine, and user-defined layers. The boot layer is created at Java Virtual Machine startup in an implementation-dependent manner. It associates the standard run-time module java.base with standard run-time packages defined by the bootstrap class loader, such as java.lang. User-defined layers are created by programs in order to construct sets of run-time modules that depend on java.base and other standard run-time modules.
+
+A run-time module is implicitly part of exactly one layer, by the semantics of defineModules. On the other hand, a class loader may create classes in the run-time modules of more than one layer, because the same class loader may be specified to multiple invocations of defineModules. Access control is governed by a class's run-time module, not by the class loader which created the class or by the layer(s) which the class loader serves.
+
+The set of class loaders specified for a layer, and the set of run-time modules which are part of a layer, are immutable after the layer is created. However, the ModuleLayer class affords programs a degree of dynamic control over the relationships between the run-time modules in a user-defined layer.
+
+If a user-defined layer contains more than one class loader, then any delegation between the class loaders is the responsibility of the program that created the layer. The Java Virtual Machine does not check that the layer's class loaders delegate to each other in accordance with how the layer's run-time modules read each other. Moreover, if the layer's run-time modules are modified via the ModuleLayer class to read additional run-time modules, then the Java Virtual Machine does not check that the layer's class loaders are modified by some out-of-band mechanism to delegate in a corresponding fashion.
+
+There are similarities and differences between class loaders and layers. On the one hand, a layer is similar to a class loader in that each may delegate to, respectively, one or more parent layers or class loaders that created, respectively, modules or classes at an earlier time. That is, the set of modules specified to a layer may depend on modules not specified to the layer, and instead specified previously to one or more parent layers. On the other hand, a layer may be used to create new modules only once, whereas a class loader may be used to create new classes or interfaces at any time via multiple invocations of the defineClass method.
+
+It is possible for a class loader to define a class or interface in a run-time package that was not associated with a run-time module by any of the layers which the class loader serves. This may occur if the run-time package embodies a named package that was not specified to defineModules, or if the class or interface has a simple binary name (§4.2.1) and thus is a member of a run-time package that embodies an unnamed package (JLS §7.4.2). In either case, the class or interface is treated as a member of a special run-time module which is implicitly bound to the class loader. This special run-time module is known as the unnamed module of the class loader. The run-time package of the class or interface is associated with the unnamed module of the class loader. There are special rules for unnamed modules, designed to maximize their interoperation with other run-time modules, as follows:
+
+A class loader's unnamed module is distinct from all other run-time modules bound to the same class loader.
+
+A class loader's unnamed module is distinct from all run-time modules (including unnamed modules) bound to other class loaders.
+
+Every unnamed module reads every run-time module.
+
+Every unnamed module exports, to every run-time module, every run-time package associated with itself.
 
 5.4. Linking
 
@@ -311,6 +350,8 @@ If an error occurs during resolution of a symbolic reference, then an instance o
 
 If an attempt by the Java Virtual Machine to resolve a symbolic reference fails because an error is thrown that is an instance of LinkageError (or a subclass), then subsequent attempts to resolve the reference always fail with the same error that was thrown as a result of the initial resolution attempt.
 
+This means that a class in one module that attempts to access, via resolution of a symbolic reference in its run-time constant pool, an unexported public type in a different module will always receive the same error indicating an inaccessible type (§5.4.4), even if the Java SE Platform API is used to dynamically export the public type's package at some time after the class's first attempt.
+
 A symbolic reference to a call site specifier by a specific invokedynamic instruction must not be resolved prior to execution of that instruction.
 
 In the case of failed resolution of an invokedynamic instruction, the bootstrap method is not re-executed on subsequent resolution attempts.
@@ -377,7 +418,7 @@ If C is an interface, method resolution throws an IncompatibleClassChangeError.
 
 Otherwise, method resolution attempts to locate the referenced method in C and its superclasses:
 
-If C declares exactly one method with the name specified by the method reference, and the declaration is a signature polymorphic method (§2.9), then method lookup succeeds. All the class names mentioned in the descriptor are resolved (§5.4.3.1).
+If C declares exactly one method with the name specified by the method reference, and the declaration is a signature polymorphic method (§2.9.3), then method lookup succeeds. All the class names mentioned in the descriptor are resolved (§5.4.3.1).
 
 The resolved method is the signature polymorphic method declaration. It is not necessary for C to declare a method with the descriptor specified by the method reference.
 
@@ -494,29 +535,47 @@ Kind	Description	Interpretation
 
 
 
-Let MH be the symbolic reference to a method handle (§5.1) being resolved. Then:
+Let MH be the symbolic reference to a method handle (§5.1) being resolved. Also:
 
 Let R be the symbolic reference to the field or method contained within MH.
 
-(R is derived from the CONSTANT_Fieldref, CONSTANT_Methodref, or CONSTANT_InterfaceMethodref structure referred to by the reference_index item of the CONSTANT_MethodHandle from which MH is derived.)
+R is derived from the CONSTANT_Fieldref, CONSTANT_Methodref, or CONSTANT_InterfaceMethodref structure referred to by the reference_index item of the CONSTANT_MethodHandle from which MH is derived.
+
+For example, R is a symbolic reference to C . f for bytecode behavior of kind 1, and a symbolic reference to C . <init> for bytecode behavior of kind 8.
+
+If MH's bytecode behavior is kind 7 (REF_invokeSpecial), then C must be the current class or interface, a superclass of the current class, a direct superinterface of the current class or interface, or Object.
 
 Let T be the type of the field referenced by R, or the return type of the method referenced by R. Let A* be the sequence (perhaps empty) of parameter types of the method referenced by R.
 
-(T and A* are derived from the CONSTANT_NameAndType structure referred to by the name_and_type_index item in the CONSTANT_Fieldref, CONSTANT_Methodref, or CONSTANT_InterfaceMethodref structure from which R is derived.)
+T and A* are derived from the CONSTANT_NameAndType structure referred to by the name_and_type_index item in the CONSTANT_Fieldref, CONSTANT_Methodref, or CONSTANT_InterfaceMethodref structure from which R is derived.
 
-To resolve MH, all symbolic references to classes, interfaces, fields, and methods in MH's bytecode behavior are resolved, using the following three steps:
+To resolve MH, all symbolic references to classes, interfaces, fields, and methods in MH's bytecode behavior are resolved, using the following four steps:
 
-First, R is resolved.
+First, R is resolved. This occurs as if by field resolution (§5.4.3.2) when MH's bytecode behavior is kind 1, 2, 3, or 4, and as if by method resolution (§5.4.3.3) when MH's bytecode behavior is kind 5, 6, 7, or 8, and as if by interface method resolution (§5.4.3.4) when MH's bytecode behavior is kind 9.
 
-Second, resolution occurs as if of unresolved symbolic references to classes and interfaces whose names correspond to each type in A*, and to the type T, in that order.
+Second, the following constraints apply to the result of resolving R. These constraints correspond to those that would be enforced during verification or execution of the instruction sequence for the relevant bytecode behavior.
 
-Third, a reference to an instance of java.lang.invoke.MethodType is obtained as if by resolution of an unresolved symbolic reference to a method type that contains the method descriptor specified in Table 5.4.3.5-B for the kind of MH.
+If MH's bytecode behavior is kind 8 (REF_newInvokeSpecial), then R must resolve to an instance initialization method declared in class C.
+
+If MH's bytecode behavior is kind 9 (REF_invokeInterface), then R must resolve to a non-private method.
+
+If R resolves to a protected member, then the following rules apply depending on the kind of MH's bytecode behavior:
+
+For kinds 1, 3, and 5 (REF_getField, REF_putField, and REF_invokeVirtual): If C.f or C.m resolved to a protected field or method, and C is in a different run-time package than the current class, then C must be assignable to the current class.
+
+For kind 8 (REF_newInvokeSpecial): If C . <init> resolved to a protected method, then C must be declared in the same run-time package as the current class.
+
+R must resolve to a static or non-static member depending on the kind of MH's bytecode behavior:
+
+For kinds 1, 3, 5, 7, and 9 (REF_getField, REF_putField, REF_invokeVirtual, REF_invokeSpecial, and REF_invokeInterface): C.f or C.m must resolve to a non-static field or method.
+
+For kinds 2, 4, and 6 (REF_getStatic, REF_putStatic, and REF_invokeStatic): C.f or C.m must resolve to a static field or method.
+
+Third, resolution occurs as if of unresolved symbolic references to classes and interfaces whose names correspond to each type in A*, and to the type T, in that order.
+
+Fourth, a reference to an instance of java.lang.invoke.MethodType is obtained as if by resolution of an unresolved symbolic reference to a method type that contains the method descriptor specified in Table 5.4.3.5-B for the kind of MH.
 
 It is as if the symbolic reference to a method handle contains a symbolic reference to the method type that the resolved method handle will eventually have. The detailed structure of the method type is obtained by inspecting Table 5.4.3.5-B.
-
-In each step, any exception that can be thrown as a result of failure of resolution of a class or interface or field or method reference can be thrown as a result of failure of method handle resolution.
-
-The intent is that resolving a method handle can be done in exactly the same circumstances that the Java Virtual Machine would successfully resolve the symbolic references in the bytecode behavior. In particular, method handles to private and protected members can be created in exactly those classes for which the corresponding normal accesses are legal.
 
 Table 5.4.3.5-B. Method Descriptors for Method Handles
 
@@ -533,6 +592,10 @@ Kind	Description	Method descriptor
 
 
 
+In steps 1, 3, and 4, any exception that can be thrown as a result of failure of resolution of a symbolic reference to a class, interface, field, or method can be thrown as a result of failure of method handle resolution. In step 2, any failure due to the specified constraints causes a failure of method handle resolution due to an IllegalAccessError.
+
+The intent is that resolving a method handle can be done in exactly the same circumstances that the Java Virtual Machine would successfully verify and resolve the symbolic references in the bytecode behavior. In particular, method handles to private, protected, and static members can be created in exactly those classes for which the corresponding normal accesses are legal.
+
 The result of successful method handle resolution is a reference to an instance of java.lang.invoke.MethodHandle which represents the method handle MH.
 
 The type descriptor of this java.lang.invoke.MethodHandle instance is the java.lang.invoke.MethodType instance produced in the third step of method handle resolution above.
@@ -547,7 +610,7 @@ Method handle resolution throws an IncompatibleClassChangeError if the method re
 
 An implementation of the Java Virtual Machine is not required to intern method types or method handles. That is, two distinct symbolic references to method types or method handles which are structurally identical might not resolve to the same instance of java.lang.invoke.MethodType or java.lang.invoke.MethodHandle respectively.
 
-The java.lang.invoke.MethodHandles class in the Java SE platform API allows creation of method handles with no bytecode behavior. Their behavior is defined by the method of java.lang.invoke.MethodHandles that creates them. For example, a method handle may, when invoked, first apply transformations to its argument values, then supply the transformed values to the invocation of another method handle, then apply a transformation to the value returned from that invocation, then return the transformed value as its own result.
+The java.lang.invoke.MethodHandles class in the Java SE Platform API allows creation of method handles with no bytecode behavior. Their behavior is defined by the method of java.lang.invoke.MethodHandles that creates them. For example, a method handle may, when invoked, first apply transformations to its argument values, then supply the transformed values to the invocation of another method handle, then apply a transformation to the value returned from that invocation, then return the transformed value as its own result.
 
 5.4.3.6. Call Site Specifier Resolution
 
@@ -571,11 +634,13 @@ During resolution of the symbolic reference to the method handle in the call sit
 
 5.4.4. Access Control
 
-A class or interface C is accessible to a class or interface D if and only if either of the following is true:
+A class or interface C is accessible to a class or interface D if and only if one of the following is true:
 
-C is public.
+C is public, and a member of the same run-time module as D (§5.3.6).
 
-C and D are members of the same run-time package (§5.3).
+C is public, and a member of a different run-time module than D, and C's run-time module is read by D's run-time module, and C's run-time module exports C's run-time package to D's run-time module.
+
+C is not public, and C and D are members of the same run-time package.
 
 A field or method R is accessible to a class or interface D if and only if any of the following is true:
 
@@ -607,15 +672,15 @@ mC overrides a method m' (m' distinct from mC and mA) such that m' overrides mA.
 
 5.5. Initialization
 
-Initialization of a class or interface consists of executing its class or interface initialization method (§2.9).
+Initialization of a class or interface consists of executing its class or interface initialization method (§2.9.2).
 
 A class or interface C may be initialized only as a result of:
 
-The execution of any one of the Java Virtual Machine instructions new, getstatic, putstatic, or invokestatic that references C (§new, §getstatic, §putstatic, §invokestatic). These instructions reference a class or interface directly or indirectly through either a field reference or a method reference.
+The execution of any one of the Java Virtual Machine instructions new, getstatic, putstatic, or invokestatic that references C (§new, §getstatic, §putstatic, §invokestatic).
 
-Upon execution of a new instruction, the referenced class is initialized if it has not been initialized already.
+Upon execution of a new instruction, the class to be initialized is the class referenced by the instruction.
 
-Upon execution of a getstatic, putstatic, or invokestatic instruction, the class or interface that declared the resolved field or method is initialized if it has not been initialized already.
+Upon execution of a getstatic, putstatic, or invokestatic instruction, the class or interface to be initialized is the class or interface that declares the resolved field or method.
 
 The first invocation of a java.lang.invoke.MethodHandle instance which was the result of method handle resolution (§5.4.3.5) for a method handle of kind 2 (REF_getStatic), 4 (REF_putStatic), 6 (REF_invokeStatic), or 8 (REF_newInvokeSpecial).
 
@@ -627,7 +692,7 @@ If C is a class, the initialization of one of its subclasses.
 
 If C is an interface that declares a non-abstract, non-static method, the initialization of a class that implements C directly or indirectly.
 
-If C is a class, its designation as the initial class at Java Virtual Machine startup (§5.2).
+Its designation as the initial class or interface at Java Virtual Machine startup (§5.2).
 
 Prior to initialization, a class or interface must be linked, that is, verified, prepared, and optionally resolved.
 
@@ -659,9 +724,9 @@ Otherwise, record the fact that initialization of the Class object for C is in p
 
 Then, initialize each final static field of C with the constant value in its ConstantValue attribute (§4.7.2), in the order the fields appear in the ClassFile structure.
 
-Next, if C is a class rather than an interface, and its superclass has not yet been initialized, then let SC be its superclass and let SI1, ..., SIn be all superinterfaces of C (whether direct or indirect) that declare at least one non-abstract, non-static method. The order of superinterfaces is given by a recursive enumeration over the superinterface hierarchy of each interface directly implemented by C. For each interface I directly implemented by C (in the order of the interfaces array of C), the enumeration recurs on I's superinterfaces (in the order of the interfaces array of I) before returning I.
+Next, if C is a class rather than an interface, then let SC be its superclass and let SI1, ..., SIn be all superinterfaces of C (whether direct or indirect) that declare at least one non-abstract, non-static method. The order of superinterfaces is given by a recursive enumeration over the superinterface hierarchy of each interface directly implemented by C. For each interface I directly implemented by C (in the order of the interfaces array of C), the enumeration recurs on I's superinterfaces (in the order of the interfaces array of I) before returning I.
 
-For each S in the list [ SC, SI1, ..., SIn ], recursively perform this entire procedure for S. If necessary, verify and prepare S first.
+For each S in the list [ SC, SI1, ..., SIn ], if S has not yet been initialized, then recursively perform this entire procedure for S. If necessary, verify and prepare S first.
 
 If the initialization of S completes abruptly because of a thrown exception, then acquire LC, label the Class object for C as erroneous, notify all waiting threads, release LC, and complete abruptly, throwing the same exception that resulted from initializing SC.
 

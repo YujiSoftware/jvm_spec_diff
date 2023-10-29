@@ -29,6 +29,9 @@ Table of Contents
 2.8.2. Floating-Point Modes
 2.8.3. Value Set Conversion
 2.9. Special Methods
+2.9.1. Instance Initialization Methods
+2.9.2. Class Initialization Methods
+2.9.3. Signature Polymorphic Methods
 2.10. Exceptions
 2.11. Instruction Set Summary
 2.11.1. Types and the Java Virtual Machine
@@ -48,7 +51,7 @@ This document specifies an abstract machine. It does not describe any particular
 
 To implement the Java Virtual Machine correctly, you need only be able to read the class file format and correctly perform the operations specified therein. Implementation details that are not part of the Java Virtual Machine's specification would unnecessarily constrain the creativity of implementors. For example, the memory layout of run-time data areas, the garbage-collection algorithm used, and any internal optimization of the Java Virtual Machine instructions (for example, translating them into machine code) are left to the discretion of the implementor.
 
-All references to Unicode in this specification are given with respect to The Unicode Standard, Version 6.0.0, available at http://www.unicode.org/.
+All references to Unicode in this specification are given with respect to The Unicode Standard, Version 8.0.0, available at http://www.unicode.org/.
 
 2.1. The class File Format
 
@@ -208,7 +211,7 @@ If a computation requires more heap than can be made available by the automatic 
 
 2.5.4. Method Area
 
-The Java Virtual Machine has a method area that is shared among all Java Virtual Machine threads. The method area is analogous to the storage area for compiled code of a conventional language or analogous to the "text" segment in an operating system process. It stores per-class structures such as the run-time constant pool, field and method data, and the code for methods and constructors, including the special methods (§2.9) used in class and instance initialization and interface initialization.
+The Java Virtual Machine has a method area that is shared among all Java Virtual Machine threads. The method area is analogous to the storage area for compiled code of a conventional language or analogous to the "text" segment in an operating system process. It stores per-class structures such as the run-time constant pool, field and method data, and the code for methods and constructors, including the special methods used in class and interface initialization and in instance initialization (§2.9).
 
 The method area is created on virtual machine start-up. Although the method area is logically part of the heap, simple implementations may choose not to either garbage collect or compact it. This specification does not mandate the location of the method area or the policies used to manage compiled code. The method area may be of a fixed size or may be expanded as required by the computation and may be contracted if a larger method area becomes unnecessary. The memory for the method area does not need to be contiguous.
 
@@ -363,32 +366,55 @@ Not all values from an extended-exponent value set can be mapped exactly to a va
 Value set conversion preserves infinities and NaNs and cannot change the sign of the value being converted. Value set conversion has no effect on a value that is not of a floating-point type.
 
 2.9. Special Methods
+2.9.1. Instance Initialization Methods
 
-At the level of the Java Virtual Machine, every constructor written in the Java programming language (JLS §8.8) appears as an instance initialization method that has the special name <init>. This name is supplied by a compiler. Because the name <init> is not a valid identifier, it cannot be used directly in a program written in the Java programming language. Instance initialization methods may be invoked only within the Java Virtual Machine by the invokespecial instruction (§invokespecial), and they may be invoked only on uninitialized class instances. An instance initialization method takes on the access permissions (JLS §6.6) of the constructor from which it was derived.
+A class has zero or more instance initialization methods, each typically corresponding to a constructor written in the Java programming language.
 
-A class or interface has at most one class or interface initialization method and is initialized (§5.5) by invoking that method. The initialization method of a class or interface has the special name <clinit>, takes no arguments, and is void (§4.3.3).
+A method is an instance initialization method if all of the following are true:
 
-Other methods named <clinit> in a class file are of no consequence. They are not class or interface initialization methods. They cannot be invoked by any Java Virtual Machine instruction and are never invoked by the Java Virtual Machine itself.
+It is defined in a class (not an interface).
 
-In a class file whose version number is 51.0 or above, the method must additionally have its ACC_STATIC flag (§4.6) set in order to be the class or interface initialization method.
+It has the special name <init>.
 
-This requirement was introduced in Java SE 7. In a class file whose version number is 50.0 or below, a method named <clinit> that is void and takes no arguments is considered the class or interface initialization method regardless of the setting of its ACC_STATIC flag.
+It is void (§4.3.3).
 
-The name <clinit> is supplied by a compiler. Because the name <clinit> is not a valid identifier, it cannot be used directly in a program written in the Java programming language. Class and interface initialization methods are invoked implicitly by the Java Virtual Machine; they are never invoked directly from any Java Virtual Machine instruction, but are invoked only indirectly as part of the class initialization process.
+In a class, other methods named <init> are not instance initialization methods. In an interface, any method named <init> is not an instance initialization method. Such methods cannot be invoked by any Java Virtual Machine instruction (§4.4.2, §4.9.2) and are rejected by format checking (§4.6, §4.8).
+
+The declaration and use of an instance initialization method is constrained by the Java Virtual Machine. For the declaration, the method's access_flags item and code array are constrained (§4.6, §4.9.2). For a use, an instance initialization method may be invoked only by the invokespecial instruction on an uninitialized class instance (§4.10.1.9).
+
+Because the name <init> is not a valid identifier in the Java programming language, it cannot be used directly in a program written in the Java programming language.
+
+2.9.2. Class Initialization Methods
+
+A class or interface has at most one class or interface initialization method and is initialized by the Java Virtual Machine invoking that method (§5.5).
+
+A method is a class or interface initialization method if all of the following are true:
+
+It has the special name <clinit>.
+
+It is void (§4.3.3).
+
+In a class file whose version number is 51.0 or above, the method has its ACC_STATIC flag set and takes no arguments (§4.6).
+
+The requirement for ACC_STATIC was introduced in Java SE 7, and for taking no arguments in Java SE 9. In a class file whose version number is 50.0 or below, a method named <clinit> that is void is considered the class or interface initialization method regardless of the setting of its ACC_STATIC flag or whether it takes arguments.
+
+Other methods named <clinit> in a class file are not class or interface initialization methods. They are never invoked by the Java Virtual Machine itself, cannot be invoked by any Java Virtual Machine instruction (§4.9.1), and are rejected by format checking (§4.6, §4.8).
+
+Because the name <clinit> is not a valid identifier in the Java programming language, it cannot be used directly in a program written in the Java programming language.
+
+2.9.3. Signature Polymorphic Methods
 
 A method is signature polymorphic if all of the following are true:
 
-It is declared in the java.lang.invoke.MethodHandle class.
+It is declared in the java.lang.invoke.MethodHandle class or the java.lang.invoke.VarHandle class.
 
 It has a single formal parameter of type Object[].
 
-It has a return type of Object.
-
 It has the ACC_VARARGS and ACC_NATIVE flags set.
 
-In Java SE 8, the only signature polymorphic methods are the invoke and invokeExact methods of the class java.lang.invoke.MethodHandle.
+The Java Virtual Machine gives special treatment to signature polymorphic methods in the invokevirtual instruction (§invokevirtual), in order to effect invocation of a method handle or to effect access to a variable referenced by an instance of java.lang.invoke.VarHandle.
 
-The Java Virtual Machine gives special treatment to signature polymorphic methods in the invokevirtual instruction (§invokevirtual), in order to effect invocation of a method handle. A method handle is a strongly typed, directly executable reference to an underlying method, constructor, field, or similar low-level operation (§5.4.3.5), with optional transformations of arguments or return values. These transformations are quite general, and include such patterns as conversion, insertion, deletion, and substitution. See the java.lang.invoke package in the Java SE platform API for more information.
+A method handle is a dynamically strongly typed and directly executable reference to an underlying method, constructor, field, or similar low-level operation (§5.4.3.5), with optional transformations of arguments or return values. An instance of java.lang.invoke.VarHandle is a dynamically strongly typed reference to a variable or family of variables, including static fields, non-static fields, array elements, or components of an off-heap data structure. See the java.lang.invoke package in the Java SE Platform API for more information.
 
 2.10. Exceptions
 
@@ -678,7 +704,7 @@ invokevirtual invokes an instance method of an object, dispatching on the (virtu
 
 invokeinterface invokes an interface method, searching the methods implemented by the particular run-time object to find the appropriate method.
 
-invokespecial invokes an instance method requiring special handling, whether an instance initialization method (§2.9), a private method, or a superclass method.
+invokespecial invokes an instance method requiring special handling, whether an instance initialization method (§2.9.1), a private method, or a superclass method.
 
 invokestatic invokes a class (static) method in a named class.
 
@@ -708,7 +734,7 @@ Note that the monitor entry and exit automatically performed by the Java Virtual
 
 2.12. Class Libraries
 
-The Java Virtual Machine must provide sufficient support for the implementation of the class libraries of the Java SE platform. Some of the classes in these libraries cannot be implemented without the cooperation of the Java Virtual Machine.
+The Java Virtual Machine must provide sufficient support for the implementation of the class libraries of the Java SE Platform. Some of the classes in these libraries cannot be implemented without the cooperation of the Java Virtual Machine.
 
 Classes that might require special support from the Java Virtual Machine include those that support:
 
@@ -724,11 +750,11 @@ Multithreading, such as the class Thread.
 
 Weak references, such as the classes in the package java.lang.ref.
 
-The list above is meant to be illustrative rather than comprehensive. An exhaustive list of these classes or of the functionality they provide is beyond the scope of this specification. See the specifications of the Java SE platform class libraries for details.
+The list above is meant to be illustrative rather than comprehensive. An exhaustive list of these classes or of the functionality they provide is beyond the scope of this specification. See the specifications of the Java SE Platform class libraries for details.
 
 2.13. Public Design, Private Implementation
 
-Thus far this specification has sketched the public view of the Java Virtual Machine: the class file format and the instruction set. These components are vital to the hardware-, operating system-, and implementation-independence of the Java Virtual Machine. The implementor may prefer to think of them as a means to securely communicate fragments of programs between hosts each implementing the Java SE platform, rather than as a blueprint to be followed exactly.
+Thus far this specification has sketched the public view of the Java Virtual Machine: the class file format and the instruction set. These components are vital to the hardware-, operating system-, and implementation-independence of the Java Virtual Machine. The implementor may prefer to think of them as a means to securely communicate fragments of programs between hosts each implementing the Java SE Platform, rather than as a blueprint to be followed exactly.
 
 It is important to understand where the line between the public design and the private implementation lies. A Java Virtual Machine implementation must be able to read class files and must exactly implement the semantics of the Java Virtual Machine code therein. One way of doing this is to take this document as a specification and to implement that specification literally. But it is also perfectly feasible and desirable for the implementor to modify or optimize the implementation within the constraints of this specification. So long as the class file format can be read and the semantics of its code are maintained, the implementor may implement these semantics in any way. What is "under the hood" is the implementor's business, as long as the correct external interface is carefully maintained.
 
