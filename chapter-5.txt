@@ -26,11 +26,11 @@ Table of Contents
 5.4.6. Method Selection
 5.5. Initialization
 5.6. Binding Native Method Implementations
-5.7. Java Virtual Machine Exit
+5.7. Java Virtual Machine Termination
 
 The Java Virtual Machine dynamically loads, links and initializes classes and interfaces. Loading is the process of finding the binary representation of a class or interface type with a particular name and creating a class or interface from that binary representation. Linking is the process of taking a class or interface and combining it into the run-time state of the Java Virtual Machine so that it can be executed. Initialization of a class or interface consists of executing the class or interface initialization method <clinit> (§2.9.2).
 
-In this chapter, §5.1 describes how the Java Virtual Machine derives symbolic references from the binary representation of a class or interface. §5.2 explains how the processes of loading, linking, and initialization are first initiated by the Java Virtual Machine. §5.3 specifies how binary representations of classes and interfaces are loaded by class loaders and how classes and interfaces are created. Linking is described in §5.4. §5.5 details how classes and interfaces are initialized. §5.6 introduces the notion of binding native methods. Finally, §5.7 describes when a Java Virtual Machine exits.
+In this chapter, §5.1 describes how the Java Virtual Machine derives symbolic references from the binary representation of a class or interface. §5.2 explains how the processes of loading, linking, and initialization are first initiated by the Java Virtual Machine. §5.3 specifies how binary representations of classes and interfaces are loaded by class loaders and how classes and interfaces are created. Linking is described in §5.4. §5.5 details how classes and interfaces are initialized. §5.6 introduces the notion of binding native methods. Finally, §5.7 describes when the Java Virtual Machine terminates.
 
 5.1. The Run-Time Constant Pool
 
@@ -986,8 +986,30 @@ A Java Virtual Machine implementation may optimize this procedure by eliding the
 
 Binding is the process by which a function written in a language other than the Java programming language and implementing a native method is integrated into the Java Virtual Machine so that it can be executed. Although this process is traditionally referred to as linking, the term binding is used in the specification to avoid confusion with linking of classes or interfaces by the Java Virtual Machine.
 
-5.7. Java Virtual Machine Exit
+5.7. Java Virtual Machine Termination
 
-The Java Virtual Machine exits when some thread invokes the exit method of class Runtime or class System, or the halt method of class Runtime, and the exit or halt operation is permitted by the security manager.
+The Java Virtual Machine executes code in threads (§2.5). A thread is either a non-daemon thread, a daemon thread, or a shutdown hook.
 
-In addition, the JNI (Java Native Interface) Specification describes termination of the Java Virtual Machine when the JNI Invocation API is used to load and unload the Java Virtual Machine.
+Readers are referred to the API specifications of Thread and Runtime for details of how threads obtain daemon status, and how shutdown hooks are registered.
+
+A thread terminates if either (i) its run method completes normally, or (ii) its run method completes abruptly and the relevant uncaught exception handler (§2.10) completes normally or abruptly. With no code left to run, the thread has completed execution and therefore has no current method (§2.5.1).
+
+The Java Virtual Machine terminates when one of the following situations has occurred:
+
+A thread invoked System.exit or Runtime.exit, and all of the shutdown hooks which consequently were started by the Java Virtual Machine, if any, have terminated.
+
+A thread invoked Runtime.halt. (No shutdown hooks are started in this situation.)
+
+The Java Virtual Machine implementation recognized an external event as requesting termination of the Java Virtual Machine, and all of the shutdown hooks which consequently were started by the Java Virtual Machine, if any, have terminated.
+
+The nature of the event is outside the scope of this specification, but is necessarily something that a Java Virtual Machine implementation can handle reliably. An example is receiving a signal from the operating system.
+
+An external event occurred that the Java Virtual Machine implementation cannot handle. (No shutdown hooks are started in this situation.)
+
+The nature of the event is outside the scope of this specification, but is necessarily something that a Java Virtual Machine implementation cannot recognize or recover from in any way. Examples include a fatal error occurring in the process running the implementation, or power being removed from the computer running the implementation.
+
+Upon Java Virtual Machine termination, any daemon or non-daemon thread that has not yet terminated will execute no further Java code. The current method of the thread does not complete normally or abruptly.
+
+If the Java Virtual Machine terminates because a thread invoked Runtime.halt while shutdown hooks were running, then, in addition to daemon and non-daemon threads, any shutdown hook that has not yet terminated will execute no further Java code.
+
+Native applications can use the JNI Invocation API to create and destroy the Java Virtual Machine in such a way that a Java program, having started execution in the main method of an initial class (JLS §12.1), exits when all of its non-daemon threads have terminated (JLS §12.8). The Java Virtual Machine does not terminate "automatically" when the last non-daemon thread terminates.

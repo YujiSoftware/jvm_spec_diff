@@ -31,7 +31,7 @@ The Java Virtual Machine knows nothing of the Java programming language, only of
 
 For the sake of security, the Java Virtual Machine imposes strong syntactic and structural constraints on the code in a class file. However, any language with functionality that can be expressed in terms of a valid class file can be hosted by the Java Virtual Machine. Attracted by a generally available, machine-independent platform, implementors of other languages can turn to the Java Virtual Machine as a delivery vehicle for their languages.
 
-The Java Virtual Machine specified here is compatible with the Java SE 19 platform, and supports the Java programming language specified in The Java Language Specification, Java SE 19 Edition.
+The Java Virtual Machine specified here is compatible with the Java SE 20 platform, and supports the Java programming language specified in The Java Language Specification, Java SE 20 Edition.
 
 1.3. Organization of the Specification
 
@@ -47,17 +47,19 @@ Chapter 6 specifies the instruction set of the Java Virtual Machine, presenting 
 
 Chapter 7 gives a table of Java Virtual Machine opcode mnemonics indexed by opcode value.
 
-In the Second Edition of The Java® Virtual Machine Specification, Chapter 2 gave an overview of the Java programming language that was intended to support the specification of the Java Virtual Machine but was not itself a part of the specification. In The Java Virtual Machine Specification, Java SE 19 Edition, the reader is referred to The Java Language Specification, Java SE 19 Edition for information about the Java programming language. References of the form: (JLS §x.y) indicate where this is necessary.
+In the Second Edition of The Java® Virtual Machine Specification, Chapter 2 gave an overview of the Java programming language that was intended to support the specification of the Java Virtual Machine but was not itself a part of the specification. In The Java Virtual Machine Specification, Java SE 20 Edition, the reader is referred to The Java Language Specification, Java SE 20 Edition for information about the Java programming language.
 
-In the Second Edition of The Java® Virtual Machine Specification, Chapter 8 detailed the low-level actions that explained the interaction of Java Virtual Machine threads with a shared main memory. In The Java Virtual Machine Specification, Java SE 19 Edition, the reader is referred to Chapter 17 of The Java Language Specification, Java SE 19 Edition for information about threads and locks. Chapter 17 reflects The Java Memory Model and Thread Specification produced by the JSR 133 Expert Group.
+In the Second Edition of The Java® Virtual Machine Specification, Chapter 8 detailed the low-level actions that explained the interaction of Java Virtual Machine threads with a shared main memory. In The Java Virtual Machine Specification, Java SE 20 Edition, the reader is referred to Chapter 17 of The Java Language Specification, Java SE 20 Edition for information about threads and locks. Chapter 17 reflects The Java Memory Model and Thread Specification produced by the JSR 133 Expert Group.
 
 1.4. Notation
 
-Throughout this specification we refer to classes and interfaces drawn from the Java SE Platform API. Whenever we refer to a class or interface (other than those declared in an example) using a single identifier N, the intended reference is to the class or interface named N in the package java.lang. We use the fully qualified name for classes or interfaces from packages other than java.lang.
+Throughout this specification, we refer to classes and interfaces drawn from the Java SE Platform API. Whenever we refer to a class or interface (other than those declared in an example) using a single identifier N, the intended reference is to the class or interface named N in the package java.lang. We use the fully qualified name for classes or interfaces from packages other than java.lang.
 
 Whenever we refer to a class or interface that is declared in the package java or any of its subpackages, the intended reference is to that class or interface as loaded by the bootstrap class loader (§5.3.1).
 
 Whenever we refer to a subpackage of a package named java, the intended reference is to that subpackage as determined by the bootstrap class loader.
+
+A cross-reference within this specification is shown as (§x.y). Occasionally, we refer to concepts in the The Java Language Specification, Java SE 20 Edition via cross-references of the form (JLS §x.y).
 
 The use of fonts in this specification is as follows:
 
@@ -65,12 +67,12 @@ A fixed width font is used for Java Virtual Machine data types, exceptions, erro
 
 Italic is used for Java Virtual Machine "assembly language", its opcodes and operands, as well as items in the Java Virtual Machine's run-time data areas. It is also used to introduce new terms and simply for emphasis.
 
-Non-normative information, designed to clarify the specification, is given in smaller, indented text.
+Non-normative text, designed to clarify the normative text of this specification, is given in smaller, indented text.
 
-This is non-normative information. It provides intuition, rationale, advice, examples, etc.
+This is non-normative text. It provides intuition, rationale, advice, examples, etc.
 
 1.5. Feedback
 
-Readers are invited to report technical errors and ambiguities in The Java® Virtual Machine Specification to jls-jvms-spec-comments@openjdk.java.net.
+Readers are invited to report technical errors and ambiguities in The Java® Virtual Machine Specification to jls-jvms-spec-comments@openjdk.org.
 
-Questions concerning the generation and manipulation of class files by javac (the reference compiler for the Java programming language) may be sent to compiler-dev@openjdk.java.net.
+Questions concerning the generation and manipulation of class files by javac (the reference compiler for the Java programming language) may be sent to compiler-dev@openjdk.org.

@@ -21,7 +21,7 @@ Table of Contents
 
 The Java Virtual Machine machine is designed to support the Java programming language. Oracle's JDK software contains a compiler from source code written in the Java programming language to the instruction set of the Java Virtual Machine, and a run-time system that implements the Java Virtual Machine itself. Understanding how one compiler utilizes the Java Virtual Machine is useful to the prospective compiler writer, as well as to one trying to understand the Java Virtual Machine itself. The numbered sections in this chapter are not normative.
 
-Note that the term "compiler" is sometimes used when referring to a translator from the instruction set of a Java Virtual Machine to the instruction set of a specific CPU. One example of such a translator is a just-in-time (JIT) code generator, which generates platform-specific instructions only after Java Virtual Machine code has been loaded. This chapter does not address issues associated with code generation, only those associated with compiling source code written in the Java programming language to Java Virtual Machine instructions.
+Note that the term "compiler" is sometimes used when referring to a translator from the instruction set of the Java Virtual Machine to the instruction set of a specific CPU. One example of such a translator is a just-in-time (JIT) code generator, which generates platform-specific instructions only after Java Virtual Machine code has been loaded. This chapter does not address issues associated with code generation, only those associated with compiling source code written in the Java programming language to Java Virtual Machine instructions.
 
 3.1. Format of Examples
 
@@ -1121,7 +1121,7 @@ The interface's name is the internal form (§4.2.1) of package-name.package-info
 
 The interface has no superinterfaces.
 
-The interface's only members are those implied by The Java Language Specification, Java SE 19 Edition (JLS §9.2).
+The interface's only members are those implied by The Java Language Specification, Java SE 20 Edition (JLS §9.2).
 
 The annotations on the package declaration are stored as RuntimeVisibleAnnotations and RuntimeInvisibleAnnotations attributes in the attributes table of the ClassFile structure.
 
