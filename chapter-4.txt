@@ -301,6 +301,11 @@ Java SE	Released	Major	Supported majors
 	September 2021	61	45 .. 61
 
 
+18
+
+	March 2022	62	45 .. 62
+
+
 
 For a class file whose major_version is 56 or above, the minor_version must be 0 or 65535.
 
@@ -450,7 +455,7 @@ Names of methods, fields, local variables, and formal parameters are stored as u
 
 Method names are further constrained so that, with the exception of the special method names <init> and <clinit> (§2.9), they must not contain the ASCII characters < or > (that is, left angle bracket or right angle bracket).
 
-Note that a field name or interface method name may be <init> or <clinit>, but no method invocation instruction may reference <clinit> and only the invokespecial instruction (§invokespecial) may reference <init>.
+Note that no method invocation instruction may reference <clinit>, and only the invokespecial instruction (§invokespecial) may reference <init>.
 
 4.2.3. Module and Package Names
 
@@ -1656,7 +1661,7 @@ For instance, defining a new attribute to support vendor-specific debugging is p
 
 Java Virtual Machine implementations are specifically prohibited from throwing an exception or otherwise refusing to use class files simply because of the presence of some new attribute. Of course, tools operating on class files may not run correctly if given class files that do not contain all the attributes they require.
 
-Two attributes that are intended to be distinct, but that happen to use the same attribute name and are of the same length, will conflict on implementations that recognize either attribute. Attributes defined other than in this specification should have names chosen according to the package naming convention described in The Java Language Specification, Java SE 17 Edition (JLS §6.1).
+Two attributes that are intended to be distinct, but that happen to use the same attribute name and are of the same length, will conflict on implementations that recognize either attribute. Attributes defined other than in this specification should have names chosen according to the package naming convention described in The Java Language Specification, Java SE 18 Edition (JLS §6.1).
 
 Future versions of this specification may define additional attributes.
 
@@ -2265,7 +2270,7 @@ The value of the attribute_length item must be zero.
 
 4.7.9. The Signature Attribute
 
-The Signature attribute is a fixed-length attribute in the attributes table of a ClassFile, field_info, method_info, or record_component_info structure (§4.1, §4.5, §4.6, §4.7.30). A Signature attribute stores a signature (§4.7.9.1) for a class, interface, constructor, method, field, or record component whose declaration in the Java programming language uses type variables or parameterized types. See The Java Language Specification, Java SE 17 Edition for details about these constructs.
+The Signature attribute is a fixed-length attribute in the attributes table of a ClassFile, field_info, method_info, or record_component_info structure (§4.1, §4.5, §4.6, §4.7.30). A Signature attribute stores a signature (§4.7.9.1) for a class, interface, constructor, method, field, or record component whose declaration in the Java programming language uses type variables or parameterized types. See The Java Language Specification, Java SE 18 Edition for details about these constructs.
 
 There may be at most one Signature attribute in the attributes table of a ClassFile, field_info, method_info, or record_component_info structure.
 
@@ -3041,7 +3046,7 @@ The value of the target_type item denotes the kind of target on which the annota
 
 The legal values of target_type are specified in Table 4.7.20-A and Table 4.7.20-B. Each value is a one-byte tag indicating which item of the target_info union follows the target_type item to give more information about the target.
 
-The kinds of target in Table 4.7.20-A and Table 4.7.20-B correspond to the type contexts in JLS §4.11. Namely, target_type values 0x10-0x17 and 0x40-0x42 correspond to type contexts 1-10, while target_type values 0x43-0x4B correspond to type contexts 11-16.
+The kinds of target in Table 4.7.20-A and Table 4.7.20-B correspond to the type contexts in JLS §4.11. Namely, target_type values 0x10-0x17 and 0x40-0x42 correspond to type contexts 1-11, while target_type values 0x43-0x4B correspond to type contexts 12-17.
 
 The value of the target_type item determines whether the type_annotation structure appears in a RuntimeVisibleTypeAnnotations attribute in a ClassFile structure, a field_info structure, a method_info structure, or a Code attribute. Table 4.7.20-C gives the location of the RuntimeVisibleTypeAnnotations attribute for a type_annotation structure with each legal target_type value.
 
@@ -3725,13 +3730,17 @@ Indicates that this dependence was not explicitly or implicitly declared in the 
 
 Indicates that this dependence was implicitly declared in the source of the module declaration.
 
-If the current module is not java.base, and the class file version number is 54.0 or above, then neither ACC_TRANSITIVE nor ACC_STATIC_PHASE may be set in requires_flags.
-
 requires_version_index
 
 The value of the requires_version_index item must be either zero or a valid index into the constant_pool table. If the value of the item is zero, then no version information about the dependence is present. If the value of the item is nonzero, then the constant_pool entry at that index must be a CONSTANT_Utf8_info structure representing the version of the module specified by requires_index.
 
-Unless the current module is java.base, exactly one entry in the requires table must have both a requires_index item which indicates java.base and a requires_flags item which has the ACC_SYNTHETIC flag not set.
+Unless the current module is java.base, exactly one entry in the requires table must have all of the following:
+
+A requires_index item that indicates java.base.
+
+A requires_flags item that has the ACC_SYNTHETIC flag not set. (The ACC_MANDATED flag may be set.)
+
+If the class file version number is 54.0 or above, a requires_flags item that has both the ACC_TRANSITIVE and ACC_STATIC_PHASE flags not set.
 
 exports_count
 
@@ -3811,7 +3820,7 @@ The value of the opens_to_count indicates the number of entries in the opens_to_
 
 If opens_to_count is zero, then this package is opened by the current module in an unqualified fashion; code in any other module may reflectively access the types and members in the package.
 
-If opens_to_count is nonzero, then this package is opened by the current module in a qualified fashion; only code in the modules listed in the exports_to_index table may reflectively access the types and members in the package.
+If opens_to_count is nonzero, then this package is opened by the current module in a qualified fashion; only code in the modules listed in the opens_to_index table may reflectively access the types and members in the package.
 
 opens_to_index[]
 
@@ -4325,7 +4334,7 @@ If a ret instruction returns to a point in the subroutine call chain above the r
 
 Even though a compiler for the Java programming language must only produce class files that satisfy all the static and structural constraints in the previous sections, the Java Virtual Machine has no guarantee that any file it is asked to load was generated by that compiler or is properly formed. Applications such as web browsers do not download source code, which they then compile; these applications download already-compiled class files. The browser needs to determine whether the class file was produced by a trustworthy compiler or by an adversary attempting to exploit the Java Virtual Machine.
 
-An additional problem with compile-time checking is version skew. A user may have successfully compiled a class, say PurchaseStockOptions, to be a subclass of TradingClass. But the definition of TradingClass might have changed since the time the class was compiled in a way that is not compatible with pre-existing binaries. Methods might have been deleted or had their return types or modifiers changed. Fields might have changed types or changed from instance variables to class variables. The access modifiers of a method or variable may have changed from public to private. For a discussion of these issues, see Chapter 13, "Binary Compatibility," in The Java Language Specification, Java SE 17 Edition.
+An additional problem with compile-time checking is version skew. A user may have successfully compiled a class, say PurchaseStockOptions, to be a subclass of TradingClass. But the definition of TradingClass might have changed since the time the class was compiled in a way that is not compatible with pre-existing binaries. Methods might have been deleted or had their return types or modifiers changed. Fields might have changed types or changed from instance variables to class variables. The access modifiers of a method or variable may have changed from public to private. For a discussion of these issues, see Chapter 13, "Binary Compatibility," in The Java Language Specification, Java SE 18 Edition.
 
 Because of these potential problems, the Java Virtual Machine needs to verify for itself that the desired constraints are satisfied by the class files it attempts to incorporate. A Java Virtual Machine implementation verifies that each class file satisfies the necessary constraints at linking time (§5.4).
 
