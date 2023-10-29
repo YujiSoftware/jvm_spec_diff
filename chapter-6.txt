@@ -164,7 +164,7 @@ A Java Virtual Machine instruction consists of an opcode specifying the operatio
 
 The description of each instruction is always given in the context of Java Virtual Machine code that satisfies the static and structural constraints of §4 (The class File Format). In the description of individual Java Virtual Machine instructions, we frequently state that some situation "must" or "must not" be the case: "The value2 must be of type int." The constraints of §4 (The class File Format) guarantee that all such expectations will in fact be met. If some constraint (a "must" or "must not") in an instruction description is not satisfied at run time, the behavior of the Java Virtual Machine is undefined.
 
-The Java Virtual Machine checks that Java Virtual Machine code satisfies the static and structural constraints at link time using a class file verifier (§4.10). Thus, a Java Virtual Machine will only attempt to execute code from valid class files. Performing verification at link time is attractive in that the checks are performed just once, substantially reducing the amount of work that must be done at run time. Other implementation strategies are possible, provided that they comply with The Java Language Specification, Java SE 14 Edition and The Java Virtual Machine Specification, Java SE 14 Edition.
+The Java Virtual Machine checks that Java Virtual Machine code satisfies the static and structural constraints at link time using a class file verifier (§4.10). Thus, a Java Virtual Machine will only attempt to execute code from valid class files. Performing verification at link time is attractive in that the checks are performed just once, substantially reducing the amount of work that must be done at run time. Other implementation strategies are possible, provided that they comply with The Java Language Specification, Java SE 15 Edition and The Java Virtual Machine Specification, Java SE 15 Edition.
 
 6.2. Reserved Opcodes
 
@@ -904,7 +904,7 @@ Operand Stack
 
 Description
 
-The value on the top of the operand stack must be of type double. It is popped from the operand stack and undergoes value set conversion (§2.8.3) resulting in value'. Then value' is converted to a float result using IEEE 754 round to nearest mode. The result is pushed onto the operand stack.
+The value on the top of the operand stack must be of type double. It is popped from the operand stack and undergoes value set conversion (§2.8.3) resulting in value'. Then value' is converted to a float result using the round to nearest rounding policy (§2.8). The result is pushed onto the operand stack.
 
 Where an d2f instruction is FP-strict (§2.8.2), the result of the conversion is always rounded to the nearest representable value in the float value set (§2.3.2).
 
@@ -939,11 +939,11 @@ Operand Stack
 
 Description
 
-The value on the top of the operand stack must be of type double. It is popped from the operand stack and undergoes value set conversion (§2.8.3) resulting in value'. Then value' is converted to an int. The result is pushed onto the operand stack:
+The value on the top of the operand stack must be of type double. It is popped from the operand stack and undergoes value set conversion (§2.8.3) resulting in value'. Then value' is converted to an int result. The result is pushed onto the operand stack:
 
 If the value' is NaN, the result of the conversion is an int 0.
 
-Otherwise, if the value' is not an infinity, it is rounded to an integer value V, rounding towards zero using IEEE 754 round towards zero mode. If this integer value V can be represented as an int, then the result is the int value V.
+Otherwise, if the value' is not an infinity, it is rounded to an integer value V using the round toward zero rounding policy (§2.8). If this integer value V can be represented as an int, then the result is the int value V.
 
 Otherwise, either the value' must be too small (a negative value of large magnitude or negative infinity), and the result is the smallest representable value of type int, or the value' must be too large (a positive value of large magnitude or positive infinity), and the result is the largest representable value of type int.
 
@@ -978,7 +978,7 @@ The value on the top of the operand stack must be of type double. It is popped f
 
 If the value' is NaN, the result of the conversion is a long 0.
 
-Otherwise, if the value' is not an infinity, it is rounded to an integer value V, rounding towards zero using IEEE 754 round towards zero mode. If this integer value V can be represented as a long, then the result is the long value V.
+Otherwise, if the value' is not an infinity, it is rounded to an integer value V using the round toward zero rounding policy (§2.8). If this integer value V can be represented as a long, then the result is the long value V.
 
 Otherwise, either the value' must be too small (a negative value of large magnitude or negative infinity), and the result is the smallest representable value of type long, or the value' must be too large (a positive value of large magnitude or positive infinity), and the result is the largest representable value of type long.
 
@@ -1011,7 +1011,7 @@ Description
 
 Both value1 and value2 must be of type double. The values are popped from the operand stack and undergo value set conversion (§2.8.3), resulting in value1' and value2'. The double result is value1' + value2'. The result is pushed onto the operand stack.
 
-The result of a dadd instruction is governed by the rules of IEEE arithmetic:
+The result of a dadd instruction is governed by the rules of IEEE 754 arithmetic:
 
 If either value1' or value2' is NaN, the result is NaN.
 
@@ -1029,9 +1029,9 @@ The sum of a zero and a nonzero finite value is equal to the nonzero value.
 
 The sum of two nonzero finite values of the same magnitude and opposite sign is positive zero.
 
-In the remaining cases, where neither operand is an infinity, a zero, or NaN and the values have the same sign or have different magnitudes, the sum is computed and rounded to the nearest representable value using IEEE 754 round to nearest mode. If the magnitude is too large to represent as a double, we say the operation overflows; the result is then an infinity of appropriate sign. If the magnitude is too small to represent as a double, we say the operation underflows; the result is then a zero of appropriate sign.
+In the remaining cases, where neither operand is an infinity, a zero, or NaN and the values have the same sign or have different magnitudes, the sum is computed and rounded to the nearest representable value using the round to nearest rounding policy (§2.8). If the magnitude is too large to represent as adouble, we say the operation overflows; the result is then an infinity of appropriate sign. If the magnitude is too small to represent as a double, we say the operation underflows; the result is then a zero of appropriate sign.
 
-The Java Virtual Machine requires support of gradual underflow as defined by IEEE 754. Despite the fact that overflow, underflow, or loss of precision may occur, execution of a dadd instruction never throws a run-time exception.
+The Java Virtual Machine requires support of gradual underflow. Despite the fact that overflow, underflow, or loss of precision may occur, execution of a dadd instruction never throws a run-time exception.
 
 daload
 Operation
@@ -1188,7 +1188,7 @@ Description
 
 Both value1 and value2 must be of type double. The values are popped from the operand stack and undergo value set conversion (§2.8.3), resulting in value1' and value2'. The double result is value1' / value2'. The result is pushed onto the operand stack.
 
-The result of a ddiv instruction is governed by the rules of IEEE arithmetic:
+The result of a ddiv instruction is governed by the rules of IEEE 754 arithmetic:
 
 If either value1' or value2' is NaN, the result is NaN.
 
@@ -1204,9 +1204,9 @@ Division of a zero by a zero results in NaN; division of zero by any other finit
 
 Division of a nonzero finite value by a zero results in a signed infinity, with the sign-producing rule just given.
 
-In the remaining cases, where neither operand is an infinity, a zero, or NaN, the quotient is computed and rounded to the nearest double using IEEE 754 round to nearest mode. If the magnitude is too large to represent as a double, we say the operation overflows; the result is then an infinity of appropriate sign. If the magnitude is too small to represent as a double, we say the operation underflows; the result is then a zero of appropriate sign.
+In the remaining cases, where neither operand is an infinity, a zero, or NaN, the quotient is computed and rounded to the nearest double using the round to nearest rounding policy (§2.8). If the magnitude is too large to represent as a double, we say the operation overflows; the result is then an infinity of appropriate sign. If the magnitude is too small to represent as a double, we say the operation underflows; the result is then a zero of appropriate sign.
 
-The Java Virtual Machine requires support of gradual underflow as defined by IEEE 754. Despite the fact that overflow, underflow, division by zero, or loss of precision may occur, execution of a ddiv instruction never throws a run-time exception.
+The Java Virtual Machine requires support of gradual underflow. Despite the fact that overflow, underflow, division by zero, or loss of precision may occur, execution of a ddiv instruction never throws a run-time exception.
 
 dload
 Operation
@@ -1298,7 +1298,7 @@ Description
 
 Both value1 and value2 must be of type double. The values are popped from the operand stack and undergo value set conversion (§2.8.3), resulting in value1' and value2'. The double result is value1' * value2'. The result is pushed onto the operand stack.
 
-The result of a dmul instruction is governed by the rules of IEEE arithmetic:
+The result of a dmul instruction is governed by the rules of IEEE 754 arithmetic:
 
 If either value1' or value2' is NaN, the result is NaN.
 
@@ -1308,9 +1308,9 @@ Multiplication of an infinity by a zero results in NaN.
 
 Multiplication of an infinity by a finite value results in a signed infinity, with the sign-producing rule just given.
 
-In the remaining cases, where neither an infinity nor NaN is involved, the product is computed and rounded to the nearest representable value using IEEE 754 round to nearest mode. If the magnitude is too large to represent as a double, we say the operation overflows; the result is then an infinity of appropriate sign. If the magnitude is too small to represent as a double, we say the operation underflows; the result is then a zero of appropriate sign.
+In the remaining cases, where neither an infinity nor NaN is involved, the product is computed and rounded to the nearest representable value using the round to nearest rounding policy (§2.8). If the magnitude is too large to represent as a double, we say the operation overflows; the result is then an infinity of appropriate sign. If the magnitude is too small to represent as a double, we say the operation underflows; the result is then a zero of appropriate sign.
 
-The Java Virtual Machine requires support of gradual underflow as defined by IEEE 754. Despite the fact that overflow, underflow, or loss of precision may occur, execution of a dmul instruction never throws a run-time exception.
+The Java Virtual Machine requires support of gradual underflow. Despite the fact that overflow, underflow, or loss of precision may occur, execution of a dmul instruction never throws a run-time exception.
 
 dneg
 Operation
@@ -1370,11 +1370,11 @@ Operand Stack
 
 Description
 
-Both value1 and value2 must be of type double. The values are popped from the operand stack and undergo value set conversion (§2.8.3), resulting in value1' and value2'. The result is calculated and pushed onto the operand stack as a double.
+Both value1 and value2 must be of type double. The values are popped from the operand stack and undergo value set conversion (§2.8.3), resulting in value1' and value2'. The double result is calculated and pushed onto the operand stack.
 
-The result of a drem instruction is not the same as that of the so-called remainder operation defined by IEEE 754. The IEEE 754 "remainder" operation computes the remainder from a rounding division, not a truncating division, and so its behavior is not analogous to that of the usual integer remainder operator. Instead, the Java Virtual Machine defines drem to behave in a manner analogous to that of the Java Virtual Machine integer remainder instructions (irem and lrem); this may be compared with the C library function fmod.
+The result of a drem instruction is not the same as the result of the remainder operation defined by IEEE 754, due to the choice of rounding policy in the Java Virtual Machine (§2.8). The IEEE 754 remainder operation computes the remainder from a rounding division, not a truncating division, and so its behavior is not analogous to that of the usual integer remainder operator. Instead, the Java Virtual Machine defines drem to behave in a manner analogous to that of the integer remainder instructions irem and lrem, with an implied division using the round toward zero rounding policy; this may be compared with the C library function fmod.
 
-The result of a drem instruction is governed by these rules:
+The result of a drem instruction is governed by the following rules, which match IEEE 754 arithmetic except for how the implied division is computed:
 
 If either value1' or value2' is NaN, the result is NaN.
 
@@ -1392,7 +1392,7 @@ Despite the fact that division by zero may occur, evaluation of a drem instructi
 
 Notes
 
-The IEEE 754 remainder operation may be computed by the library routine Math.IEEEremainder.
+The IEEE 754 remainder operation may be computed by the library routine Math.IEEEremainder or StrictMath.IEEEremainder.
 
 dreturn
 Operation
@@ -1519,7 +1519,7 @@ Both value1 and value2 must be of type double. The values are popped from the op
 
 For double subtraction, it is always the case that a-b produces the same result as a+(-b). However, for the dsub instruction, subtraction from zero is not the same as negation, because if x is +0.0, then 0.0-x equals +0.0, but -x equals -0.0.
 
-The Java Virtual Machine requires support of gradual underflow as defined by IEEE 754. Despite the fact that overflow, underflow, or loss of precision may occur, execution of a dsub instruction never throws a run-time exception.
+The Java Virtual Machine requires support of gradual underflow. Despite the fact that overflow, underflow, or loss of precision may occur, execution of a dsub instruction never throws a run-time exception.
 
 dup
 Operation
@@ -1797,7 +1797,7 @@ The value on the top of the operand stack must be of type float. It is popped fr
 
 If the value' is NaN, the result of the conversion is an int 0.
 
-Otherwise, if the value' is not an infinity, it is rounded to an integer value V, rounding towards zero using IEEE 754 round towards zero mode. If this integer value V can be represented as an int, then the result is the int value V.
+Otherwise, if the value' is not an infinity, it is rounded to an integer value V using the round toward zero rounding policy (§2.8). If this integer value V can be represented as an int, then the result is the int value V.
 
 Otherwise, either the value' must be too small (a negative value of large magnitude or negative infinity), and the result is the smallest representable value of type int, or the value' must be too large (a positive value of large magnitude or positive infinity), and the result is the largest representable value of type int.
 
@@ -1832,7 +1832,7 @@ The value on the top of the operand stack must be of type float. It is popped fr
 
 If the value' is NaN, the result of the conversion is a long 0.
 
-Otherwise, if the value' is not an infinity, it is rounded to an integer value V, rounding towards zero using IEEE 754 round towards zero mode. If this integer value V can be represented as a long, then the result is the long value V.
+Otherwise, if the value' is not an infinity, it is rounded to an integer value V using the round toward zero rounding policy (§2.8). If this integer value V can be represented as a long, then the result is the long value V.
 
 Otherwise, either the value' must be too small (a negative value of large magnitude or negative infinity), and the result is the smallest representable value of type long, or the value' must be too large (a positive value of large magnitude or positive infinity), and the result is the largest representable value of type long.
 
@@ -1865,7 +1865,7 @@ Description
 
 Both value1 and value2 must be of type float. The values are popped from the operand stack and undergo value set conversion (§2.8.3), resulting in value1' and value2'. The float result is value1' + value2'. The result is pushed onto the operand stack.
 
-The result of an fadd instruction is governed by the rules of IEEE arithmetic:
+The result of an fadd instruction is governed by the rules of IEEE 754 arithmetic:
 
 If either value1' or value2' is NaN, the result is NaN.
 
@@ -1883,9 +1883,9 @@ The sum of a zero and a nonzero finite value is equal to the nonzero value.
 
 The sum of two nonzero finite values of the same magnitude and opposite sign is positive zero.
 
-In the remaining cases, where neither operand is an infinity, a zero, or NaN and the values have the same sign or have different magnitudes, the sum is computed and rounded to the nearest representable value using IEEE 754 round to nearest mode. If the magnitude is too large to represent as a float, we say the operation overflows; the result is then an infinity of appropriate sign. If the magnitude is too small to represent as a float, we say the operation underflows; the result is then a zero of appropriate sign.
+In the remaining cases, where neither operand is an infinity, a zero, or NaN and the values have the same sign or have different magnitudes, the sum is computed and rounded to the nearest representable value using the round to nearest rounding policy (§2.8). If the magnitude is too large to represent as a float, we say the operation overflows; the result is then an infinity of appropriate sign. If the magnitude is too small to represent as a float, we say the operation underflows; the result is then a zero of appropriate sign.
 
-The Java Virtual Machine requires support of gradual underflow as defined by IEEE 754. Despite the fact that overflow, underflow, or loss of precision may occur, execution of an fadd instruction never throws a run-time exception.
+The Java Virtual Machine requires support of gradual underflow. Despite the fact that overflow, underflow, or loss of precision may occur, execution of an fadd instruction never throws a run-time exception.
 
 faload
 Operation
@@ -2044,7 +2044,7 @@ Description
 
 Both value1 and value2 must be of type float. The values are popped from the operand stack and undergo value set conversion (§2.8.3), resulting in value1' and value2'. The float result is value1' / value2'. The result is pushed onto the operand stack.
 
-The result of an fdiv instruction is governed by the rules of IEEE arithmetic:
+The result of an fdiv instruction is governed by the rules of IEEE 754 arithmetic:
 
 If either value1' or value2' is NaN, the result is NaN.
 
@@ -2060,9 +2060,9 @@ Division of a zero by a zero results in NaN; division of zero by any other finit
 
 Division of a nonzero finite value by a zero results in a signed infinity, with the sign-producing rule just given.
 
-In the remaining cases, where neither operand is an infinity, a zero, or NaN, the quotient is computed and rounded to the nearest float using IEEE 754 round to nearest mode. If the magnitude is too large to represent as a float, we say the operation overflows; the result is then an infinity of appropriate sign. If the magnitude is too small to represent as a float, we say the operation underflows; the result is then a zero of appropriate sign.
+In the remaining cases, where neither operand is an infinity, a zero, or NaN, the quotient is computed and rounded to the nearest float using the round to nearest rounding policy (§2.8). If the magnitude is too large to represent as a float, we say the operation overflows; the result is then an infinity of appropriate sign. If the magnitude is too small to represent as a float, we say the operation underflows; the result is then a zero of appropriate sign.
 
-The Java Virtual Machine requires support of gradual underflow as defined by IEEE 754. Despite the fact that overflow, underflow, division by zero, or loss of precision may occur, execution of an fdiv instruction never throws a run-time exception.
+The Java Virtual Machine requires support of gradual underflow. Despite the fact that overflow, underflow, division by zero, or loss of precision may occur, execution of an fdiv instruction never throws a run-time exception.
 
 fload
 Operation
@@ -2154,7 +2154,7 @@ Description
 
 Both value1 and value2 must be of type float. The values are popped from the operand stack and undergo value set conversion (§2.8.3), resulting in value1' and value2'. The float result is value1' * value2'. The result is pushed onto the operand stack.
 
-The result of an fmul instruction is governed by the rules of IEEE arithmetic:
+The result of an fmul instruction is governed by the rules of IEEE 754 arithmetic:
 
 If either value1' or value2' is NaN, the result is NaN.
 
@@ -2164,9 +2164,9 @@ Multiplication of an infinity by a zero results in NaN.
 
 Multiplication of an infinity by a finite value results in a signed infinity, with the sign-producing rule just given.
 
-In the remaining cases, where neither an infinity nor NaN is involved, the product is computed and rounded to the nearest representable value using IEEE 754 round to nearest mode. If the magnitude is too large to represent as a float, we say the operation overflows; the result is then an infinity of appropriate sign. If the magnitude is too small to represent as a float, we say the operation underflows; the result is then a zero of appropriate sign.
+In the remaining cases, where neither an infinity nor NaN is involved, the product is computed and rounded to the nearest representable value using the round to nearest rounding policy (§2.8). If the magnitude is too large to represent as a float, we say the operation overflows; the result is then an infinity of appropriate sign. If the magnitude is too small to represent as a float, we say the operation underflows; the result is then a zero of appropriate sign.
 
-The Java Virtual Machine requires support of gradual underflow as defined by IEEE 754. Despite the fact that overflow, underflow, or loss of precision may occur, execution of an fmul instruction never throws a run-time exception.
+The Java Virtual Machine requires support of gradual underflow. Despite the fact that overflow, underflow, or loss of precision may occur, execution of an fmul instruction never throws a run-time exception.
 
 fneg
 Operation
@@ -2226,11 +2226,11 @@ Operand Stack
 
 Description
 
-Both value1 and value2 must be of type float. The values are popped from the operand stack and undergo value set conversion (§2.8.3), resulting in value1' and value2'. The result is calculated and pushed onto the operand stack as a float.
+Both value1 and value2 must be of type float. The values are popped from the operand stack and undergo value set conversion (§2.8.3), resulting in value1' and value2'. The float result is calculated and pushed onto the operand stack.
 
-The result of an frem instruction is not the same as that of the so-called remainder operation defined by IEEE 754. The IEEE 754 "remainder" operation computes the remainder from a rounding division, not a truncating division, and so its behavior is not analogous to that of the usual integer remainder operator. Instead, the Java Virtual Machine defines frem to behave in a manner analogous to that of the Java Virtual Machine integer remainder instructions (irem and lrem); this may be compared with the C library function fmod.
+The result of an frem instruction is not the same as the result of the remainder operation defined by IEEE 754, due to the choice of rounding policy in the Java Virtual Machine (§2.8). The IEEE 754 remainder operation computes the remainder from a rounding division, not a truncating division, and so its behavior is not analogous to that of the usual integer remainder operator. Instead, the Java Virtual Machine defines frem to behave in a manner analogous to that of the integer remainder instructions irem and lrem, with an implied division using the round toward zero rounding policy; this may be compared with the C library function fmod.
 
-The result of an frem instruction is governed by these rules:
+The result of an frem instruction is governed by the following rules, which match IEEE 754 arithmetic except for how the implied division is computed:
 
 If either value1' or value2' is NaN, the result is NaN.
 
@@ -2248,7 +2248,7 @@ Despite the fact that division by zero may occur, evaluation of an frem instruct
 
 Notes
 
-The IEEE 754 remainder operation may be computed by the library routine Math.IEEEremainder.
+The IEEE 754 remainder operation may be computed by the library routine Math.IEEEremainder or StrictMath.IEEEremainder.
 
 freturn
 Operation
@@ -2375,7 +2375,7 @@ Both value1 and value2 must be of type float. The values are popped from the ope
 
 For float subtraction, it is always the case that a-b produces the same result as a+(-b). However, for the fsub instruction, subtraction from zero is not the same as negation, because if x is +0.0, then 0.0-x equals +0.0, but -x equals -0.0.
 
-The Java Virtual Machine requires support of gradual underflow as defined by IEEE 754. Despite the fact that overflow, underflow, or loss of precision may occur, execution of an fsub instruction never throws a run-time exception.
+The Java Virtual Machine requires support of gradual underflow. Despite the fact that overflow, underflow, or loss of precision may occur, execution of an fsub instruction never throws a run-time exception.
 
 getfield
 Operation
@@ -2540,7 +2540,7 @@ Operand Stack
 
 Description
 
-The value on the top of the operand stack must be of type int. It is popped from the operand stack, truncated to a byte, then sign-extended to an int result. That result is pushed onto the operand stack.
+The value on the top of the operand stack must be of type int. It is popped from the operand stack, truncated to a byte, then sign-extended to an int result. The result is pushed onto the operand stack.
 
 Notes
 
@@ -2569,7 +2569,7 @@ Operand Stack
 
 Description
 
-The value on the top of the operand stack must be of type int. It is popped from the operand stack, truncated to char, then zero-extended to an int result. That result is pushed onto the operand stack.
+The value on the top of the operand stack must be of type int. It is popped from the operand stack, truncated to char, then zero-extended to an int result. The result is pushed onto the operand stack.
 
 Notes
 
@@ -2627,7 +2627,7 @@ Operand Stack
 
 Description
 
-The value on the top of the operand stack must be of type int. It is popped from the operand stack and converted to the float result using IEEE 754 round to nearest mode. The result is pushed onto the operand stack.
+The value on the top of the operand stack must be of type int. It is popped from the operand stack and converted to the float result using the round to nearest rounding policy (§2.8). The result is pushed onto the operand stack.
 
 Notes
 
@@ -2656,7 +2656,7 @@ Operand Stack
 
 Description
 
-The value on the top of the operand stack must be of type int. It is popped from the operand stack and sign-extended to a long result. That result is pushed onto the operand stack.
+The value on the top of the operand stack must be of type int. It is popped from the operand stack and sign-extended to a long result. The result is pushed onto the operand stack.
 
 Notes
 
@@ -2685,7 +2685,7 @@ Operand Stack
 
 Description
 
-The value on the top of the operand stack must be of type int. It is popped from the operand stack, truncated to a short, then sign-extended to an int result. That result is pushed onto the operand stack.
+The value on the top of the operand stack must be of type int. It is popped from the operand stack, truncated to a short, then sign-extended to an int result. The result is pushed onto the operand stack.
 
 Notes
 
@@ -2871,7 +2871,7 @@ Operand Stack
 
 Description
 
-Both value1 and value2 must be of type int. The values are popped from the operand stack. The int result is the value of the Java programming language expression value1 / value2. The result is pushed onto the operand stack.
+Both value1 and value2 must be of type int. The values are popped from the operand stack. The int result is the value of the Java programming language expression value1 / value2 (JLS §15.17.2). The result is pushed onto the operand stack.
 
 An int division rounds towards 0; that is, the quotient produced for int values in n/d is an int value q whose magnitude is as large as possible while satisfying |d ⋅ q| ≤ |n|. Moreover, q is positive when |n| ≥ |d| and n and d have the same sign, but q is negative when |n| ≥ |d| and n and d have opposite signs.
 
@@ -4096,7 +4096,7 @@ Operand Stack
 
 Description
 
-The value on the top of the operand stack must be of type long. It is popped from the operand stack and converted to a double result using IEEE 754 round to nearest mode. The result is pushed onto the operand stack.
+The value on the top of the operand stack must be of type long. It is popped from the operand stack and converted to a double result using the round to nearest rounding policy (§2.8). The result is pushed onto the operand stack.
 
 Notes
 
@@ -4125,7 +4125,7 @@ Operand Stack
 
 Description
 
-The value on the top of the operand stack must be of type long. It is popped from the operand stack and converted to a float result using IEEE 754 round to nearest mode. The result is pushed onto the operand stack.
+The value on the top of the operand stack must be of type long. It is popped from the operand stack and converted to a float result using the round to nearest rounding policy (§2.8). The result is pushed onto the operand stack.
 
 Notes
 

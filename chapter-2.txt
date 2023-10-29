@@ -51,7 +51,7 @@ This document specifies an abstract machine. It does not describe any particular
 
 To implement the Java Virtual Machine correctly, you need only be able to read the class file format and correctly perform the operations specified therein. Implementation details that are not part of the Java Virtual Machine's specification would unnecessarily constrain the creativity of implementors. For example, the memory layout of run-time data areas, the garbage-collection algorithm used, and any internal optimization of the Java Virtual Machine instructions (for example, translating them into machine code) are left to the discretion of the implementor.
 
-All references to Unicode in this specification are given with respect to The Unicode Standard, Version 12.1.0, available at https://www.unicode.org/.
+All references to Unicode in this specification are given with respect to The Unicode Standard, Version 13.0, available at https://www.unicode.org/.
 
 2.1. The class File Format
 
@@ -113,13 +113,15 @@ For char, from 0 to 65535 inclusive
 
 2.3.2. Floating-Point Types, Value Sets, and Values
 
-The floating-point types are float and double, which are conceptually associated with the 32-bit single-precision and 64-bit double-precision format IEEE 754 values and operations as specified in IEEE Standard for Binary Floating-Point Arithmetic (ANSI/IEEE Std. 754-1985, New York).
+The floating-point types are float and double, which are conceptually associated with the 32-bit binary32 and 64-bit binary64 floating-point formats for IEEE 754 values and operations, as specified in the IEEE 754 Standard (JLS §1.7).
 
-The IEEE 754 standard includes not only positive and negative sign-magnitude numbers, but also positive and negative zeros, positive and negative infinities, and a special Not-a-Number value (hereafter abbreviated as "NaN"). The NaN value is used to represent the result of certain invalid operations such as dividing zero by zero.
+In Java SE 15 and later, the Java Virtual Machine uses the 2019 version of the IEEE 754 Standard. Prior to Java SE 15, the Java Virtual Machine used the 1985 version of the IEEE 754 Standard, where the binary32 format was known as the single format and the binary64 format was known as the double format.
+
+IEEE 754 includes not only positive and negative sign-magnitude numbers, but also positive and negative zeros, positive and negative infinities, and a special Not-a-Number value (hereafter abbreviated as "NaN"). The NaN value is used to represent the result of certain invalid operations such as dividing zero by zero.
 
 Every implementation of the Java Virtual Machine is required to support two standard sets of floating-point values, called the float value set and the double value set. In addition, an implementation of the Java Virtual Machine may, at its option, support either or both of two extended-exponent floating-point value sets, called the float-extended-exponent value set and the double-extended-exponent value set. These extended-exponent value sets may, under certain circumstances, be used instead of the standard value sets to represent the values of type float or double.
 
-The finite nonzero values of any floating-point value set can all be expressed in the form s ⋅ m ⋅ 2(e − N + 1), where s is +1 or −1, m is a positive integer less than 2N, and e is an integer between Emin = −(2K−1−2) and Emax = 2K−1−1, inclusive, and where N and K are parameters that depend on the value set. Some values can be represented in this form in more than one way; for example, supposing that a value v in a value set might be represented in this form using certain values for s, m, and e, then if it happened that m were even and e were less than 2K-1, one could halve m and increase e by 1 to produce a second representation for the same value v. A representation in this form is called normalized if m ≥ 2N-1; otherwise the representation is said to be denormalized. If a value in a value set cannot be represented in such a way that m ≥ 2N-1, then the value is said to be a denormalized value, because it has no normalized representation.
+The finite nonzero values of any floating-point value set can all be expressed in the form s ⋅ m ⋅ 2(e − N + 1), where s is +1 or −1, m is a positive integer less than 2N, and e is an integer between Emin = −(2K−1−2) and Emax = 2K−1−1, inclusive, and where N and K are parameters that depend on the value set. Some values can be represented in this form in more than one way; for example, supposing that a value v in a value set might be represented in this form using certain values for s, m, and e, then if it happened that m were even and e were less than 2K-1, one could halve m and increase e by 1 to produce a second representation for the same value v. A representation in this form is called normalized if m ≥ 2N-1; otherwise the representation is said to be subnormal. If a value in a value set cannot be represented in such a way that m ≥ 2N-1, then the value is said to be a subnormal value, because its magnitude is below the magnitude of the smallest normalized value.
 
 The constraints on the parameters N and K (and on the derived parameters Emin and Emax) for the two required and two optional floating-point value sets are summarized in Table 2.3.2-A.
 
@@ -135,11 +137,11 @@ Emin	-126	≤ -1022	-1022	≤ -16382
 
 Where one or both extended-exponent value sets are supported by an implementation, then for each supported extended-exponent value set there is a specific implementation-dependent constant K, whose value is constrained by Table 2.3.2-A; this value K in turn dictates the values for Emin and Emax.
 
-Each of the four value sets includes not only the finite nonzero values that are ascribed to it above, but also the five values positive zero, negative zero, positive infinity, negative infinity, and NaN.
+Each of the four value sets includes not only the finite nonzero values that are ascribed to it above, but also the five values: positive zero, negative zero, positive infinity, negative infinity, and NaN.
 
 Note that the constraints in Table 2.3.2-A are designed so that every element of the float value set is necessarily also an element of the float-extended-exponent value set, the double value set, and the double-extended-exponent value set. Likewise, each element of the double value set is necessarily also an element of the double-extended-exponent value set. Each extended-exponent value set has a larger range of exponent values than the corresponding standard value set, but does not have more precision.
 
-The elements of the float value set are exactly the values that can be represented using the single floating-point format defined in the IEEE 754 standard, except that there is only one NaN value (IEEE 754 specifies 224-2 distinct NaN values). The elements of the double value set are exactly the values that can be represented using the double floating-point format defined in the IEEE 754 standard, except that there is only one NaN value (IEEE 754 specifies 253-2 distinct NaN values). Note, however, that the elements of the float-extended-exponent and double-extended-exponent value sets defined here do not correspond to the values that can be represented using IEEE 754 single extended and double extended formats, respectively. This specification does not mandate a specific representation for the values of the floating-point value sets except where floating-point values must be represented in the class file format (§4.4.4, §4.4.5).
+The elements of the float value set are exactly the values that can be represented using the binary32 floating-point format defined by IEEE 754, except that there is only one NaN value (IEEE 754 specifies 224-2 distinct NaN values). The elements of the double value set are exactly the values that can be represented using the binary64 floating-point format defined by IEEE 754, except that there is only one NaN value (IEEE 754 specifies 253-2 distinct NaN values). Note, however, that the elements of the float-extended-exponent and double-extended-exponent value sets defined here do not correspond to the values that can be represented using, respectively, the binary32 extended and binary64 extended floating-point formats defined by IEEE 754. This specification does not mandate a specific representation for the values of the floating-point value sets except where floating-point values must be represented in the class file format (§4.4.4, §4.4.5).
 
 The float, float-extended-exponent, double, and double-extended-exponent value sets are not types. It is always correct for an implementation of the Java Virtual Machine to use an element of the float value set to represent a value of type float; however, it may be permissible in certain contexts for an implementation to use an element of the float-extended-exponent value set instead. Similarly, it is always correct for an implementation to use an element of the double value set to represent a value of type double; however, it may be permissible in certain contexts for an implementation to use an element of the double-extended-exponent value set instead.
 
@@ -317,19 +319,41 @@ In some of Oracle’s implementations of the Java Virtual Machine, a reference t
 
 2.8. Floating-Point Arithmetic
 
-The Java Virtual Machine incorporates a subset of the floating-point arithmetic specified in IEEE Standard for Binary Floating-Point Arithmetic (ANSI/IEEE Std. 754-1985, New York).
+The Java Virtual Machine incorporates a subset of the floating-point arithmetic specified in the IEEE 754 Standard (JLS §1.7).
+
+In Java SE 15 and later, the Java Virtual Machine uses the 2019 version of the IEEE 754 Standard. Prior to Java SE 15, the Java Virtual Machine used the 1985 version of the IEEE 754 Standard, where the binary32 format was known as the single format and the binary64 format was known as the double format.
+
+Java Virtual Machine instructions on floating-point numbers behave as specified in IEEE 754, with the exception of certain instructions described below. In particular, the Java Virtual Machine requires full support of IEEE 754 subnormal floating-point numbers and gradual underflow, which make it easier to prove desirable properties of particular numerical algorithms.
+
+Floating-point arithmetic is an approximation to real arithmetic. While there are an infinite number of real numbers, a particular floating-point format only has a finite number of values. In the Java Virtual Machine, a rounding policy is a function used to map from a real number to a floating-point value in a given format. For real numbers in the representable range of a floating-point format, a continuous segment of the real number line is mapped to a single floating-point value. The real number whose value is numerically equal to a floating-point value is mapped to that floating-point value; for example, the real number 1.5 is mapped to the floating-point value 1.5 in a given format. The Java Virtual Machine defines two rounding policies, as follows:
+
+The round to nearest rounding policy applies to all floating-point instructions except for (i) conversion to an integer value and (ii) remainder. Under the round to nearest rounding policy, inexact results must be rounded to the representable value nearest to the infinitely precise result; if the two nearest representable values are equally near, then the value whose least significant bit is zero is chosen.
+
+The round to nearest rounding policy corresponds to the default rounding-direction attribute for binary arithmetic in IEEE 754, roundTiesToEven.
+
+The roundTiesToEven rounding-direction attribute was known as the "round to nearest" rounding mode in the 1985 version of the IEEE 754 Standard. The rounding policy in the Java Virtual Machine is named after this rounding mode.
+
+The round toward zero rounding policy applies to (i) conversion of a floating-point value to an integer value by the d2i, d2l, f2i, and f2l instructions (§d2i, §d2l, §f2i, §f2l), and (ii) the floating-point remainder instructions drem and frem (§drem, §frem). Under the round toward zero rounding policy, inexact results are rounded to the nearest representable value that is not greater in magnitude than the infinitely precise result. For conversion to integer, the round toward zero rounding policy is equivalent to truncation where fractional significand bits are discarded.
+
+The round toward zero rounding policy corresponds to the roundTowardZero rounding-direction attribute for binary arithmetic in IEEE 754.
+
+The roundTowardZero rounding-direction attribute was known as the "round toward zero" rounding mode in the 1985 version of the IEEE 754 Standard. The rounding policy in the Java Virtual Machine is named after this rounding mode.
+
+The Java Virtual Machine requires that floating-point arithmetic behave as if every floating-point instruction rounds its floating-point result to the result precision. The rounding policy used by each instruction is either round to nearest or round toward zero, as specified above.
 
 2.8.1. Java Virtual Machine Floating-Point Arithmetic and IEEE 754
 
-The key differences between the floating-point arithmetic supported by the Java Virtual Machine and the IEEE 754 standard are:
+The key differences between the floating-point arithmetic supported by the Java Virtual Machine and the IEEE 754 Standard are:
 
 The floating-point operations of the Java Virtual Machine do not throw exceptions, trap, or otherwise signal the IEEE 754 exceptional conditions of invalid operation, division by zero, overflow, underflow, or inexact. The Java Virtual Machine has no signaling NaN value.
 
 The Java Virtual Machine does not support IEEE 754 signaling floating-point comparisons.
 
-The rounding operations of the Java Virtual Machine always use IEEE 754 round to nearest mode. Inexact results are rounded to the nearest representable value, with ties going to the value with a zero least-significant bit. This is the IEEE 754 default mode. But Java Virtual Machine instructions that convert values of floating-point types to values of integral types round toward zero. The Java Virtual Machine does not give any means to change the floating-point rounding mode.
+IEEE 754 includes rounding-direction attributes that do not correspond to a rounding policy in the Java Virtual Machine. The Java Virtual Machine does not provide any means to change the rounding policy used by a given floating-point instruction.
 
-The Java Virtual Machine does not support either the IEEE 754 single extended or double extended format, except insofar as the double and double-extended-exponent value sets may be said to support the single extended format. The float-extended-exponent and double-extended-exponent value sets, which may optionally be supported, do not correspond to the values of the IEEE 754 extended formats: the IEEE 754 extended formats require extended precision as well as extended exponent range.
+The floating-point remainder instructions drem and frem are based on an implied division using the round toward zero rounding policy. The IEEE 754 remainder is instead based on an implied division using the round to nearest rounding policy.
+
+The Java Virtual Machine does not support the binary32 extended and binary64 extended floating-point formats defined by IEEE 754, except insofar as the double and double-extended-exponent value sets may be said to support the binary32 extended format. The float-extended-exponent and double-extended-exponent value sets, which may optionally be supported, do not correspond to the values of the IEEE 754 extended formats: the IEEE 754 extended formats require extended precision as well as extended exponent range.
 
 2.8.2. Floating-Point Modes
 
@@ -361,7 +385,7 @@ Suppose execution of a Java Virtual Machine instruction that is not FP-strict ca
 
 Such required value set conversions may occur as a result of passing a parameter of a floating-point type during method invocation, including native method invocation; returning a value of a floating-point type from a method that is not FP-strict to a method that is FP-strict; or storing a value of a floating-point type into a local variable, a field, or an array in a method that is not FP-strict.
 
-Not all values from an extended-exponent value set can be mapped exactly to a value in the corresponding standard value set. If a value being mapped is too large to be represented exactly (its exponent is greater than that permitted by the standard value set), it is converted to a (positive or negative) infinity of the corresponding type. If a value being mapped is too small to be represented exactly (its exponent is smaller than that permitted by the standard value set), it is rounded to the nearest of a representable denormalized value or zero of the same sign.
+Not all values from an extended-exponent value set can be mapped exactly to a value in the corresponding standard value set. If a value being mapped is too large to be represented exactly (its exponent is greater than that permitted by the standard value set), it is converted to a (positive or negative) infinity of the corresponding type. If a value being mapped is too small to be represented exactly (its exponent is smaller than that permitted by the standard value set), it is rounded to the nearest of a representable subnormal value or zero of the same sign.
 
 Value set conversion preserves infinities and NaNs and cannot change the sign of the value being converted. Value set conversion has no effect on a value that is not of a floating-point type.
 
@@ -590,15 +614,11 @@ The semantics of the Java programming language operators on integer and floating
 
 The Java Virtual Machine does not indicate overflow during operations on integer data types. The only integer operations that can throw an exception are the integer divide instructions (idiv and ldiv) and the integer remainder instructions (irem and lrem), which throw an ArithmeticException if the divisor is zero.
 
-Java Virtual Machine operations on floating-point numbers behave as specified in IEEE 754. In particular, the Java Virtual Machine requires full support of IEEE 754 denormalized floating-point numbers and gradual underflow, which make it easier to prove desirable properties of particular numerical algorithms.
+The Java Virtual Machine does not indicate overflow or underflow during operations on floating-point data types. That is, floating-point instructions never cause the Java Virtual Machine to throw a run-time exception (not to be confused with an IEEE 754 floating-point exception). An operation that overflows produces a signed infinity; an operation that underflows produces a subnormal value or a signed zero; an operation that has no unique mathematically defined result produces NaN. All numeric operations with NaN as an operand produce NaN as a result.
 
-The Java Virtual Machine requires that floating-point arithmetic behave as if every floating-point operator rounded its floating-point result to the result precision. Inexact results must be rounded to the representable value nearest to the infinitely precise result; if the two nearest representable values are equally near, the one having a least significant bit of zero is chosen. This is the IEEE 754 standard's default rounding mode, known as round to nearest mode.
+Comparisons on values of type long (lcmp) perform a signed comparison.
 
-The Java Virtual Machine uses the IEEE 754 round towards zero mode when converting a floating-point value to an integer. This results in the number being truncated; any bits of the significand that represent the fractional part of the operand value are discarded. Round towards zero mode chooses as its result the type's value closest to, but no greater in magnitude than, the infinitely precise result.
-
-The Java Virtual Machine's floating-point operators do not throw run-time exceptions (not to be confused with IEEE 754 floating-point exceptions). An operation that overflows produces a signed infinity, an operation that underflows produces a denormalized value or a signed zero, and an operation that has no mathematically definite result produces NaN. All numeric operations with NaN as an operand produce NaN as a result.
-
-Comparisons on values of type long (lcmp) perform a signed comparison. Comparisons on values of floating-point types (dcmpg, dcmpl, fcmpg, fcmpl) are performed using IEEE 754 nonsignaling comparisons.
+Comparisons on values of floating-point types (dcmpg, dcmpl, fcmpg, fcmpl) are performed using IEEE 754 nonsignaling comparisons.
 
 2.11.4. Type Conversion Instructions
 
@@ -616,7 +636,7 @@ The widening numeric conversion instructions are i2l, i2f, i2d, l2f, l2d, and f2
 
 Most widening numeric conversions do not lose information about the overall magnitude of a numeric value. Indeed, conversions widening from int to long and int to double do not lose any information at all; the numeric value is preserved exactly. Conversions widening from float to double that are FP-strict (§2.8.2) also preserve the numeric value exactly; only such conversions that are not FP-strict may lose information about the overall magnitude of the converted value.
 
-Conversions from int to float, or from long to float, or from long to double, may lose precision, that is, may lose some of the least significant bits of the value; the resulting floating-point value is a correctly rounded version of the integer value, using IEEE 754 round to nearest mode.
+Conversions from int to float, or from long to float, or from long to double, may lose precision, that is, may lose some of the least significant bits of the value; the resulting floating-point value is a correctly rounded version of the integer value, using the round to nearest rounding policy (§2.8).
 
 Despite the fact that loss of precision may occur, widening numeric conversions never cause the Java Virtual Machine to throw a run-time exception (not to be confused with an IEEE 754 floating-point exception).
 
@@ -642,7 +662,7 @@ In a narrowing numeric conversion of a floating-point value to an integral type 
 
 If the floating-point value is NaN, the result of the conversion is an int or long 0.
 
-Otherwise, if the floating-point value is not an infinity, the floating-point value is rounded to an integer value V using IEEE 754 round towards zero mode. There are two cases:
+Otherwise, if the floating-point value is not an infinity, the floating-point value is rounded to an integer value V using the round toward zero rounding policy (§2.8). There are two cases:
 
 If T is long and this integer value can be represented as a long, then the result is the long value V.
 
@@ -654,7 +674,7 @@ Either the value must be too small (a negative value of large magnitude or negat
 
 Or the value must be too large (a positive value of large magnitude or positive infinity), and the result is the largest representable value of type int or long.
 
-A narrowing numeric conversion from double to float behaves in accordance with IEEE 754. The result is correctly rounded using IEEE 754 round to nearest mode. A value too small to be represented as a float is converted to a positive or negative zero of type float; a value too large to be represented as a float is converted to a positive or negative infinity. A double NaN is always converted to a float NaN.
+A narrowing numeric conversion from double to float behaves in accordance with IEEE 754. The result is correctly rounded using the round to nearest rounding policy (§2.8). A value too small to be represented as a float is converted to a positive or negative zero of type float; a value too large to be represented as a float is converted to a positive or negative infinity. A double NaN is always converted to a float NaN.
 
 Despite the fact that overflow, underflow, or loss of precision may occur, narrowing conversions among numeric types never cause the Java Virtual Machine to throw a run-time exception (not to be confused with an IEEE 754 floating-point exception).
 
