@@ -240,9 +240,23 @@ minor_version, major_version
 
 The values of the minor_version and major_version items are the minor and major version numbers of this class file. Together, a major and a minor version number determine the version of the class file format. If a class file has major version number M and minor version number m, we denote the version of its class file format as M.m. Thus, class file format versions may be ordered lexicographically, for example, 1.5 < 2.0 < 2.1.
 
-A Java Virtual Machine implementation can support a class file format of version v if and only if v lies in some contiguous range Mi.0 ≤ v ≤ Mj.m. The release level of the Java SE Platform to which a Java Virtual Machine implementation conforms is responsible for determining the range.
+A Java Virtual Machine implementation can support a class file format of version v if and only if v lies in some contiguous range Mi.0 ≤ v ≤ Mj.m. The range is based on the version of the Java SE Platform to which the implementation conforms. An implementation which conforms to a given Java SE Platform version must support the range specified in Table 4.1-A for that version, and no other range. (For historical cases, the JDK version is shown instead of the Java SE Platform version.)
 
-Oracle's Java Virtual Machine implementation in JDK release 1.0.2 supports class file format versions 45.0 through 45.3 inclusive. JDK releases 1.1.* support class file format versions in the range 45.0 through 45.65535 inclusive. For k ≥ 2, JDK release 1.k supports class file format versions in the range 45.0 through 44+k.0 inclusive.
+Table 4.1-A. class file format version ranges (by Java SE Platform)
+
+Java SE	class file format version range
+1.0.2	45.0 ≤ v ≤ 45.3
+1.1	45.0 ≤ v ≤ 45.65535
+1.2	45.0 ≤ v ≤ 46.0
+1.3	45.0 ≤ v ≤ 47.0
+1.4	45.0 ≤ v ≤ 48.0
+5.0	45.0 ≤ v ≤ 49.0
+6	45.0 ≤ v ≤ 50.0
+7	45.0 ≤ v ≤ 51.0
+8	45.0 ≤ v ≤ 52.0
+9	45.0 ≤ v ≤ 53.0
+10	45.0 ≤ v ≤ 54.0
+
 
 constant_pool_count
 
@@ -256,9 +270,9 @@ The constant_pool table is indexed from 1 to constant_pool_count - 1.
 
 access_flags
 
-The value of the access_flags item is a mask of flags used to denote access permissions to and properties of this class or interface. The interpretation of each flag, when set, is specified in Table 4.1-A.
+The value of the access_flags item is a mask of flags used to denote access permissions to and properties of this class or interface. The interpretation of each flag, when set, is specified in Table 4.1-B.
 
-Table 4.1-A. Class access and property modifiers
+Table 4.1-B. Class access and property modifiers
 
 Flag Name	Value	Interpretation
 ACC_PUBLIC	0x0001	Declared public; may be accessed from outside its package.
@@ -283,7 +297,7 @@ An interface is distinguished by the ACC_INTERFACE flag being set. If the ACC_IN
 
 If the ACC_INTERFACE flag is set, the ACC_ABSTRACT flag must also be set, and the ACC_FINAL, ACC_SUPER, ACC_ENUM, and ACC_MODULE flags set must not be set.
 
-If the ACC_INTERFACE flag is not set, any of the other flags in Table 4.1-A may be set except ACC_ANNOTATION and ACC_MODULE. However, such a class file must not have both its ACC_FINAL and ACC_ABSTRACT flags set (JLS §8.1.1.2).
+If the ACC_INTERFACE flag is not set, any of the other flags in Table 4.1-B may be set except ACC_ANNOTATION and ACC_MODULE. However, such a class file must not have both its ACC_FINAL and ACC_ABSTRACT flags set (JLS §8.1.1.2).
 
 The ACC_SUPER flag indicates which of two alternative semantics is to be expressed by the invokespecial instruction (§invokespecial) if it appears in this class or interface. Compilers to the instruction set of the Java Virtual Machine should set the ACC_SUPER flag. In Java SE 8 and above, the Java Virtual Machine considers the ACC_SUPER flag to be set in every class file, regardless of the actual value of the flag in the class file and the version of the class file.
 
@@ -295,7 +309,7 @@ An annotation type (JLS §9.6) must have its ACC_ANNOTATION flag set. If the ACC
 
 The ACC_ENUM flag indicates that this class or its superclass is declared as an enumerated type (JLS §8.9).
 
-All bits of the access_flags item not assigned in Table 4.1-A are reserved for future use. They should be set to zero in generated class files and should be ignored by Java Virtual Machine implementations.
+All bits of the access_flags item not assigned in Table 4.1-B are reserved for future use. They should be set to zero in generated class files and should be ignored by Java Virtual Machine implementations.
 
 this_class
 
@@ -796,7 +810,7 @@ String content is encoded in modified UTF-8. Modified UTF-8 strings are encoded 
 
 Code points in the range '\u0001' to '\u007F' are represented by a single byte:
 
-Table 4.4. 
+Table 4.5. 
 
 0	bits 6-0
 
@@ -806,18 +820,18 @@ The 7 bits of data in the byte give the value of the code point represented.
 
 The null code point ('\u0000') and code points in the range '\u0080' to '\u07FF' are represented by a pair of bytes x and y :
 
-Table 4.5. 
+Table 4.6. 
 
 x:	
 
-Table 4.6. 
+Table 4.7. 
 
 1	1	0	bits 10-6
 
 
 y:	
 
-Table 4.7. 
+Table 4.8. 
 
 1	0	bits 5-0
 
@@ -832,25 +846,25 @@ The two bytes represent the code point with the value:
 
 Code points in the range '\u0800' to '\uFFFF' are represented by 3 bytes x, y, and z :
 
-Table 4.8. 
+Table 4.9. 
 
 x:	
 
-Table 4.9. 
+Table 4.10. 
 
 1	1	1	0	bits 15-12
 
 
 y:	
 
-Table 4.10. 
+Table 4.11. 
 
 1	0	bits 11-6
 
 
 z:	
 
-Table 4.11. 
+Table 4.12. 
 
 1	0	bits 5-0
 
@@ -865,46 +879,46 @@ The three bytes represent the code point with the value:
 
 Characters with code points above U+FFFF (so-called supplementary characters) are represented by separately encoding the two surrogate code units of their UTF-16 representation. Each of the surrogate code units is represented by three bytes. This means supplementary characters are represented by six bytes, u, v, w, x, y, and z :
 
-Table 4.12. 
+Table 4.13. 
 
 u:	
 
-Table 4.13. 
+Table 4.14. 
 
 1	1	1	0	1	1	0	1
 
 
 v:	
 
-Table 4.14. 
+Table 4.15. 
 
 1	0	1	0	(bits 20-16)-1
 
 
 w:	
 
-Table 4.15. 
+Table 4.16. 
 
 1	0	bits 15-10
 
 
 x:	
 
-Table 4.16. 
+Table 4.17. 
 
 1	1	1	0	1	1	0	1
 
 
 y:	
 
-Table 4.17. 
+Table 4.18. 
 
 1	0	1	1	bits 9-6
 
 
 z:	
 
-Table 4.18. 
+Table 4.19. 
 
 1	0	bits 5-0
 
@@ -1171,7 +1185,9 @@ If a method of a class or interface has its ACC_ABSTRACT flag set, it must not h
 
 An instance initialization method (§2.9.1) may have at most one of its ACC_PUBLIC, ACC_PRIVATE, and ACC_PROTECTED flags set, and may also have its ACC_VARARGS, ACC_STRICT, and ACC_SYNTHETIC flags set, but must not have any of the other flags in Table 4.6-A set.
 
-A class or interface initialization method (§2.9.2) is called implicitly by the Java Virtual Machine, whereupon the value of its access_flags item is ignored except for the setting of the ACC_STRICT flag. Because the value of its access_flags item is irrelevant (except for the ACC_STRICT flag), a class or interface initialization method is exempt from the preceding rules about legal combinations of flags.
+In a class file whose version number is 51.0 or above, a method whose name is <clinit> must have its ACC_STATIC flag set.
+
+A class or interface initialization method (§2.9.2) is called implicitly by the Java Virtual Machine. The value of its access_flags item is ignored except for the setting of the ACC_STATIC and ACC_STRICT flags, and the method is exempt from the preceding rules about legal combinations of flags.
 
 The ACC_BRIDGE flag is used to indicate a bridge method generated by a compiler for the Java programming language.
 
@@ -1191,7 +1207,7 @@ The value of the descriptor_index item must be a valid index into the constant_p
 
 If this method is in a class rather than an interface, and the name of the method is <init>, then the descriptor must denote a void method.
 
-If the name of the method is <clinit>, then the descriptor must denote a void method that takes no arguments.
+If the name of the method is <clinit>, then the descriptor must denote a void method, and, in a class file whose version number is 51.0 or above, a method that takes no arguments.
 
 A future edition of this specification may require that the last parameter descriptor of the method descriptor is an array type if the ACC_VARARGS flag is set in the access_flags item.
 
@@ -1228,9 +1244,9 @@ For all attributes, the attribute_name_index item must be a valid unsigned 16-bi
 
 26 attributes are predefined by this specification. They are listed three times, for ease of navigation:
 
-Table 4.7-A is ordered by the attributes' section numbers in this chapter. Each attribute is accompanied by the first version of the class file format in which it was defined, and the corresponding version of the Java SE Platform. (For old class file versions, the JDK release is used instead of the Java SE Platform version.)
+Table 4.7-A is ordered by the attributes' section numbers in this chapter. Each attribute is accompanied by the first version of the class file format in which it was defined, and the corresponding version of the Java SE Platform which first supported that version of the class file format (§4.1). (For historical cases, the JDK version is shown instead of the Java SE Platform version.)
 
-Table 4.7-B is orderd by the first version of the class file format in which each attribute was defined.
+Table 4.7-B is ordered by the first version of the class file format in which each attribute was defined.
 
 Table 4.7-C is ordered by the location in a class file where each attribute is defined to appear.
 
@@ -1240,7 +1256,7 @@ Any conditions on the presence of a predefined attribute in an attributes table 
 
 The predefined attributes are categorized into three groups according to their purpose:
 
-Five attributes are critical to correct interpretation of the class file by the Java Virtual Machine:
+Four attributes are critical to correct interpretation of the class file by the Java Virtual Machine:
 
 ConstantValue
 
@@ -1248,13 +1264,13 @@ Code
 
 StackMapTable
 
-Exceptions
-
 BootstrapMethods
 
 In a class file of version V, each of these attributes must be recognized and correctly read by an implementation of the Java Virtual Machine if the implementation recognizes class files of version V, and V is at least the version where the attribute was first defined, and the attribute appears in a location where it is defined to appear.
 
-Eight attributes are not critical to correct interpretation of the class file by the Java Virtual Machine, but are either critical to correct interpretation of the class file by the class libraries of the Java SE Platform, or are useful for tools (in which case the section that specifies an attribute describes it as "optional"):
+Nine attributes are not critical to correct interpretation of the class file by the Java Virtual Machine, but are either critical to correct interpretation of the class file by the class libraries of the Java SE Platform, or are useful for tools (in which case the section that specifies an attribute describes it as "optional"):
+
+Exceptions
 
 InnerClasses
 
@@ -1430,7 +1446,7 @@ For instance, defining a new attribute to support vendor-specific debugging is p
 
 Java Virtual Machine implementations are specifically prohibited from throwing an exception or otherwise refusing to use class files simply because of the presence of some new attribute. Of course, tools operating on class files may not run correctly if given class files that do not contain all the attributes they require.
 
-Two attributes that are intended to be distinct, but that happen to use the same attribute name and are of the same length, will conflict on implementations that recognize either attribute. Attributes defined other than in this specification should have names chosen according to the package naming convention described in The Java Language Specification, Java SE 9 Edition (JLS §6.1).
+Two attributes that are intended to be distinct, but that happen to use the same attribute name and are of the same length, will conflict on implementations that recognize either attribute. Attributes defined other than in this specification should have names chosen according to the package naming convention described in The Java Language Specification, Java SE 10 Edition (JLS §6.1).
 
 Future versions of this specification may define additional attributes.
 
@@ -2031,7 +2047,7 @@ The value of the attribute_length item must be zero.
 
 4.7.9. The Signature Attribute
 
-The Signature attribute is a fixed-length attribute in the attributes table of a ClassFile, field_info, or method_info structure (§4.1, §4.5, §4.6). A Signature attribute records a signature (§4.7.9.1) for a class, interface, constructor, method, or field whose declaration in the Java programming language uses type variables or parameterized types. See The Java Language Specification, Java SE 9 Edition for details about these constructs.
+The Signature attribute is a fixed-length attribute in the attributes table of a ClassFile, field_info, or method_info structure (§4.1, §4.5, §4.6). A Signature attribute records a signature (§4.7.9.1) for a class, interface, constructor, method, or field whose declaration in the Java programming language uses type variables or parameterized types. See The Java Language Specification, Java SE 10 Edition for details about these constructs.
 
 There may be at most one Signature attribute in the attributes table of a ClassFile, field_info, or method_info structure.
 
@@ -3433,6 +3449,8 @@ Indicates that this dependence was not explicitly or implicitly declared in the 
 
 Indicates that this dependence was implicitly declared in the source of the module declaration.
 
+If the current module is not java.base, and the class file version number is 54.0 or above, then neither ACC_TRANSITIVE nor ACC_STATIC_PHASE may be set in requires_flags.
+
 requires_version_index
 
 The value of the requires_version_index item must be either zero or a valid index into the constant_pool table. If the value of the item is zero, then no version information about the dependence is present. If the value of the item is nonzero, then the constant_pool entry at that index must be a CONSTANT_Utf8_info structure representing the version of the module specified by requires_index.
@@ -3850,7 +3868,7 @@ If a ret instruction returns to a point in the subroutine call chain above the r
 
 Even though a compiler for the Java programming language must only produce class files that satisfy all the static and structural constraints in the previous sections, the Java Virtual Machine has no guarantee that any file it is asked to load was generated by that compiler or is properly formed. Applications such as web browsers do not download source code, which they then compile; these applications download already-compiled class files. The browser needs to determine whether the class file was produced by a trustworthy compiler or by an adversary attempting to exploit the Java Virtual Machine.
 
-An additional problem with compile-time checking is version skew. A user may have successfully compiled a class, say PurchaseStockOptions, to be a subclass of TradingClass. But the definition of TradingClass might have changed since the time the class was compiled in a way that is not compatible with pre-existing binaries. Methods might have been deleted or had their return types or modifiers changed. Fields might have changed types or changed from instance variables to class variables. The access modifiers of a method or variable may have changed from public to private. For a discussion of these issues, see Chapter 13, "Binary Compatibility," in The Java Language Specification, Java SE 9 Edition.
+An additional problem with compile-time checking is version skew. A user may have successfully compiled a class, say PurchaseStockOptions, to be a subclass of TradingClass. But the definition of TradingClass might have changed since the time the class was compiled in a way that is not compatible with pre-existing binaries. Methods might have been deleted or had their return types or modifiers changed. Fields might have changed types or changed from instance variables to class variables. The access modifiers of a method or variable may have changed from public to private. For a discussion of these issues, see Chapter 13, "Binary Compatibility," in The Java Language Specification, Java SE 10 Edition.
 
 Because of these potential problems, the Java Virtual Machine needs to verify for itself that the desired constraints are satisfied by the class files it attempts to incorporate. A Java Virtual Machine implementation verifies that each class file satisfies the necessary constraints at linking time (§5.4).
 
@@ -5501,7 +5519,7 @@ A dup2 instruction is a type safe form 1 dup2 instruction iff one can validly re
 dup2Form1IsTypeSafe(Environment, InputOperandStack, OutputOperandStack):-
     popCategory1(InputOperandStack, Type1, TempStack),
     popCategory1(TempStack, Type2, _),
-    canSafelyPushList(Environment, InputOperandStack, [Type1, Type2],
+    canSafelyPushList(Environment, InputOperandStack, [Type2, Type1],
                       OutputOperandStack).
 
 

@@ -378,7 +378,7 @@ It has the special name <init>.
 
 It is void (§4.3.3).
 
-In a class, other methods named <init> are not instance initialization methods. In an interface, any method named <init> is not an instance initialization method. Such methods cannot be invoked by any Java Virtual Machine instruction (§4.4.2, §4.9.2) and are rejected by format checking (§4.6, §4.8).
+In a class, any non-void method named <init> is not an instance initialization method. In an interface, any method named <init> is not an instance initialization method. Such methods cannot be invoked by any Java Virtual Machine instruction (§4.4.2, §4.9.2) and are rejected by format checking (§4.6, §4.8).
 
 The declaration and use of an instance initialization method is constrained by the Java Virtual Machine. For the declaration, the method's access_flags item and code array are constrained (§4.6, §4.9.2). For a use, an instance initialization method may be invoked only by the invokespecial instruction on an uninitialized class instance (§4.10.1.9).
 
