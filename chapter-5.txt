@@ -118,33 +118,43 @@ The initial class or interface is specified in an implementation-dependent manne
 
 5.3. Creation and Loading
 
-Creation of a class or interface C denoted by the name N consists of the construction in the method area of the Java Virtual Machine (§2.5.4) of an implementation-specific internal representation of C. Class or interface creation is triggered by another class or interface D, which references C through its run-time constant pool. Class or interface creation may also be triggered by D invoking methods in certain Java SE Platform class libraries (§2.12) such as reflection.
+Creation of a class or interface C denoted by the name N consists of the construction of an implementation-specific internal representation of C in the method area of the Java Virtual Machine (§2.5.4).
 
-If C is not an array class, it is created by loading a binary representation of C (§4 (The class File Format)) using a class loader. Array classes do not have an external binary representation; they are created by the Java Virtual Machine rather than by a class loader.
+Class or interface creation is triggered by another class or interface D, whose run-time constant pool symbolically references C by means of the name N (§5.4.3.1). If N does not denote an array class, then the Java Virtual Machine relies on a class loader to locate a binary representation for a class or interface called N (§4.1). Once a class loader has located a binary representation, it relies in turn on the Java Virtual Machine to derive the class or interface C from the binary representation, and then to create C in the method area. Array classes do not have an external binary representation; they are created by the Java Virtual Machine via a different process.
 
-There are two kinds of class loaders: the bootstrap class loader supplied by the Java Virtual Machine, and user-defined class loaders. Every user-defined class loader is an instance of a subclass of the abstract class ClassLoader. Applications employ user-defined class loaders in order to extend the manner in which the Java Virtual Machine dynamically loads and thereby creates classes. User-defined class loaders can be used to create classes that originate from user-defined sources. For example, a class could be downloaded across a network, generated on the fly, or extracted from an encrypted file.
+Class or interface creation may also be triggered by D invoking methods in certain Java SE Platform class libraries (§2.12) such as reflection.
 
-A class loader L may create C by defining it directly or by delegating to another class loader. If L creates C directly, we say that L defines C or, equivalently, that L is the defining loader of C.
+There are two kinds of class loaders: the bootstrap class loader supplied by the Java Virtual Machine, and user-defined class loaders. Every user-defined class loader is an instance of a subclass of the abstract class ClassLoader. Applications employ user-defined class loaders in order to extend the manner in which the Java Virtual Machine dynamically creates classes. User-defined class loaders can be used to create classes that originate from user-defined sources. For example, a class could be downloaded across a network, generated on the fly, or extracted from an encrypted file.
 
-When one class loader delegates to another class loader, the loader that initiates the loading is not necessarily the same loader that completes the loading and defines the class. If L creates C, either by defining it directly or by delegation, we say that L initiates loading of C or, equivalently, that L is an initiating loader of C.
+When the Java Virtual Machine asks a class loader L to locate a binary representation for a class or interface called N, L loads the class or interface C denoted by N. L may load C directly, by locating a binary representation and asking the Java Virtual Machine to derive and create C from the binary representation. Alternatively, L may load C indirectly, by delegating to another class loader which loads C directly or indirectly.
 
-At run time, a class or interface is determined not by its name alone, but by a pair: its binary name (§4.2.1) and its defining class loader. Each such class or interface belongs to a single run-time package. The run-time package of a class or interface is determined by the package name and defining class loader of the class or interface.
+If L loads C directly, we say that L defines C or, equivalently, that L is the defining loader of C.
 
-The Java Virtual Machine uses one of three procedures to create class or interface C denoted by N:
+Whether L loads C directly or indirectly, we say that L initiates loading of C, or, equivalently, that L is an initiating loader of C.
 
-If N denotes a nonarray class or an interface, one of the two following methods is used to load and thereby create C:
+Due to class loader delegation, the loader L1 that initiates loading at the Java Virtual Machine's request may not be the same as the loader L2 that completes loading by defining the class or interface. In this case, we say that each of L1 and L2 initiates loading of C, or, equivalently, that each of L1 and L2 is an initiating loader of C. Any loaders in a delegation chain between L1 and L2 are not considered to be initiating loaders of C.
 
-If D was defined by the bootstrap class loader, then the bootstrap class loader initiates loading of C (§5.3.1).
+We will sometimes represent a class or interface using the following notation, instead of using an identifier like C or D:
 
-If D was defined by a user-defined class loader, then that same user-defined class loader initiates loading of C (§5.3.2).
+<N, Ld> - where N denotes the name of the class or interface and Ld denotes the defining loader of the class or interface.
 
-Otherwise N denotes an array class. An array class is created directly by the Java Virtual Machine (§5.3.3), not by a class loader. However, the defining class loader of D is used in the process of creating array class C.
+NLi - where N denotes the name of the class or interface and Li denotes an initiating loader of the class or interface.
 
-If an error occurs during class loading, then an instance of a subclass of LinkageError must be thrown at a point in the program that (directly or indirectly) uses the class or interface being loaded.
+It should be clear that loading a class or interface is a joint effort between the Java Virtual Machine and a class loader (or multiple class loaders, if delegation occurs). The ultimate outcome of loading is that the Java Virtual Machine creates a class or interface in its method area, so it is often convenient to say that a class or interface is loaded and thereby created.
 
-If the Java Virtual Machine ever attempts to load a class C during verification (§5.4.1) or resolution (§5.4.3) (but not initialization (§5.5)), and the class loader that is used to initiate loading of C throws an instance of ClassNotFoundException, then the Java Virtual Machine must throw an instance of NoClassDefFoundError whose cause is the instance of ClassNotFoundException.
+The complex back-and-forth nature of loading, combined with the ability of user-defined class loaders to exhibit arbitrary behavior, means that exceptions can be thrown after the Java Virtual Machine has created a class or interface but before every class loader participating in loading has completed. This specification accounts for such exceptions in what is often referred to the process of loading and creating a class or interface.
 
-(A subtlety here is that recursive class loading to load superclasses is performed as part of resolution (§5.3.5, step 3). Therefore, a ClassNotFoundException that results from a class loader failing to load a superclass must be wrapped in a NoClassDefFoundError.)
+The Java Virtual Machine uses one of three procedures to create a class or interface C denoted by the name N in the run-time constant pool of a class or interface D:
+
+If N denotes either a nonarray class or an interface, and D was defined by the bootstrap class loader, then the bootstrap class loader initiates loading of C (§5.3.1).
+
+If N denotes either a nonarray class or an interface, and D was defined by a user-defined class loader, then that same user-defined class loader initiates loading of C (§5.3.2).
+
+If N denotes an array class, then the Java Virtual Machine creates an array class C denoted by N, in association with the defining loader of D (§5.3.3).
+
+Although the defining loader of D is relevant in the course of creating an array class, it is not used to load and thereby create the array class.
+
+If an error occurs during loading of a class or interface - either when a class loader is locating a binary representation, or when the Java Virtual Machine is deriving and creating a class from it - then the error must be thrown at a point in the program that (directly or indirectly) uses the class or interface being loaded.
 
 A well-behaved class loader should maintain three properties:
 
@@ -154,55 +164,65 @@ If a class loader L1 delegates loading of a class C to another loader L2, then f
 
 If a user-defined classloader prefetches binary representations of classes and interfaces, or loads a group of related classes together, then it must reflect loading errors only at points in the program where they could have arisen without prefetching or group loading.
 
-We will sometimes represent a class or interface using the notation <N, Ld>, where N denotes the name of the class or interface and Ld denotes the defining loader of the class or interface.
-
-We will also represent a class or interface using the notation NLi, where N denotes the name of the class or interface and Li denotes an initiating loader of the class or interface.
+After creation, a class or interface is determined not by its name alone, but by a pair: its binary name (§4.2.1) and its defining loader. Each such class or interface belongs to a single run-time package. The run-time package of a class or interface is determined by the package name and the defining loader of the class or interface.
 
 5.3.1. Loading Using the Bootstrap Class Loader
 
-The following steps are used to load and thereby create the nonarray class or interface C denoted by N using the bootstrap class loader.
+The process of loading and creating the nonarray class or interface C denoted by N using the bootstrap class loader is as follows.
 
-First, the Java Virtual Machine determines whether the bootstrap class loader has already been recorded as an initiating loader of a class or interface denoted by N. If so, this class or interface is C, and no class creation is necessary.
+First, the Java Virtual Machine determines whether the bootstrap class loader has already been recorded as an initiating loader of a class or interface denoted by N. If so, this class or interface is C, and no class loading or creation is necessary.
 
-Otherwise, the Java Virtual Machine passes the argument N to an invocation of a method on the bootstrap class loader to search for a purported representation of C in a platform-dependent manner. Typically, a class or interface will be represented using a file in a hierarchical file system, and the name of the class or interface will be encoded in the pathname of the file.
+Otherwise, the Java Virtual Machine passes the argument N to an invocation of a method on the bootstrap class loader. To load C, the bootstrap class loader locates a purported representation of C in a platform-dependent manner, then asks the Java Virtual Machine to derive a class or interface C denoted by N from the purported representation using the bootstrap class loader, and then to create C, via the algorithm of §5.3.5.
 
-Note that there is no guarantee that a purported representation found is valid or is a representation of C. This phase of loading must detect the following error:
+Typically, a class or interface will be represented using a file in a hierarchical file system, and the name of the class or interface will be encoded in the pathname of the file to aid in locating it.
 
-If no purported representation of C is found, loading throws an instance of ClassNotFoundException.
+If no purported representation of C is found, the bootstrap class loader throws a ClassNotFoundException. The process of loading and creating C then fails with a NoClassDefFoundError whose cause is the ClassNotFoundException.
 
-Then the Java Virtual Machine attempts to derive a class denoted by N using the bootstrap class loader from the purported representation using the algorithm found in §5.3.5. That class is C.
+If a purported representation of C is found, but deriving C from the purported representation fails, then the process of loading and creating C fails for the same reason.
+
+Otherwise, the process of loading and creating C succeeds.
 
 5.3.2. Loading Using a User-defined Class Loader
 
-The following steps are used to load and thereby create the nonarray class or interface C denoted by N using a user-defined class loader L.
+The process of loading and creating the nonarray class or interface C denoted by N using a user-defined class loader L is as follows.
 
-First, the Java Virtual Machine determines whether L has already been recorded as an initiating loader of a class or interface denoted by N. If so, this class or interface is C, and no class creation is necessary.
+First, the Java Virtual Machine determines whether L has already been recorded as an initiating loader of a class or interface denoted by N. If so, this class or interface is C, and no class loading or creation is necessary.
 
-Otherwise, the Java Virtual Machine invokes loadClass(N) on L. The value returned by the invocation is the created class or interface C. The Java Virtual Machine then records that L is an initiating loader of C (§5.3.4). The remainder of this section describes this process in more detail.
+Otherwise, the Java Virtual Machine invokes the loadClass method of class ClassLoader on L, passing the name N of a class or interface. L must perform one of the following two operations to load and thereby create a class or interface C:
 
-When the loadClass method of the class loader L is invoked with the name N of a class or interface C to be loaded, L must perform one of the following two operations in order to load C:
+The class loader L can load C directly. This is accomplished by obtaining an array of bytes that purports to represent C as a ClassFile structure (§4.1), and then invoking the method defineClass of class ClassLoader. Invoking defineClass causes the Java Virtual Machine to derive a class or interface C denoted by N from the array of bytes using L, and then to create C, via the algorithm of §5.3.5. L should use the result of defineClass as the result of loadClass.
 
-The class loader L can create an array of bytes representing C as the bytes of a ClassFile structure (§4.1); it then must invoke the method defineClass of class ClassLoader. Invoking defineClass causes the Java Virtual Machine to derive a class or interface denoted by N using L from the array of bytes using the algorithm found in §5.3.5.
+The class loader L can load C indirectly, by delegating the loading of C to some other class loader L'. This is accomplished by passing the argument N to an invocation of a method on L' (typically the loadClass method of class ClassLoader). L should use the result of that method as the result of loadClass.
 
-The class loader L can delegate the loading of C to some other class loader L'. This is accomplished by passing the argument N directly or indirectly to an invocation of a method on L' (typically the loadClass method). The result of the invocation is C.
+The following rules apply regardless of which operation is performed:
 
-In either (1) or (2), if the class loader L is unable to load a class or interface denoted by N for any reason, it must throw an instance of ClassNotFoundException.
+If a class loader cannot find a purported representation of a class or interface denoted by N, it must throw a ClassNotFoundException. The process of loading and creating C then fails with a NoClassDefFoundError whose cause is the ClassNotFoundException.
 
-Since JDK 1.1, Oracle’s Java Virtual Machine implementation has invoked the loadClass method of a class loader in order to cause it to load a class or interface. The argument to loadClass is the name of the class or interface to be loaded. There is also a two-argument version of the loadClass method, where the second argument is a boolean that indicates whether the class or interface is to be linked or not. Only the two-argument version was supplied in JDK 1.0.2, and Oracle’s Java Virtual Machine implementation relied on it to link the loaded class or interface. From JDK 1.1 onward, Oracle’s Java Virtual Machine implementation links the class or interface directly, without relying on the class loader.
+If a class loader finds a purported representation of C, but deriving C from the purported representation fails, then the process of loading and creating C fails for the same reason.
+
+If a class loader throws an exception other than a ClassNotFoundException, then the process of loading and creating C fails for the same reason.
+
+If the invocation of loadClass on L has a result, then:
+
+If the result is null, or the result is a class or interface with a name other than N, then the result is discarded, and the process of loading and creation fails with a NoClassDefFoundError.
+
+Otherwise, the result is the created class or interface C. The Java Virtual Machine records that L is an initiating loader of C (§5.3.4). The process of loading and creating C succeeds.
+
+Since JDK 1.1, Oracle’s Java Virtual Machine implementation has invoked the one-argument loadClass method on a class loader to cause it to load a class or interface. The argument to loadClass is the name of the class or interface to be loaded. There is also a two-argument version of the loadClass method, where the second argument is a boolean that indicates whether the class or interface is to be linked or not. Only the two-argument version was supplied in JDK 1.0.2, and Oracle’s Java Virtual Machine implementation relied on it to link the loaded class or interface. From JDK 1.1 onward, Oracle’s Java Virtual Machine implementation links the class or interface directly, without relying on the class loader.
 
 5.3.3. Creating Array Classes
 
-The following steps are used to create the array class C denoted by N using class loader L. Class loader L may be either the bootstrap class loader or a user-defined class loader.
+The following steps are used to create the array class C denoted by the name N in association with the class loader L. L may be either the bootstrap class loader or a user-defined class loader.
 
-If L has already been recorded as an initiating loader of an array class with the same component type as N, that class is C, and no array class creation is necessary.
+First, the Java Virtual Machine determines whether L has already been recorded as an initiating loader of an array class with the same component type as N. If so, this class is C, and no array class creation is necessary.
 
 Otherwise, the following steps are performed to create C:
 
-If the component type is a reference type, the algorithm of this section (§5.3) is applied recursively using class loader L in order to load and thereby create the component type of C.
+If the component type is a reference type, the algorithm of this section (§5.3) is applied recursively using L in order to load and thereby create the component type of C.
 
 The Java Virtual Machine creates a new array class with the indicated component type and number of dimensions.
 
-If the component type is a reference type, C is marked as having been defined by the defining class loader of the component type. Otherwise, C is marked as having been defined by the bootstrap class loader.
+If the component type is a reference type, the Java Virtual Machine marks C to have the defining loader of the component type as its defining loader. Otherwise, the Java Virtual Machine marks C to have the bootstrap class loader as its defining loader.
 
 In any case, the Java Virtual Machine then records that L is an initiating loader for C (§5.3.4).
 
@@ -232,43 +252,61 @@ A full discussion of class loaders and type safety is beyond the scope of this s
 
 5.3.5. Deriving a Class from a class File Representation
 
-The following steps are used to derive a Class object for the nonarray class or interface C denoted by N using loader L from a purported representation in class file format.
+The following steps are used to derive a nonarray class or interface C denoted by N from a purported representation in class file format using the class loader L.
 
-First, the Java Virtual Machine determines whether it has already recorded that L is an initiating loader of a class or interface denoted by N. If so, this creation attempt is invalid and loading throws a LinkageError.
+First, the Java Virtual Machine determines whether L has already been recorded as an initiating loader of a class or interface denoted by N. If so, this derivation attempt is invalid and derivation throws a LinkageError.
 
-Otherwise, the Java Virtual Machine attempts to parse the purported representation. However, the purported representation may not in fact be a valid representation of C.
+Otherwise, the Java Virtual Machine attempts to parse the purported representation. The purported representation may not in fact be a valid representation of C, so derivation must detect the following problems:
 
-This phase of loading must detect the following errors:
+If the purported representation is not a ClassFile structure (§4.1, §4.8), derivation throws a ClassFormatError.
 
-If the purported representation is not a ClassFile structure (§4.1, §4.8), loading throws an instance of ClassFormatError.
+Otherwise, if the purported representation is not of a supported major or minor version (§4.1), derivation throws an UnsupportedClassVersionError.
 
-Otherwise, if the purported representation is not of a supported major or minor version (§4.1), loading throws an instance of UnsupportedClassVersionError.
+UnsupportedClassVersionError, a subclass of ClassFormatError, was introduced in JDK 1.2 to enable easy identification of a ClassFormatError caused by an attempt to load a class whose representation uses an unsupported version of the class file format. In JDK 1.1 and earlier, an instance of NoClassDefFoundError or ClassFormatError was thrown in case of an unsupported version, depending on whether the class was being loaded by the system class loader or a user-defined class loader.
 
-UnsupportedClassVersionError, a subclass of ClassFormatError, was introduced to enable easy identification of a ClassFormatError caused by an attempt to load a class whose representation uses an unsupported version of the class file format. In JDK 1.1 and earlier, an instance of NoClassDefFoundError or ClassFormatError was thrown in case of an unsupported version, depending on whether the class was being loaded by the system class loader or a user-defined class loader.
-
-Otherwise, if the purported representation does not actually represent a class named N, loading throws an instance of NoClassDefFoundError or an instance of one of its subclasses.
+Otherwise, if the purported representation does not actually represent a class or interface named N, derivation throws a NoClassDefFoundError.
 
 This occurs when the purported representation has either a this_class item which specifies a name other than N, or an access_flags item which has the ACC_MODULE flag set.
 
 If C has a direct superclass, the symbolic reference from C to its direct superclass is resolved using the algorithm of §5.4.3.1. Note that if C is an interface it must have Object as its direct superclass, which must already have been loaded. Only Object has no direct superclass.
 
-Any exceptions that can be thrown due to class or interface resolution can be thrown as a result of this phase of loading. In addition, this phase of loading must detect the following errors:
+Any exception that can be thrown as a result of failure of class or interface resolution can be thrown as a result of derivation. In addition, derivation must detect the following problems:
 
-If any of the superclasses of C is C itself, loading throws a ClassCircularityError.
+If any of the superclasses of C is C itself, derivation throws a ClassCircularityError.
 
-Otherwise, if the class or interface named as the direct superclass of C is in fact an interface or a final class, loading throws an IncompatibleClassChangeError.
+Otherwise, if the class or interface named as the direct superclass of C is in fact an interface or a final class, derivation throws an IncompatibleClassChangeError.
 
-Otherwise, if C is a class and some instance method declared in C can override (§5.4.5) a final instance method declared in a superclass of C, loading throws an IncompatibleClassChangeError.
+Otherwise, if the class named as the direct superclass of C has a PermittedSubclasses attribute (§4.7.31) and any of the following is true, derivation throws an IncompatibleClassChangeError:
+
+The superclass is in a different run-time module than C (§5.3.6).
+
+C does not have its ACC_PUBLIC flag set (§4.1) and the superclass is in a different run-time package than C (§5.3).
+
+No entry in the classes array of the superclass's PermittedSubclasses attribute refers to a class or interface with the name N.
+
+Otherwise, if C is a class and some instance method declared in C can override (§5.4.5) a final instance method declared in a superclass of C, derivation throws an IncompatibleClassChangeError.
 
 If C has any direct superinterfaces, the symbolic references from C to its direct superinterfaces are resolved using the algorithm of §5.4.3.1.
 
-Any exceptions that can be thrown due to class or interface resolution can be thrown as a result of this phase of loading. In addition, this phase of loading must detect the following errors:
+Any exception that can be thrown as a result of failure of class or interface resolution can be thrown as a result of derivation. In addition, derivation must detect the following problems:
 
-If any of the superinterfaces of C is C itself, loading throws a ClassCircularityError.
+If any of the superinterfaces of C is C itself, derivation throws a ClassCircularityError.
 
-Otherwise, if any of the classes or interfaces named as direct superinterfaces of C is not in fact an interface, loading throws an IncompatibleClassChangeError.
+Otherwise, if any class or interface named as a direct superinterface of C is not in fact an interface, derivation throws an IncompatibleClassChangeError.
 
-The Java Virtual Machine marks C as having L as its defining class loader and records that L is an initiating loader of C (§5.3.4).
+Otherwise, for each direct superinterface named by C, if the superinterface has a PermittedSubclasses attribute (§4.7.31) and any of the following is true, derivation throws an IncompatibleClassChangeError:
+
+The superinterface is in a different run-time module than C.
+
+C does not have its ACC_PUBLIC flag set (§4.1) and the superinterface is in a different run-time package than C.
+
+No entry in the classes array of the superinterface's PermittedSubclasses attribute refers to a class or interface with the name N.
+
+If no exception is thrown in steps 1-4, then derivation of the class or interface C succeeds. The Java Virtual Machine marks C to have L as its defining loader, records that L is an initiating loader of C (§5.3.4), and creates C in the method area (§2.5.4).
+
+When derivation succeeds, the process of loading and creating C is not complete until every class loader that was involved in loading C (directly or indirectly) returns C as its result. Depending on the behavior of user-defined class loaders, the process of loading and creating C may yet fail (§5.3.2).
+
+If an exception is thrown in steps 1-4, then derivation of the class or interface C fails with that exception.
 
 5.3.6. Modules and Layers
 
@@ -402,9 +440,9 @@ Linking exceptions generated by checks that are specific to the execution of a p
 
 To resolve an unresolved symbolic reference from D to a class or interface C denoted by N, the following steps are performed:
 
-The defining class loader of D is used to create a class or interface denoted by N. This class or interface is C. The details of the process are given in §5.3.
+The defining loader of D is used to load and thereby create a class or interface denoted by N. This class or interface is C. The details of the process are given in §5.3.
 
-Any exception that can be thrown as a result of failure of class or interface creation can thus be thrown as a result of failure of class and interface resolution.
+Any exception that can be thrown as a result of failure to load and thereby create C can thus be thrown as a result of failure of class and interface resolution.
 
 If C is an array class and its element type is a reference type, then a symbolic reference to the class or interface representing the element type is resolved by invoking the algorithm in §5.4.3.1 recursively.
 
@@ -932,7 +970,7 @@ For each S in the list [ SC, SI1, ..., SIn ], if S has not yet been initialized,
 
 If the initialization of S completes abruptly because of a thrown exception, then acquire LC, label the Class object for C as erroneous, notify all waiting threads, release LC, and complete abruptly, throwing the same exception that resulted from initializing SC.
 
-Next, determine whether assertions are enabled for C by querying its defining class loader.
+Next, determine whether assertions are enabled for C by querying its defining loader.
 
 Next, execute the class or interface initialization method of C.
 

@@ -164,7 +164,7 @@ A Java Virtual Machine instruction consists of an opcode specifying the operatio
 
 The description of each instruction is always given in the context of Java Virtual Machine code that satisfies the static and structural constraints of §4 (The class File Format). In the description of individual Java Virtual Machine instructions, we frequently state that some situation "must" or "must not" be the case: "The value2 must be of type int." The constraints of §4 (The class File Format) guarantee that all such expectations will in fact be met. If some constraint (a "must" or "must not") in an instruction description is not satisfied at run time, the behavior of the Java Virtual Machine is undefined.
 
-The Java Virtual Machine checks that Java Virtual Machine code satisfies the static and structural constraints at link time using a class file verifier (§4.10). Thus, a Java Virtual Machine will only attempt to execute code from valid class files. Performing verification at link time is attractive in that the checks are performed just once, substantially reducing the amount of work that must be done at run time. Other implementation strategies are possible, provided that they comply with The Java Language Specification, Java SE 16 Edition and The Java Virtual Machine Specification, Java SE 16 Edition.
+The Java Virtual Machine checks that Java Virtual Machine code satisfies the static and structural constraints at link time using a class file verifier (§4.10). Thus, a Java Virtual Machine will only attempt to execute code from valid class files. Performing verification at link time is attractive in that the checks are performed just once, substantially reducing the amount of work that must be done at run time. Other implementation strategies are possible, provided that they comply with The Java Language Specification, Java SE 17 Edition and The Java Virtual Machine Specification, Java SE 17 Edition.
 
 6.2. Reserved Opcodes
 
@@ -904,17 +904,13 @@ Operand Stack
 
 Description
 
-The value on the top of the operand stack must be of type double. It is popped from the operand stack and undergoes value set conversion (§2.8.3) resulting in value'. Then value' is converted to a float result using the round to nearest rounding policy (§2.8). The result is pushed onto the operand stack.
+The value on the top of the operand stack must be of type double. It is popped from the operand stack and converted to a float result using the round to nearest rounding policy (§2.8). The result is pushed onto the operand stack.
 
-Where an d2f instruction is FP-strict (§2.8.2), the result of the conversion is always rounded to the nearest representable value in the float value set (§2.3.2).
-
-Where an d2f instruction is not FP-strict, the result of the conversion may be taken from the float-extended-exponent value set (§2.3.2); it is not necessarily rounded to the nearest representable value in the float value set.
-
-A finite value' too small to be represented as a float is converted to a zero of the same sign; a finite value' too large to be represented as a float is converted to an infinity of the same sign. A double NaN is converted to a float NaN.
+A finite value too small to be represented as a float is converted to a zero of the same sign; a finite value too large to be represented as a float is converted to an infinity of the same sign. A double NaN is converted to a float NaN.
 
 Notes
 
-The d2f instruction performs a narrowing primitive conversion (JLS §5.1.3). It may lose information about the overall magnitude of value' and may also lose precision.
+The d2f instruction performs a narrowing primitive conversion (JLS §5.1.3). It may lose information about the overall magnitude of value and may also lose precision.
 
 d2i
 Operation
@@ -939,17 +935,17 @@ Operand Stack
 
 Description
 
-The value on the top of the operand stack must be of type double. It is popped from the operand stack and undergoes value set conversion (§2.8.3) resulting in value'. Then value' is converted to an int result. The result is pushed onto the operand stack:
+The value on the top of the operand stack must be of type double. It is popped from the operand stack and converted to an int result. The result is pushed onto the operand stack:
 
-If the value' is NaN, the result of the conversion is an int 0.
+If the value is NaN, the result of the conversion is an int 0.
 
-Otherwise, if the value' is not an infinity, it is rounded to an integer value V using the round toward zero rounding policy (§2.8). If this integer value V can be represented as an int, then the result is the int value V.
+Otherwise, if the value is not an infinity, it is rounded to an integer value V using the round toward zero rounding policy (§2.8). If this integer value V can be represented as an int, then the result is the int value V.
 
-Otherwise, either the value' must be too small (a negative value of large magnitude or negative infinity), and the result is the smallest representable value of type int, or the value' must be too large (a positive value of large magnitude or positive infinity), and the result is the largest representable value of type int.
+Otherwise, either the value must be too small (a negative value of large magnitude or negative infinity), and the result is the smallest representable value of type int, or the value must be too large (a positive value of large magnitude or positive infinity), and the result is the largest representable value of type int.
 
 Notes
 
-The d2i instruction performs a narrowing primitive conversion (JLS §5.1.3). It may lose information about the overall magnitude of value' and may also lose precision.
+The d2i instruction performs a narrowing primitive conversion (JLS §5.1.3). It may lose information about the overall magnitude of value and may also lose precision.
 
 d2l
 Operation
@@ -974,17 +970,17 @@ Operand Stack
 
 Description
 
-The value on the top of the operand stack must be of type double. It is popped from the operand stack and undergoes value set conversion (§2.8.3) resulting in value'. Then value' is converted to a long. The result is pushed onto the operand stack:
+The value on the top of the operand stack must be of type double. It is popped from the operand stack and converted to a long. The result is pushed onto the operand stack:
 
-If the value' is NaN, the result of the conversion is a long 0.
+If the value is NaN, the result of the conversion is a long 0.
 
-Otherwise, if the value' is not an infinity, it is rounded to an integer value V using the round toward zero rounding policy (§2.8). If this integer value V can be represented as a long, then the result is the long value V.
+Otherwise, if the value is not an infinity, it is rounded to an integer value V using the round toward zero rounding policy (§2.8). If this integer value V can be represented as a long, then the result is the long value V.
 
-Otherwise, either the value' must be too small (a negative value of large magnitude or negative infinity), and the result is the smallest representable value of type long, or the value' must be too large (a positive value of large magnitude or positive infinity), and the result is the largest representable value of type long.
+Otherwise, either the value must be too small (a negative value of large magnitude or negative infinity), and the result is the smallest representable value of type long, or the value must be too large (a positive value of large magnitude or positive infinity), and the result is the largest representable value of type long.
 
 Notes
 
-The d2l instruction performs a narrowing primitive conversion (JLS §5.1.3). It may lose information about the overall magnitude of value' and may also lose precision.
+The d2l instruction performs a narrowing primitive conversion (JLS §5.1.3). It may lose information about the overall magnitude of value and may also lose precision.
 
 dadd
 Operation
@@ -1009,11 +1005,11 @@ Operand Stack
 
 Description
 
-Both value1 and value2 must be of type double. The values are popped from the operand stack and undergo value set conversion (§2.8.3), resulting in value1' and value2'. The double result is value1' + value2'. The result is pushed onto the operand stack.
+Both value1 and value2 must be of type double. The values are popped from the operand stack. The double result is value1 + value2. The result is pushed onto the operand stack.
 
 The result of a dadd instruction is governed by the rules of IEEE 754 arithmetic:
 
-If either value1' or value2' is NaN, the result is NaN.
+If either value1 or value2 is NaN, the result is NaN.
 
 The sum of two infinities of opposite sign is NaN.
 
@@ -1029,7 +1025,7 @@ The sum of a zero and a nonzero finite value is equal to the nonzero value.
 
 The sum of two nonzero finite values of the same magnitude and opposite sign is positive zero.
 
-In the remaining cases, where neither operand is an infinity, a zero, or NaN and the values have the same sign or have different magnitudes, the sum is computed and rounded to the nearest representable value using the round to nearest rounding policy (§2.8). If the magnitude is too large to represent as adouble, we say the operation overflows; the result is then an infinity of appropriate sign. If the magnitude is too small to represent as a double, we say the operation underflows; the result is then a zero of appropriate sign.
+In the remaining cases, where neither operand is an infinity, a zero, or NaN and the values have the same sign or have different magnitudes, the sum is computed and rounded to the nearest representable value using the round to nearest rounding policy (§2.8). If the magnitude is too large to represent as a double, we say the operation overflows; the result is then an infinity of appropriate sign. If the magnitude is too small to represent as a double, we say the operation underflows; the result is then a zero of appropriate sign.
 
 The Java Virtual Machine requires support of gradual underflow. Despite the fact that overflow, underflow, or loss of precision may occur, execution of a dadd instruction never throws a run-time exception.
 
@@ -1087,7 +1083,7 @@ Operand Stack
 
 Description
 
-The arrayref must be of type reference and must refer to an array whose components are of type double. The index must be of type int, and value must be of type double. The arrayref, index, and value are popped from the operand stack. The double value undergoes value set conversion (§2.8.3), resulting in value', which is stored as the component of the array indexed by index.
+The arrayref must be of type reference and must refer to an array whose components are of type double. The index must be of type int, and value must be of type double. The arrayref, index, and value are popped from the operand stack. The double value is stored as the component of the array indexed by index.
 
 Run-time Exceptions
 
@@ -1120,15 +1116,15 @@ Operand Stack
 
 Description
 
-Both value1 and value2 must be of type double. The values are popped from the operand stack and undergo value set conversion (§2.8.3), resulting in value1' and value2'. A floating-point comparison is performed:
+Both value1 and value2 must be of type double. The values are popped from the operand stack and a floating-point comparison is performed:
 
-If value1' is greater than value2', the int value 1 is pushed onto the operand stack.
+If value1 is greater than value2, the int value 1 is pushed onto the operand stack.
 
-Otherwise, if value1' is equal to value2', the int value 0 is pushed onto the operand stack.
+Otherwise, if value1 is equal to value2, the int value 0 is pushed onto the operand stack.
 
-Otherwise, if value1' is less than value2', the int value -1 is pushed onto the operand stack.
+Otherwise, if value1 is less than value2, the int value -1 is pushed onto the operand stack.
 
-Otherwise, at least one of value1' or value2' is NaN. The dcmpg instruction pushes the int value 1 onto the operand stack and the dcmpl instruction pushes the int value -1 onto the operand stack.
+Otherwise, at least one of value1 or value2 is NaN. The dcmpg instruction pushes the int value 1 onto the operand stack and the dcmpl instruction pushes the int value -1 onto the operand stack.
 
 Floating-point comparison is performed in accordance with IEEE 754. All values other than NaN are ordered, with negative infinity less than all finite values and positive infinity greater than all finite values. Positive zero and negative zero are considered equal.
 
@@ -1186,13 +1182,13 @@ Operand Stack
 
 Description
 
-Both value1 and value2 must be of type double. The values are popped from the operand stack and undergo value set conversion (§2.8.3), resulting in value1' and value2'. The double result is value1' / value2'. The result is pushed onto the operand stack.
+Both value1 and value2 must be of type double. The values are popped from the operand stack. The double result is value1 / value2. The result is pushed onto the operand stack.
 
 The result of a ddiv instruction is governed by the rules of IEEE 754 arithmetic:
 
-If either value1' or value2' is NaN, the result is NaN.
+If either value1 or value2 is NaN, the result is NaN.
 
-If neither value1' nor value2' is NaN, the sign of the result is positive if both values have the same sign, negative if the values have different signs.
+If neither value1 nor value2 is NaN, the sign of the result is positive if both values have the same sign, negative if the values have different signs.
 
 Division of an infinity by an infinity results in NaN.
 
@@ -1296,13 +1292,13 @@ Operand Stack
 
 Description
 
-Both value1 and value2 must be of type double. The values are popped from the operand stack and undergo value set conversion (§2.8.3), resulting in value1' and value2'. The double result is value1' * value2'. The result is pushed onto the operand stack.
+Both value1 and value2 must be of type double. The values are popped from the operand stack. The double result is value1 * value2. The result is pushed onto the operand stack.
 
 The result of a dmul instruction is governed by the rules of IEEE 754 arithmetic:
 
-If either value1' or value2' is NaN, the result is NaN.
+If either value1 or value2 is NaN, the result is NaN.
 
-If neither value1' nor value2' is NaN, the sign of the result is positive if both values have the same sign and negative if the values have different signs.
+If neither value1 nor value2 is NaN, the sign of the result is positive if both values have the same sign and negative if the values have different signs.
 
 Multiplication of an infinity by a zero results in NaN.
 
@@ -1335,13 +1331,15 @@ Operand Stack
 
 Description
 
-The value must be of type double. It is popped from the operand stack and undergoes value set conversion (§2.8.3), resulting in value'. The double result is the arithmetic negation of value'. The result is pushed onto the operand stack.
+The value must be of type double. It is popped from the operand stack. The double result is the arithmetic negation of value. The result is pushed onto the operand stack.
 
 For double values, negation is not the same as subtraction from zero. If x is +0.0, then 0.0-x equals +0.0, but -x equals -0.0. Unary minus merely inverts the sign of a double.
 
 Special cases of interest:
 
 If the operand is NaN, the result is NaN (recall that NaN has no sign).
+
+The Java Virtual Machine has not adopted the stronger requirement from the 2019 version of the IEEE 754 Standard that negation inverts the sign bit for all inputs, including NaN.
 
 If the operand is an infinity, the result is the infinity of opposite sign.
 
@@ -1370,15 +1368,15 @@ Operand Stack
 
 Description
 
-Both value1 and value2 must be of type double. The values are popped from the operand stack and undergo value set conversion (§2.8.3), resulting in value1' and value2'. The double result is calculated and pushed onto the operand stack.
+Both value1 and value2 must be of type double. The values are popped from the operand stack. The double result is calculated and pushed onto the operand stack.
 
 The result of a drem instruction is not the same as the result of the remainder operation defined by IEEE 754, due to the choice of rounding policy in the Java Virtual Machine (§2.8). The IEEE 754 remainder operation computes the remainder from a rounding division, not a truncating division, and so its behavior is not analogous to that of the usual integer remainder operator. Instead, the Java Virtual Machine defines drem to behave in a manner analogous to that of the integer remainder instructions irem and lrem, with an implied division using the round toward zero rounding policy; this may be compared with the C library function fmod.
 
 The result of a drem instruction is governed by the following rules, which match IEEE 754 arithmetic except for how the implied division is computed:
 
-If either value1' or value2' is NaN, the result is NaN.
+If either value1 or value2 is NaN, the result is NaN.
 
-If neither value1' nor value2' is NaN, the sign of the result equals the sign of the dividend.
+If neither value1 nor value2 is NaN, the sign of the result equals the sign of the dividend.
 
 If the dividend is an infinity or the divisor is a zero or both, the result is NaN.
 
@@ -1386,7 +1384,7 @@ If the dividend is finite and the divisor is an infinity, the result equals the 
 
 If the dividend is a zero and the divisor is finite, the result equals the dividend.
 
-In the remaining cases, where neither operand is an infinity, a zero, or NaN, the floating-point remainder result from a dividend value1' and a divisor value2' is defined by the mathematical relation result = value1' - (value2' * q), where q is an integer that is negative only if value1' / value2' is negative, and positive only if value1' / value2' is positive, and whose magnitude is as large as possible without exceeding the magnitude of the true mathematical quotient of value1' and value2'.
+In the remaining cases, where neither operand is an infinity, a zero, or NaN, the floating-point remainder result from a dividend value1 and a divisor value2 is defined by the mathematical relation result = value1 - (value2 * q), where q is an integer that is negative only if value1 / value2 is negative, and positive only if value1 / value2 is positive, and whose magnitude is as large as possible without exceeding the magnitude of the true mathematical quotient of value1 and value2.
 
 Despite the fact that division by zero may occur, evaluation of a drem instruction never throws a run-time exception. Overflow, underflow, or loss of precision cannot occur.
 
@@ -1417,7 +1415,7 @@ Operand Stack
 
 Description
 
-The current method must have return type double. The value must be of type double. If the current method is a synchronized method, the monitor entered or reentered on invocation of the method is updated and possibly exited as if by execution of a monitorexit instruction (§monitorexit) in the current thread. If no exception is thrown, value is popped from the operand stack of the current frame (§2.6) and undergoes value set conversion (§2.8.3), resulting in value'. The value' is pushed onto the operand stack of the frame of the invoker. Any other values on the operand stack of the current method are discarded.
+The current method must have return type double. The value must be of type double. If the current method is a synchronized method, the monitor entered or reentered on invocation of the method is updated and possibly exited as if by execution of a monitorexit instruction (§monitorexit) in the current thread. If no exception is thrown, value is popped from the operand stack of the current frame (§2.6) and pushed onto the operand stack of the frame of the invoker. Any other values on the operand stack of the current method are discarded.
 
 The interpreter then returns control to the invoker of the method, reinstating the frame of the invoker.
 
@@ -1451,7 +1449,7 @@ Operand Stack
 
 Description
 
-The index is an unsigned byte. Both index and index+1 must be indices into the local variable array of the current frame (§2.6). The value on the top of the operand stack must be of type double. It is popped from the operand stack and undergoes value set conversion (§2.8.3), resulting in value'. The local variables at index and index+1 are set to value'.
+The index is an unsigned byte. Both index and index+1 must be indices into the local variable array of the current frame (§2.6). The value on the top of the operand stack must be of type double. It is popped from the operand stack. The local variables at index and index+1 are set to value.
 
 Notes
 
@@ -1486,7 +1484,7 @@ Operand Stack
 
 Description
 
-Both <n> and <n>+1 must be indices into the local variable array of the current frame (§2.6). The value on the top of the operand stack must be of type double. It is popped from the operand stack and undergoes value set conversion (§2.8.3), resulting in value'. The local variables at <n> and <n>+1 are set to value'.
+Both <n> and <n>+1 must be indices into the local variable array of the current frame (§2.6). The value on the top of the operand stack must be of type double. It is popped from the operand stack. The local variables at <n> and <n>+1 are set to value.
 
 Notes
 
@@ -1515,7 +1513,7 @@ Operand Stack
 
 Description
 
-Both value1 and value2 must be of type double. The values are popped from the operand stack and undergo value set conversion (§2.8.3), resulting in value1' and value2'. The double result is value1' - value2'. The result is pushed onto the operand stack.
+Both value1 and value2 must be of type double. The values are popped from the operand stack. The double result is value1 - value2. The result is pushed onto the operand stack.
 
 For double subtraction, it is always the case that a-b produces the same result as a+(-b). However, for the dsub instruction, subtraction from zero is not the same as negation, because if x is +0.0, then 0.0-x equals +0.0, but -x equals -0.0.
 
@@ -1762,13 +1760,11 @@ Operand Stack
 
 Description
 
-The value on the top of the operand stack must be of type float. It is popped from the operand stack and undergoes value set conversion (§2.8.3), resulting in value'. Then value' is converted to a double result. This result is pushed onto the operand stack.
+The value on the top of the operand stack must be of type float. It is popped from the operand stack and converted to a double result. The result is pushed onto the operand stack.
 
 Notes
 
-Where an f2d instruction is FP-strict (§2.8.2) it performs a widening primitive conversion (JLS §5.1.2). Because all values of the float value set (§2.3.2) are exactly representable by values of the double value set (§2.3.2), such a conversion is exact.
-
-Where an f2d instruction is not FP-strict, the result of the conversion may be taken from the double-extended-exponent value set; it is not necessarily rounded to the nearest representable value in the double value set. However, if the operand value is taken from the float-extended-exponent value set and the target result is constrained to the double value set, rounding of value may be required.
+The f2d instruction performs a widening primitive conversion (JLS §5.1.2).
 
 f2i
 Operation
@@ -1793,17 +1789,17 @@ Operand Stack
 
 Description
 
-The value on the top of the operand stack must be of type float. It is popped from the operand stack and undergoes value set conversion (§2.8.3), resulting in value'. Then value' is converted to an int result. This result is pushed onto the operand stack:
+The value on the top of the operand stack must be of type float. It is popped from the operand stack and converted to an int result. The result is pushed onto the operand stack:
 
-If the value' is NaN, the result of the conversion is an int 0.
+If the value is NaN, the result of the conversion is an int 0.
 
-Otherwise, if the value' is not an infinity, it is rounded to an integer value V using the round toward zero rounding policy (§2.8). If this integer value V can be represented as an int, then the result is the int value V.
+Otherwise, if the value is not an infinity, it is rounded to an integer value V using the round toward zero rounding policy (§2.8). If this integer value V can be represented as an int, then the result is the int value V.
 
-Otherwise, either the value' must be too small (a negative value of large magnitude or negative infinity), and the result is the smallest representable value of type int, or the value' must be too large (a positive value of large magnitude or positive infinity), and the result is the largest representable value of type int.
+Otherwise, either the value must be too small (a negative value of large magnitude or negative infinity), and the result is the smallest representable value of type int, or the value must be too large (a positive value of large magnitude or positive infinity), and the result is the largest representable value of type int.
 
 Notes
 
-The f2i instruction performs a narrowing primitive conversion (JLS §5.1.3). It may lose information about the overall magnitude of value' and may also lose precision.
+The f2i instruction performs a narrowing primitive conversion (JLS §5.1.3). It may lose information about the overall magnitude of value and may also lose precision.
 
 f2l
 Operation
@@ -1828,17 +1824,17 @@ Operand Stack
 
 Description
 
-The value on the top of the operand stack must be of type float. It is popped from the operand stack and undergoes value set conversion (§2.8.3), resulting in value'. Then value' is converted to a long result. This result is pushed onto the operand stack:
+The value on the top of the operand stack must be of type float. It is popped from the operand stack and converted to a long result. The result is pushed onto the operand stack:
 
-If the value' is NaN, the result of the conversion is a long 0.
+If the value is NaN, the result of the conversion is a long 0.
 
-Otherwise, if the value' is not an infinity, it is rounded to an integer value V using the round toward zero rounding policy (§2.8). If this integer value V can be represented as a long, then the result is the long value V.
+Otherwise, if the value is not an infinity, it is rounded to an integer value V using the round toward zero rounding policy (§2.8). If this integer value V can be represented as a long, then the result is the long value V.
 
-Otherwise, either the value' must be too small (a negative value of large magnitude or negative infinity), and the result is the smallest representable value of type long, or the value' must be too large (a positive value of large magnitude or positive infinity), and the result is the largest representable value of type long.
+Otherwise, either the value must be too small (a negative value of large magnitude or negative infinity), and the result is the smallest representable value of type long, or the value must be too large (a positive value of large magnitude or positive infinity), and the result is the largest representable value of type long.
 
 Notes
 
-The f2l instruction performs a narrowing primitive conversion (JLS §5.1.3). It may lose information about the overall magnitude of value' and may also lose precision.
+The f2l instruction performs a narrowing primitive conversion (JLS §5.1.3). It may lose information about the overall magnitude of value and may also lose precision.
 
 fadd
 Operation
@@ -1863,11 +1859,11 @@ Operand Stack
 
 Description
 
-Both value1 and value2 must be of type float. The values are popped from the operand stack and undergo value set conversion (§2.8.3), resulting in value1' and value2'. The float result is value1' + value2'. The result is pushed onto the operand stack.
+Both value1 and value2 must be of type float. The values are popped from the operand stack. The float result is value1 + value2. The result is pushed onto the operand stack.
 
 The result of an fadd instruction is governed by the rules of IEEE 754 arithmetic:
 
-If either value1' or value2' is NaN, the result is NaN.
+If either value1 or value2 is NaN, the result is NaN.
 
 The sum of two infinities of opposite sign is NaN.
 
@@ -1941,7 +1937,7 @@ Operand Stack
 
 Description
 
-The arrayref must be of type reference and must refer to an array whose components are of type float. The index must be of type int, and the value must be of type float. The arrayref, index, and value are popped from the operand stack. The float value undergoes value set conversion (§2.8.3), resulting in value', and value' is stored as the component of the array indexed by index.
+The arrayref must be of type reference and must refer to an array whose components are of type float. The index must be of type int, and the value must be of type float. The arrayref, index, and value are popped from the operand stack. The float value is stored as the component of the array indexed by index.
 
 Run-time Exceptions
 
@@ -1974,15 +1970,15 @@ Operand Stack
 
 Description
 
-Both value1 and value2 must be of type float. The values are popped from the operand stack and undergo value set conversion (§2.8.3), resulting in value1' and value2'. A floating-point comparison is performed:
+Both value1 and value2 must be of type float. The values are popped from the operand stack and a floating-point comparison is performed:
 
-If value1' is greater than value2', the int value 1 is pushed onto the operand stack.
+If value1 is greater than value2, the int value 1 is pushed onto the operand stack.
 
-Otherwise, if value1' is equal to value2', the int value 0 is pushed onto the operand stack.
+Otherwise, if value1 is equal to value2, the int value 0 is pushed onto the operand stack.
 
-Otherwise, if value1' is less than value2', the int value -1 is pushed onto the operand stack.
+Otherwise, if value1 is less than value2, the int value -1 is pushed onto the operand stack.
 
-Otherwise, at least one of value1' or value2' is NaN. The fcmpg instruction pushes the int value 1 onto the operand stack and the fcmpl instruction pushes the int value -1 onto the operand stack.
+Otherwise, at least one of value1 or value2 is NaN. The fcmpg instruction pushes the int value 1 onto the operand stack and the fcmpl instruction pushes the int value -1 onto the operand stack.
 
 Floating-point comparison is performed in accordance with IEEE 754. All values other than NaN are ordered, with negative infinity less than all finite values and positive infinity greater than all finite values. Positive zero and negative zero are considered equal.
 
@@ -2042,13 +2038,13 @@ Operand Stack
 
 Description
 
-Both value1 and value2 must be of type float. The values are popped from the operand stack and undergo value set conversion (§2.8.3), resulting in value1' and value2'. The float result is value1' / value2'. The result is pushed onto the operand stack.
+Both value1 and value2 must be of type float. The values are popped from the operand stack. The float result is value1 / value2. The result is pushed onto the operand stack.
 
 The result of an fdiv instruction is governed by the rules of IEEE 754 arithmetic:
 
-If either value1' or value2' is NaN, the result is NaN.
+If either value1 or value2 is NaN, the result is NaN.
 
-If neither value1' nor value2' is NaN, the sign of the result is positive if both values have the same sign, negative if the values have different signs.
+If neither value1 nor value2 is NaN, the sign of the result is positive if both values have the same sign, negative if the values have different signs.
 
 Division of an infinity by an infinity results in NaN.
 
@@ -2152,13 +2148,13 @@ Operand Stack
 
 Description
 
-Both value1 and value2 must be of type float. The values are popped from the operand stack and undergo value set conversion (§2.8.3), resulting in value1' and value2'. The float result is value1' * value2'. The result is pushed onto the operand stack.
+Both value1 and value2 must be of type float. The values are popped from the operand stack. The float result is value1 * value2. The result is pushed onto the operand stack.
 
 The result of an fmul instruction is governed by the rules of IEEE 754 arithmetic:
 
-If either value1' or value2' is NaN, the result is NaN.
+If either value1 or value2 is NaN, the result is NaN.
 
-If neither value1' nor value2' is NaN, the sign of the result is positive if both values have the same sign, and negative if the values have different signs.
+If neither value1 nor value2 is NaN, the sign of the result is positive if both values have the same sign, and negative if the values have different signs.
 
 Multiplication of an infinity by a zero results in NaN.
 
@@ -2191,13 +2187,15 @@ Operand Stack
 
 Description
 
-The value must be of type float. It is popped from the operand stack and undergoes value set conversion (§2.8.3), resulting in value'. The float result is the arithmetic negation of value'. This result is pushed onto the operand stack.
+The value must be of type float. It is popped from the operand stack. The float result is the arithmetic negation of value. The result is pushed onto the operand stack.
 
 For float values, negation is not the same as subtraction from zero. If x is +0.0, then 0.0-x equals +0.0, but -x equals -0.0. Unary minus merely inverts the sign of a float.
 
 Special cases of interest:
 
 If the operand is NaN, the result is NaN (recall that NaN has no sign).
+
+The Java Virtual Machine has not adopted the stronger requirement from the 2019 version of the IEEE 754 Standard that negation inverts the sign bit for all inputs, including NaN.
 
 If the operand is an infinity, the result is the infinity of opposite sign.
 
@@ -2226,15 +2224,15 @@ Operand Stack
 
 Description
 
-Both value1 and value2 must be of type float. The values are popped from the operand stack and undergo value set conversion (§2.8.3), resulting in value1' and value2'. The float result is calculated and pushed onto the operand stack.
+Both value1 and value2 must be of type float. The values are popped from the operand stack. The float result is calculated and pushed onto the operand stack.
 
 The result of an frem instruction is not the same as the result of the remainder operation defined by IEEE 754, due to the choice of rounding policy in the Java Virtual Machine (§2.8). The IEEE 754 remainder operation computes the remainder from a rounding division, not a truncating division, and so its behavior is not analogous to that of the usual integer remainder operator. Instead, the Java Virtual Machine defines frem to behave in a manner analogous to that of the integer remainder instructions irem and lrem, with an implied division using the round toward zero rounding policy; this may be compared with the C library function fmod.
 
 The result of an frem instruction is governed by the following rules, which match IEEE 754 arithmetic except for how the implied division is computed:
 
-If either value1' or value2' is NaN, the result is NaN.
+If either value1 or value2 is NaN, the result is NaN.
 
-If neither value1' nor value2' is NaN, the sign of the result equals the sign of the dividend.
+If neither value1 nor value2 is NaN, the sign of the result equals the sign of the dividend.
 
 If the dividend is an infinity or the divisor is a zero or both, the result is NaN.
 
@@ -2242,7 +2240,7 @@ If the dividend is finite and the divisor is an infinity, the result equals the 
 
 If the dividend is a zero and the divisor is finite, the result equals the dividend.
 
-In the remaining cases, where neither operand is an infinity, a zero, or NaN, the floating-point remainder result from a dividend value1' and a divisor value2' is defined by the mathematical relation result = value1' - (value2' * q), where q is an integer that is negative only if value1' / value2' is negative and positive only if value1' / value2' is positive, and whose magnitude is as large as possible without exceeding the magnitude of the true mathematical quotient of value1' and value2'.
+In the remaining cases, where neither operand is an infinity, a zero, or NaN, the floating-point remainder result from a dividend value1 and a divisor value2 is defined by the mathematical relation result = value1 - (value2 * q), where q is an integer that is negative only if value1 / value2 is negative, and positive only if value1 / value2 is positive, and whose magnitude is as large as possible without exceeding the magnitude of the true mathematical quotient of value1 and value2.
 
 Despite the fact that division by zero may occur, evaluation of an frem instruction never throws a run-time exception. Overflow, underflow, or loss of precision cannot occur.
 
@@ -2273,7 +2271,7 @@ Operand Stack
 
 Description
 
-The current method must have return type float. The value must be of type float. If the current method is a synchronized method, the monitor entered or reentered on invocation of the method is updated and possibly exited as if by execution of a monitorexit instruction (§monitorexit) in the current thread. If no exception is thrown, value is popped from the operand stack of the current frame (§2.6) and undergoes value set conversion (§2.8.3), resulting in value'. The value' is pushed onto the operand stack of the frame of the invoker. Any other values on the operand stack of the current method are discarded.
+The current method must have return type float. The value must be of type float. If the current method is a synchronized method, the monitor entered or reentered on invocation of the method is updated and possibly exited as if by execution of a monitorexit instruction (§monitorexit) in the current thread. If no exception is thrown, value is popped from the operand stack of the current frame (§2.6) and pushed onto the operand stack of the frame of the invoker. Any other values on the operand stack of the current method are discarded.
 
 The interpreter then returns control to the invoker of the method, reinstating the frame of the invoker.
 
@@ -2307,7 +2305,7 @@ Operand Stack
 
 Description
 
-The index is an unsigned byte that must be an index into the local variable array of the current frame (§2.6). The value on the top of the operand stack must be of type float. It is popped from the operand stack and undergoes value set conversion (§2.8.3), resulting in value'. The value of the local variable at index is set to value'.
+The index is an unsigned byte that must be an index into the local variable array of the current frame (§2.6). The value on the top of the operand stack must be of type float. It is popped from the operand stack, and the value of the local variable at index is set to value.
 
 Notes
 
@@ -2342,7 +2340,7 @@ Operand Stack
 
 Description
 
-The <n> must be an index into the local variable array of the current frame (§2.6). The value on the top of the operand stack must be of type float. It is popped from the operand stack and undergoes value set conversion (§2.8.3), resulting in value'. The value of the local variable at <n> is set to value'.
+The <n> must be an index into the local variable array of the current frame (§2.6). The value on the top of the operand stack must be of type float. It is popped from the operand stack, and the value of the local variable at <n> is set to value.
 
 Notes
 
@@ -2371,7 +2369,7 @@ Operand Stack
 
 Description
 
-Both value1 and value2 must be of type float. The values are popped from the operand stack and undergo value set conversion (§2.8.3), resulting in value1' and value2'. The float result is value1' - value2'. The result is pushed onto the operand stack.
+Both value1 and value2 must be of type float. The values are popped from the operand stack. The float result is value1 - value2. The result is pushed onto the operand stack.
 
 For float subtraction, it is always the case that a-b produces the same result as a+(-b). However, for the fsub instruction, subtraction from zero is not the same as negation, because if x is +0.0, then 0.0-x equals +0.0, but -x equals -0.0.
 
@@ -2627,7 +2625,7 @@ Operand Stack
 
 Description
 
-The value on the top of the operand stack must be of type int. It is popped from the operand stack and converted to the float result using the round to nearest rounding policy (§2.8). The result is pushed onto the operand stack.
+The value on the top of the operand stack must be of type int. It is popped from the operand stack and converted to a float result using the round to nearest rounding policy (§2.8). The result is pushed onto the operand stack.
 
 Notes
 
@@ -3389,9 +3387,9 @@ Let C be the class of objectref. A method is selected with respect to C and the 
 
 If the method to be invoked is synchronized, the monitor associated with objectref is entered or reentered as if by execution of a monitorenter instruction (§monitorenter) in the current thread.
 
-If the method to be invoked is not native, the nargs argument values and objectref are popped from the operand stack. A new frame is created on the Java Virtual Machine stack for the method being invoked. The objectref and the argument values are consecutively made the values of local variables of the new frame, with objectref in local variable 0, arg1 in local variable 1 (or, if arg1 is of type long or double, in local variables 1 and 2), and so on. Any argument value that is of a floating-point type undergoes value set conversion (§2.8.3) prior to being stored in a local variable. The new frame is then made current, and the Java Virtual Machine pc is set to the opcode of the first instruction of the method to be invoked. Execution continues with the first instruction of the method.
+If the method to be invoked is not native, the nargs argument values and objectref are popped from the operand stack. A new frame is created on the Java Virtual Machine stack for the method being invoked. The objectref and the argument values are consecutively made the values of local variables of the new frame, with objectref in local variable 0, arg1 in local variable 1 (or, if arg1 is of type long or double, in local variables 1 and 2), and so on. The new frame is then made current, and the Java Virtual Machine pc is set to the opcode of the first instruction of the method to be invoked. Execution continues with the first instruction of the method.
 
-If the method to be invoked is native and the platform-dependent code that implements it has not yet been bound (§5.6) into the Java Virtual Machine, then that is done. The nargs argument values and objectref are popped from the operand stack and are passed as parameters to the code that implements the method. Any argument value that is of a floating-point type undergoes value set conversion (§2.8.3) prior to being passed as a parameter. The parameters are passed and the code is invoked in an implementation-dependent manner. When the platform-dependent code returns:
+If the method to be invoked is native and the platform-dependent code that implements it has not yet been bound (§5.6) into the Java Virtual Machine, then that is done. The nargs argument values and objectref are popped from the operand stack and are passed as parameters to the code that implements the method. The parameters are passed and the code is invoked in an implementation-dependent manner. When the platform-dependent code returns:
 
 If the native method is synchronized, the monitor associated with objectref is updated and possibly exited as if by execution of a monitorexit instruction (§monitorexit) in the current thread.
 
@@ -3482,9 +3480,9 @@ The objectref must be of type reference and must be followed on the operand stac
 
 If the method is synchronized, the monitor associated with objectref is entered or reentered as if by execution of a monitorenter instruction (§monitorenter) in the current thread.
 
-If the method is not native, the nargs argument values and objectref are popped from the operand stack. A new frame is created on the Java Virtual Machine stack for the method being invoked. The objectref and the argument values are consecutively made the values of local variables of the new frame, with objectref in local variable 0, arg1 in local variable 1 (or, if arg1 is of type long or double, in local variables 1 and 2), and so on. Any argument value that is of a floating-point type undergoes value set conversion (§2.8.3) prior to being stored in a local variable. The new frame is then made current, and the Java Virtual Machine pc is set to the opcode of the first instruction of the method to be invoked. Execution continues with the first instruction of the method.
+If the method is not native, the nargs argument values and objectref are popped from the operand stack. A new frame is created on the Java Virtual Machine stack for the method being invoked. The objectref and the argument values are consecutively made the values of local variables of the new frame, with objectref in local variable 0, arg1 in local variable 1 (or, if arg1 is of type long or double, in local variables 1 and 2), and so on. The new frame is then made current, and the Java Virtual Machine pc is set to the opcode of the first instruction of the method to be invoked. Execution continues with the first instruction of the method.
 
-If the method is native and the platform-dependent code that implements it has not yet been bound (§5.6) into the Java Virtual Machine, that is done. The nargs argument values and objectref are popped from the operand stack and are passed as parameters to the code that implements the method. Any argument value that is of a floating-point type undergoes value set conversion (§2.8.3) prior to being passed as a parameter. The parameters are passed and the code is invoked in an implementation-dependent manner. When the platform-dependent code returns, the following take place:
+If the method is native and the platform-dependent code that implements it has not yet been bound (§5.6) into the Java Virtual Machine, that is done. The nargs argument values and objectref are popped from the operand stack and are passed as parameters to the code that implements the method. The parameters are passed and the code is invoked in an implementation-dependent manner. When the platform-dependent code returns, the following take place:
 
 If the native method is synchronized, the monitor associated with objectref is updated and possibly exited as if by execution of a monitorexit instruction (§monitorexit) in the current thread.
 
@@ -3557,9 +3555,9 @@ The operand stack must contain nargs argument values, where the number, type, an
 
 If the method is synchronized, the monitor associated with the resolved Class object is entered or reentered as if by execution of a monitorenter instruction (§monitorenter) in the current thread.
 
-If the method is not native, the nargs argument values are popped from the operand stack. A new frame is created on the Java Virtual Machine stack for the method being invoked. The nargs argument values are consecutively made the values of local variables of the new frame, with arg1 in local variable 0 (or, if arg1 is of type long or double, in local variables 0 and 1) and so on. Any argument value that is of a floating-point type undergoes value set conversion (§2.8.3) prior to being stored in a local variable. The new frame is then made current, and the Java Virtual Machine pc is set to the opcode of the first instruction of the method to be invoked. Execution continues with the first instruction of the method.
+If the method is not native, the nargs argument values are popped from the operand stack. A new frame is created on the Java Virtual Machine stack for the method being invoked. The nargs argument values are consecutively made the values of local variables of the new frame, with arg1 in local variable 0 (or, if arg1 is of type long or double, in local variables 0 and 1) and so on. The new frame is then made current, and the Java Virtual Machine pc is set to the opcode of the first instruction of the method to be invoked. Execution continues with the first instruction of the method.
 
-If the method is native and the platform-dependent code that implements it has not yet been bound (§5.6) into the Java Virtual Machine, that is done. The nargs argument values are popped from the operand stack and are passed as parameters to the code that implements the method. Any argument value that is of a floating-point type undergoes value set conversion (§2.8.3) prior to being passed as a parameter. The parameters are passed and the code is invoked in an implementation-dependent manner. When the platform-dependent code returns, the following take place:
+If the method is native and the platform-dependent code that implements it has not yet been bound (§5.6) into the Java Virtual Machine, that is done. The nargs argument values are popped from the operand stack and are passed as parameters to the code that implements the method. The parameters are passed and the code is invoked in an implementation-dependent manner. When the platform-dependent code returns, the following take place:
 
 If the native method is synchronized, the monitor associated with the resolved Class object is updated and possibly exited as if by execution of a monitorexit instruction (§monitorexit) in the current thread.
 
@@ -3616,9 +3614,9 @@ The objectref must be followed on the operand stack by nargs argument values, wh
 
 If the method to be invoked is synchronized, the monitor associated with objectref is entered or reentered as if by execution of a monitorenter instruction (§monitorenter) in the current thread.
 
-If the method to be invoked is not native, the nargs argument values and objectref are popped from the operand stack. A new frame is created on the Java Virtual Machine stack for the method being invoked. The objectref and the argument values are consecutively made the values of local variables of the new frame, with objectref in local variable 0, arg1 in local variable 1 (or, if arg1 is of type long or double, in local variables 1 and 2), and so on. Any argument value that is of a floating-point type undergoes value set conversion (§2.8.3) prior to being stored in a local variable. The new frame is then made current, and the Java Virtual Machine pc is set to the opcode of the first instruction of the method to be invoked. Execution continues with the first instruction of the method.
+If the method to be invoked is not native, the nargs argument values and objectref are popped from the operand stack. A new frame is created on the Java Virtual Machine stack for the method being invoked. The objectref and the argument values are consecutively made the values of local variables of the new frame, with objectref in local variable 0, arg1 in local variable 1 (or, if arg1 is of type long or double, in local variables 1 and 2), and so on. The new frame is then made current, and the Java Virtual Machine pc is set to the opcode of the first instruction of the method to be invoked. Execution continues with the first instruction of the method.
 
-If the method to be invoked is native and the platform-dependent code that implements it has not yet been bound (§5.6) into the Java Virtual Machine, that is done. The nargs argument values and objectref are popped from the operand stack and are passed as parameters to the code that implements the method. Any argument value that is of a floating-point type undergoes value set conversion (§2.8.3) prior to being passed as a parameter. The parameters are passed and the code is invoked in an implementation-dependent manner. When the platform-dependent code returns, the following take place:
+If the method to be invoked is native and the platform-dependent code that implements it has not yet been bound (§5.6) into the Java Virtual Machine, that is done. The nargs argument values and objectref are popped from the operand stack and are passed as parameters to the code that implements the method. The parameters are passed and the code is invoked in an implementation-dependent manner. When the platform-dependent code returns, the following take place:
 
 If the native method is synchronized, the monitor associated with objectref is updated and possibly exited as if by execution of a monitorexit instruction (§monitorexit) in the current thread.
 
@@ -4370,10 +4368,6 @@ Linking Exceptions
 
 During resolution of a symbolic reference, any of the exceptions pertaining to resolution of that kind of symbolic reference can be thrown.
 
-Notes
-
-The ldc instruction can only be used to push a value of type float taken from the float value set (§2.3.2) because a constant of type float in the constant pool (§4.4.4) must be taken from the float value set.
-
 ldc_w
 Operation
 
@@ -4417,8 +4411,6 @@ Notes
 
 The ldc_w instruction is identical to the ldc instruction (§ldc) except for its wider run-time constant pool index.
 
-The ldc_w instruction can only be used to push a value of type float taken from the float value set (§2.3.2) because a constant of type float in the constant pool (§4.4.4) must be taken from the float value set.
-
 ldc2_w
 Operation
 
@@ -4461,8 +4453,6 @@ During resolution of a symbolic reference to a dynamically-computed constant, an
 Notes
 
 Only a wide-index version of the ldc2_w instruction exists; there is no ldc2 instruction that pushes a long or double with a single-byte index.
-
-The ldc2_w instruction can only be used to push a value of type double taken from the double value set (§2.3.2) because a constant of type double in the constant pool (§4.4.5) must be taken from the double value set.
 
 ldiv
 Operation
@@ -5319,9 +5309,9 @@ The value and objectref are popped from the operand stack.
 
 The objectref must be of type reference but not an array type.
 
-If the value is of type int and the field descriptor type is boolean, then the int value is narrowed by taking the bitwise AND of value and 1, resulting in value'. Otherwise, the value undergoes value set conversion (§2.8.3), resulting in value'.
+If the value is of type int and the field descriptor type is boolean, then the int value is narrowed by taking the bitwise AND of value and 1, resulting in value'. The referenced field in objectref is set to value'.
 
-The referenced field in objectref is set to value'.
+Otherwise, the referenced field in objectref is set to value.
 
 Linking Exceptions
 
@@ -5368,9 +5358,9 @@ The type of a value stored by a putstatic instruction must be compatible with th
 
 The value is popped from the operand stack.
 
-If the value is of type int and the field descriptor type is boolean, then the int value is narrowed by taking the bitwise AND of value and 1, resulting in value'. Otherwise, the value undergoes value set conversion (§2.8.3), resulting in value'.
+If the value is of type int and the field descriptor type is boolean, then the int value is narrowed by taking the bitwise AND of value and 1, resulting in value'. The referenced field in the class or interface is set to value'.
 
-The referenced field in the class or interface is set to value'.
+Otherwise, the referenced field in the class or interface is set to value.
 
 Linking Exceptions
 
