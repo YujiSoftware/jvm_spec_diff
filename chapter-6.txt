@@ -164,7 +164,7 @@ A Java Virtual Machine instruction consists of an opcode specifying the operatio
 
 The description of each instruction is always given in the context of Java Virtual Machine code that satisfies the static and structural constraints of §4 (The class File Format). In the description of individual Java Virtual Machine instructions, we frequently state that some situation "must" or "must not" be the case: "The value2 must be of type int." The constraints of §4 (The class File Format) guarantee that all such expectations will in fact be met. If some constraint (a "must" or "must not") in an instruction description is not satisfied at run time, the behavior of the Java Virtual Machine is undefined.
 
-The Java Virtual Machine checks that Java Virtual Machine code satisfies the static and structural constraints at link time using a class file verifier (§4.10). Thus, the Java Virtual Machine will only attempt to execute code from valid class files. Performing verification at link time is attractive in that the checks are performed just once, substantially reducing the amount of work that must be done at run time. Other implementation strategies are possible, provided that they comply with The Java Language Specification, Java SE 21 Edition and The Java Virtual Machine Specification, Java SE 21 Edition.
+The Java Virtual Machine checks that Java Virtual Machine code satisfies the static and structural constraints at link time using a class file verifier (§4.10). Thus, the Java Virtual Machine will only attempt to execute code from valid class files. Performing verification at link time is attractive in that the checks are performed just once, substantially reducing the amount of work that must be done at run time. Other implementation strategies are possible, provided that they comply with The Java Language Specification, Java SE 22 Edition and The Java Virtual Machine Specification, Java SE 22 Edition.
 
 6.2. Reserved Opcodes
 
@@ -5309,7 +5309,7 @@ The value and objectref are popped from the operand stack.
 
 The objectref must be of type reference but not an array type.
 
-If the value is of type int and the field descriptor type is boolean, then the int value is narrowed by taking the bitwise AND of value and 1, resulting in value'. The referenced field in objectref is set to value'.
+If the value is of type int and the field descriptor type is one of byte, char, short, or boolean, then the int value is converted to the field descriptor type as follows. If the field descriptor type is byte, char, or short, then the int value is truncated to a value of the field descriptor type, value'. If the field descriptor type is boolean, then the int value is narrowed by taking the bitwise AND of value and 1, resulting in value'. The referenced field in objectref is set to value'.
 
 Otherwise, the referenced field in objectref is set to value.
 
@@ -5358,7 +5358,7 @@ The type of a value stored by a putstatic instruction must be compatible with th
 
 The value is popped from the operand stack.
 
-If the value is of type int and the field descriptor type is boolean, then the int value is narrowed by taking the bitwise AND of value and 1, resulting in value'. The referenced field in the class or interface is set to value'.
+If the value is of type int and the field descriptor type is one of byte, char, short, or boolean, then the int value is converted to the field descriptor type as follows. If the field descriptor type is byte, char, or short, then the int value is truncated to a value of the field descriptor type, value'. If the field descriptor type is boolean, then the int value is narrowed by taking the bitwise AND of value and 1, resulting in value'. The referenced field in the class or interface is set to value'.
 
 Otherwise, the referenced field in the class or interface is set to value.
 

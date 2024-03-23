@@ -268,7 +268,7 @@ Otherwise, if the purported representation does not actually represent a class o
 
 This occurs when the purported representation has either a this_class item which specifies a name other than N, or an access_flags item which has the ACC_MODULE flag set.
 
-If C has a direct superclass, the symbolic reference from C to its direct superclass is resolved using the algorithm of §5.4.3.1. Note that if C is an interface it must have Object as its direct superclass, which must already have been loaded. Only Object has no direct superclass.
+If C has a direct superclass, the symbolic reference from C to its direct superclass is resolved using the algorithm of §5.4.3.1, with L acting as the defining loader of C. Note that if C is an interface it must have Object as its direct superclass, which must already have been loaded. Only Object has no direct superclass.
 
 Any exception that can be thrown as a result of failure of class or interface resolution can be thrown as a result of derivation. In addition, derivation must detect the following problems:
 
@@ -286,7 +286,7 @@ No entry in the classes array of the superclass's PermittedSubclasses attribute 
 
 Otherwise, if C is a class and some instance method declared in C can override (§5.4.5) a final instance method declared in a superclass of C, derivation throws an IncompatibleClassChangeError.
 
-If C has any direct superinterfaces, the symbolic references from C to its direct superinterfaces are resolved using the algorithm of §5.4.3.1.
+If C has any direct superinterfaces, the symbolic references from C to its direct superinterfaces are resolved using the algorithm of §5.4.3.1, with L acting as the defining loader of C.
 
 Any exception that can be thrown as a result of failure of class or interface resolution can be thrown as a result of derivation. In addition, derivation must detect the following problems:
 
@@ -962,7 +962,7 @@ If the Class object for C is in an erroneous state, then initialization is not p
 
 Otherwise, record the fact that initialization of the Class object for C is in progress by the current thread, and release LC.
 
-Then, initialize each final static field of C with the constant value in its ConstantValue attribute (§4.7.2), in the order the fields appear in the ClassFile structure.
+Then, initialize each static field of C with the constant value in its ConstantValue attribute (§4.7.2), in the order the fields appear in the ClassFile structure.
 
 Next, if C is a class rather than an interface, then let SC be its superclass and let SI1, ..., SIn be all superinterfaces of C (whether direct or indirect) that declare at least one non-abstract, non-static method. The order of superinterfaces is given by a recursive enumeration over the superinterface hierarchy of each interface directly implemented by C. For each interface I directly implemented by C (in the order of the interfaces array of C), the enumeration recurs on I's superinterfaces (in the order of the interfaces array of I) before returning I.
 

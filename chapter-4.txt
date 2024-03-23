@@ -321,6 +321,11 @@ Java SE	Released	Major	Supported majors
 	September 2023	65	45 .. 65
 
 
+22
+
+	March 2024	66	45 .. 66
+
+
 
 For a class file whose major_version is 56 or above, the minor_version must be 0 or 65535.
 
@@ -1676,7 +1681,7 @@ For instance, defining a new attribute to support vendor-specific debugging is p
 
 Java Virtual Machine implementations are specifically prohibited from throwing an exception or otherwise refusing to use class files simply because of the presence of some new attribute. Of course, tools operating on class files may not run correctly if given class files that do not contain all the attributes they require.
 
-Two attributes that are intended to be distinct, but that happen to use the same attribute name and are of the same length, will conflict on implementations that recognize either attribute. Attributes defined other than in this specification should have names chosen according to the package naming convention described in The Java Language Specification, Java SE 21 Edition (JLS §6.1).
+Two attributes that are intended to be distinct, but that happen to use the same attribute name and are of the same length, will conflict on implementations that recognize either attribute. Attributes defined other than in this specification should have names chosen according to the package naming convention described in The Java Language Specification, Java SE 22 Edition (JLS §6.1).
 
 Future versions of this specification may define additional attributes.
 
@@ -2285,7 +2290,7 @@ The value of the attribute_length item must be zero.
 
 4.7.9. The Signature Attribute
 
-The Signature attribute is a fixed-length attribute in the attributes table of a ClassFile, field_info, method_info, or record_component_info structure (§4.1, §4.5, §4.6, §4.7.30). A Signature attribute stores a signature (§4.7.9.1) for a class, interface, constructor, method, field, or record component whose declaration in the Java programming language uses type variables or parameterized types. See The Java Language Specification, Java SE 21 Edition for details about these constructs.
+The Signature attribute is a fixed-length attribute in the attributes table of a ClassFile, field_info, method_info, or record_component_info structure (§4.1, §4.5, §4.6, §4.7.30). A Signature attribute stores a signature (§4.7.9.1) for a class, interface, constructor, method, field, or record component whose declaration in the Java programming language uses type variables or parameterized types. See The Java Language Specification, Java SE 22 Edition for details about these constructs.
 
 There may be at most one Signature attribute in the attributes table of a ClassFile, field_info, method_info, or record_component_info structure.
 
@@ -2352,7 +2357,7 @@ B C D F I J S Z
 
 A reference type signature represents a reference type of the Java programming language, that is, a class or interface type, a type variable, or an array type.
 
-A class type signature represents a (possibly parameterized) class or interface type. A class type signature must be formulated such that it can be reliably mapped to the binary name of the class it denotes by erasing any type arguments and converting each . character to a $ character.
+A class type signature represents a (possibly parameterized) class or interface type. A class type signature must be formulated such that it can be reliably mapped to the binary name of the class it denotes, in internal form (§4.2.1), by erasing any type arguments and converting each . character to a $ character.
 
 A type variable signature represents a type variable.
 
@@ -4281,19 +4286,19 @@ If an invokespecial instruction names an instance initialization method, then th
 
 If the target reference on the operand stack is an uninitialized class instance for the current class, then invokespecial must name an instance initialization method from the current class or its direct superclass.
 
-If an invokespecial instruction names an instance initialization method and the target reference on the operand stack is a class instance created by an earlier new instruction, then invokespecial must name an instance initialization method from the class of that class instance.
+If the target reference on the operand stack is a class instance created by an earlier new instruction, then invokespecial must name an instance initialization method from the class of that class instance.
+
+In either case, if the instruction is covered by an exception handler, then any copy of the target reference stored in a local variable must be treated as unusable by the exception handler code.
 
 If an invokespecial instruction names a method which is not an instance initialization method, then the target reference on the operand stack must be a class instance whose type is assignment compatible with the current class (JLS §5.2).
 
 The general rule for invokespecial is that the class or interface named by invokespecial must be be "above" the caller class or interface, while the receiver object targeted by invokespecial must be "at" or "below" the caller class or interface. The latter clause is especially important: a class or interface can only perform invokespecial on its own objects. See §invokespecial for an explanation of how the latter clause is implemented in Prolog.
 
-Each instance initialization method, except for the instance initialization method derived from the constructor of class Object, must call either another instance initialization method of this or an instance initialization method of its direct superclass super before its instance members are accessed.
+Each instance initialization method, except for the instance initialization method derived from the constructor of class Object, must call either another instance initialization method of this or an instance initialization method of its direct superclass super before its instance members are accessed, and before the calling instance initialization method returns.
 
 However, instance fields of this that are declared in the current class may be assigned by putfield before calling any instance initialization method.
 
 When any instance method is invoked or when any instance variable is accessed, the class instance that contains the instance method or instance variable must already be initialized.
-
-If there is an uninitialized class instance in a local variable in code protected by an exception handler, then (i) if the handler is inside an <init> method, the handler must throw an exception or loop forever; and (ii) if the handler is not inside an <init> method, the uninitialized class instance must remain uninitialized.
 
 There must never be an uninitialized class instance on the operand stack or in a local variable when a jsr or jsr_w instruction is executed.
 
@@ -4349,7 +4354,7 @@ If a ret instruction returns to a point in the subroutine call chain above the r
 
 Even though a compiler for the Java programming language must only produce class files that satisfy all the static and structural constraints in the previous sections, the Java Virtual Machine has no guarantee that any file it is asked to load was generated by that compiler or is properly formed. Applications such as web browsers do not download source code, which they then compile; these applications download already-compiled class files. The browser needs to determine whether the class file was produced by a trustworthy compiler or by an adversary attempting to exploit the Java Virtual Machine.
 
-An additional problem with compile-time checking is version skew. A user may have successfully compiled a class, say PurchaseStockOptions, to be a subclass of TradingClass. But the definition of TradingClass might have changed since the time the class was compiled in a way that is not compatible with pre-existing binaries. Methods might have been deleted or had their return types or modifiers changed. Fields might have changed types or changed from instance variables to class variables. The access modifiers of a method or variable may have changed from public to private. For a discussion of these issues, see Chapter 13, "Binary Compatibility," in The Java Language Specification, Java SE 21 Edition.
+An additional problem with compile-time checking is version skew. A user may have successfully compiled a class, say PurchaseStockOptions, to be a subclass of TradingClass. But the definition of TradingClass might have changed since the time the class was compiled in a way that is not compatible with pre-existing binaries. Methods might have been deleted or had their return types or modifiers changed. Fields might have changed types or changed from instance variables to class variables. The access modifiers of a method or variable may have changed from public to private. For a discussion of these issues, see Chapter 13, "Binary Compatibility," in The Java Language Specification, Java SE 22 Edition.
 
 Because of these potential problems, the Java Virtual Machine needs to verify for itself that the desired constraints are satisfied by the class files it attempts to incorporate. A Java Virtual Machine implementation verifies that each class file satisfies the necessary constraints at linking time (§5.4).
 
@@ -4440,7 +4445,7 @@ Finally, we specify the rules to type check each instruction (§4.10.1.9).
 
 4.10.1.1. Accessors for Java Virtual Machine Artifacts
 
-We stipulate the existence of 28 Prolog predicates ("accessors") that have certain expected behavior but whose formal definitions are not given in this specification.
+We stipulate the existence of 27 Prolog predicates ("accessors") that have certain expected behavior but whose formal definitions are not given in this specification.
 
 classClassName(Class, ClassName)
 
@@ -4503,10 +4508,6 @@ Each attribute is represented as a functor application of the form attribute(Att
 isInit(Method)
 
 True iff Method (regardless of class) is <init>.
-
-isNotInit(Method)
-
-True iff Method (regardless of class) is not <init>.
 
 isNotFinal(Method, Class)
 
@@ -5136,8 +5137,7 @@ whose arguments are, respectively, the start and end of the range of instruction
 
 An exception handler is legal if its start (Start) is less than its end (End), there exists an instruction whose offset is equal to Start, there exists an instruction whose offset equals End, and the handler's exception class is assignable to the class Throwable. The exception class of a handler is Throwable if the handler's class entry is 0, otherwise it is the class named in the handler.
 
-An additional requirement exists for a handler inside an <init> method if one of the instructions covered by the handler is invokespecial of an <init> method. In this case, the fact that a handler is running means the object under construction is likely broken, so it is important that the handler does not swallow the exception and allow the enclosing <init> method to return normally to the caller. Accordingly, the handler is required to either complete abruptly by throwing an exception to the caller of the enclosing <init> method, or to loop forever.
-
+		
 handlersAreLegal(Environment) :-
     exceptionHandlers(Environment, Handlers),
     checklist(handlerIsLegal(Environment), Handlers).
@@ -5152,8 +5152,7 @@ handlerIsLegal(Environment, Handler) :-
     currentClassLoader(Environment, CurrentLoader),
     handlerExceptionClass(Handler, ExceptionClass, CurrentLoader), 
     isBootstrapLoader(BL),
-    isAssignable(ExceptionClass, class('java/lang/Throwable', BL)),
-    initHandlerIsLegal(Environment, Handler).
+    isAssignable(ExceptionClass, class('java/lang/Throwable', BL)).
 
 instructionsIncludeEnd(Instructions, End) :-
     member(instruction(End, _), Instructions).
@@ -5167,42 +5166,6 @@ handlerExceptionClass(handler(_, _, _, 0),
 handlerExceptionClass(handler(_, _, _, Name),
                       class(Name, L), L) :-
     Name \= 0.
-
-initHandlerIsLegal(Environment, Handler) :-
-    notInitHandler(Environment, Handler).
-
-notInitHandler(Environment, Handler) :-
-    Environment = environment(_Class, Method, _, Instructions, _, _),
-    isNotInit(Method).
-
-notInitHandler(Environment, Handler) :-
-    Environment = environment(_Class, Method, _, Instructions, _, _),
-    isInit(Method),
-    member(instruction(_, invokespecial(CP)), Instructions),
-    CP = method(MethodClassName, MethodName, Descriptor),
-    MethodName \= '<init>'. 
-
-
-initHandlerIsLegal(Environment, Handler) :-
-    isInitHandler(Environment, Handler),
-    sublist(isApplicableInstruction(Target), Instructions,
-            HandlerInstructions),
-    noAttemptToReturnNormally(HandlerInstructions).
-
-isInitHandler(Environment, Handler) :-
-    Environment = environment(_Class, Method, _, Instructions, _, _),
-    isInit(Method).
-    member(instruction(_, invokespecial(CP)), Instructions),
-    CP = method(MethodClassName, '<init>', Descriptor).
-
-isApplicableInstruction(HandlerStart, instruction(Offset, _)) :-
-    Offset >= HandlerStart.
-
-noAttemptToReturnNormally(Instructions) :-
-    notMember(instruction(_, return), Instructions).
-
-noAttemptToReturnNormally(Instructions) :-
-    member(instruction(_, athrow), Instructions). 
 
 
 Let us now turn to the stream of instructions and stack map frames.
@@ -6721,6 +6684,7 @@ The outgoing type state is derived from the incoming type state by first replaci
 If the instruction calls an instance initialization method on a class instance created by an earlier new instruction, and the method is protected, the usage conforms to the special rules governing access to protected members (§4.10.1.8).
 
 
+
 instructionIsTypeSafe(invokespecial(CP), Environment, _Offset, StackFrame,
                       NextStackFrame, ExceptionStackFrame) :-
     CP = method(MethodClassName, '<init>', Descriptor),
@@ -6734,8 +6698,10 @@ instructionIsTypeSafe(invokespecial(CP), Environment, _Offset, StackFrame,
     rewrittenInitializationFlags(uninitializedThis, Flags, NextFlags),
     substitute(uninitializedThis, This, OperandStack, NextOperandStack),
     substitute(uninitializedThis, This, Locals, NextLocals),
+    substitute(uninitializedThis, top, Locals, ExceptionLocals),
     NextStackFrame = frame(NextLocals, NextOperandStack, NextFlags),
-    ExceptionStackFrame = frame(Locals, [], Flags).
+    ExceptionStackFrame = frame(ExceptionLocals, [], Flags).
+
 
 instructionIsTypeSafe(invokespecial(CP), Environment, _Offset, StackFrame,
                       NextStackFrame, ExceptionStackFrame) :-
@@ -6750,8 +6716,9 @@ instructionIsTypeSafe(invokespecial(CP), Environment, _Offset, StackFrame,
     rewrittenInitializationFlags(uninitialized(Address), Flags, NextFlags),
     substitute(uninitialized(Address), This, OperandStack, NextOperandStack),
     substitute(uninitialized(Address), This, Locals, NextLocals),
+    substitute(uninitialized(Address), top, Locals, ExceptionLocals),
     NextStackFrame = frame(NextLocals, NextOperandStack, NextFlags),
-    ExceptionStackFrame = frame(Locals, [], Flags),
+    ExceptionStackFrame = frame(ExceptionLocals, [], Flags),
     passesProtectedCheck(Environment, MethodClassName, '<init>',
                          Descriptor, NextStackFrame).
 
@@ -6789,11 +6756,11 @@ substitute(Old, New, [From1 | FromRest], [From1 | ToRest]) :-
     substitute(Old, New, FromRest, ToRest).
 
 
-The rule for invokespecial of an <init> method is the sole motivation for passing back a distinct exception stack frame. The concern is that when initializing an object within its constructor, invokespecial can cause a superclass <init> method to be invoked, and that invocation could fail, leaving this uninitialized. This situation cannot be created using source code in the Java programming language, but can be created by programming in bytecode directly.
+The rule for invokespecial of an <init> method is the sole motivation for passing back a distinct exception stack frame. The concern is that when initializing an object, the invokespecial invocation could fail, leaving the object in a partially initialized, permanently unusable state. To prevent repeated initialization attempts after an object fails to initialize the first time, an exception handler must consider any references to the object stored in local variables to have type top rather than uninitializedThis or uninitialized(Offset).
 
-In this situation, the original frame holds an uninitialized object in local variable 0 and has flag flagThisUninit. Normal termination of invokespecial initializes the uninitialized object and turns off the flagThisUninit flag. But if the invocation of an <init> method throws an exception, the uninitialized object might be left in a partially initialized state, and needs to be made permanently unusable. This is represented by an exception frame containing the broken object (the new value of the local) and the flagThisUninit flag (the old flag). There is no way to get from an apparently-initialized object bearing the flagThisUninit flag to a properly initialized object, so the object is permanently unusable.
+In the special case of initializing the current object (that is, when invoking <init> for type uninitializedThis), the original frame typically holds an uninitialized object in local variable 0 and has flag flagThisUninit. Normal termination of invokespecial initializes the uninitialized object and turns off the flagThisUninit flag. But if the invokespecial invocation throws an exception, the exception frame contains the broken object (with type top) and the flagThisUninit flag (the old flag). There is no way to perform a return instruction given that type state, so the handler would have to throw another exception (or loop forever). In fact, it's not even possible to express a handler with that type state, because there is no way for a stack frame, as expressed by the StackMapTable attribute (§4.7.4), to carry flagThisUninit without any accompanying use of type uninitializedThis.
 
-If not for this situation, the flags of the exception stack frame would always be the same as the flags of the input stack frame.
+If not for these special constraints on object initialization, the local variable types and flags of the exception stack frame would always be the same as the local variable types and flags of the input stack frame.
 
 invokestatic
 
@@ -7505,21 +7472,7 @@ Record that the local variable values from immediately before step 2 are the sta
 
 Continue at step 1.
 
-To merge two operand stacks, the number of values on each stack must be identical. Then, corresponding values on the two stacks are compared and the value on the merged stack is computed, as follows:
-
-If one value is a primitive type, then the corresponding value must be the same primitive type. The merged value is the primitive type.
-
-If one value is a non-array reference type, then the corresponding value must be a reference type (array or non-array). The merged value is a reference to an instance of the first common supertype of the two reference types. (Such a reference type always exists because the type Object is a supertype of all class, interface, and array types.)
-
-For example, Object and String can be merged; the result is Object. Similarly, Object and String[] can be merged; the result is again Object. Even Object and int[] can be merged, or String and int[]; the result is Object for both.
-
-If corresponding values are both array reference types, then their dimensions are examined. If the array types have the same dimensions, then the merged value is a reference to an instance of an array type which is first common supertype of both array types. (If either or both of the array types has a primitive element type, then Object is used as the element type instead.) If the array types have different dimensions, then the merged value is a reference to an instance of an array type whose dimension is the smaller of the two; the element type is Cloneable or java.io.Serializable if the smaller array type was Cloneable or java.io.Serializable, and Object otherwise.
-
-For example, Object[] and String[] can be merged; the result is Object[]. Cloneable[] and String[] can be merged, or java.io.Serializable[] and String[]; the result is Cloneable[] and java.io.Serializable[] respectively. Even int[] and String[] can be merged; the result is Object[], because Object is used instead of int when computing the first common supertype.
-
-Since the array types can have different dimensions, Object[] and String[][] can be merged, or Object[][] and String[]; in both cases the result is Object[]. Cloneable[] and String[][] can be merged; the result is Cloneable[]. Finally, Cloneable[][] and String[] can be merged; the result is Object[].
-
-If the operand stacks cannot be merged, verification of the method fails.
+To merge two operand stacks, the number of values on each stack must be identical. The types of values on the stacks must also be identical, except that differently typed reference values may appear at corresponding places on the two stacks. In this case, the merged operand stack contains a reference type representing the first common superclass, superinterface, or array supertype of the two types. Such a reference type always exists because the type Object is a superclass of all class, interface, and array types. If the operand stacks cannot be merged, verification of the method fails.
 
 To merge two local variable array states, corresponding pairs of local variables are compared. The value of the merged local variable is computed using the rules above, except that the corresponding values are permitted to be different primitive types. In that case, the verifier records that the merged local variable contains an unusable value.
 
