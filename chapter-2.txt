@@ -48,7 +48,7 @@ This document specifies an abstract machine. It does not describe any particular
 
 To implement the Java Virtual Machine correctly, you need only be able to read the class file format and correctly perform the operations specified therein. Implementation details that are not part of the Java Virtual Machine's specification would unnecessarily constrain the creativity of implementors. For example, the memory layout of run-time data areas, the garbage-collection algorithm used, and any internal optimization of the Java Virtual Machine instructions (for example, translating them into machine code) are left to the discretion of the implementor.
 
-All references to Unicode in this specification are given with respect to The Unicode Standard, Version 15.0, available at https://www.unicode.org/.
+All references to Unicode in this specification are given with respect to The Unicode Standard, Version 15.1.0, available at https://www.unicode.org/.
 
 2.1. The class File Format
 
@@ -62,7 +62,7 @@ Like the Java programming language, the Java Virtual Machine operates on two kin
 
 The Java Virtual Machine expects that nearly all type checking is done prior to run time, typically by a compiler, and does not have to be done by the Java Virtual Machine itself. Values of primitive types need not be tagged or otherwise be inspectable to determine their types at run time, or to be distinguished from values of reference types. Instead, the instruction set of the Java Virtual Machine distinguishes its operand types using instructions intended to operate on values of specific types. For instance, iadd, ladd, fadd, and dadd are all Java Virtual Machine instructions that add two numeric values and produce numeric results, but each is specialized for its operand type: int, long, float, and double, respectively. For a summary of type support in the Java Virtual Machine instruction set, see §2.11.1.
 
-The Java Virtual Machine contains explicit support for objects. An object is either a dynamically allocated class instance or an array. A reference to an object is considered to have Java Virtual Machine type reference. Values of type reference can be thought of as pointers to objects. More than one reference to an object may exist. Objects are always operated on, passed, and tested via values of type reference.
+The Java Virtual Machine contains explicit support for objects. An object is either a dynamically allocated class instance or an array. A reference to an object is considered to have Java Virtual Machine type reference. References are polymorphic: a single reference may also be a value of multiple class types, interface types, or array types. Values of type reference can be thought of as pointers to objects. More than one reference to an object may exist. Objects are always operated on, passed, and tested via values of type reference.
 
 2.3. Primitive Types and Values
 
@@ -270,7 +270,7 @@ Note that a frame created by a thread is local to that thread and cannot be refe
 
 Each frame (§2.6) contains an array of variables known as its local variables. The length of the local variable array of a frame is determined at compile-time and supplied in the binary representation of a class or interface along with the code for the method associated with the frame (§4.7.3).
 
-A single local variable can hold a value of type boolean, byte, char, short, int, float, reference, or returnAddress. A pair of local variables can hold a value of type long or double.
+A single local variable can hold a value of type int, float, reference, or returnAddress. A pair of local variables can hold a value of type long or double.
 
 Local variables are addressed by indexing. The index of the first local variable is zero. An integer is considered to be an index into the local variable array if and only if that integer is between zero and one less than the size of the local variable array.
 
@@ -501,7 +501,7 @@ Given the Java Virtual Machine's one-byte opcode size, encoding types into opcod
 
 Table 2.11.1-A summarizes the type support in the instruction set of the Java Virtual Machine. A specific instruction, with type information, is built by replacing the T in the instruction template in the opcode column by the letter in the type column. If the type column for some instruction template and type is blank, then no instruction exists supporting that type of operation. For instance, there is a load instruction for type int, iload, but there is no load instruction for type byte.
 
-Note that most instructions in Table 2.11.1-A do not have forms for the integral types byte, char, and short. None have forms for the boolean type. A compiler encodes loads of literal values of types byte and short using Java Virtual Machine instructions that sign-extend those values to values of type int at compile-time or run-time. Loads of literal values of types boolean and char are encoded using instructions that zero-extend the literal to a value of type int at compile-time or run-time. Likewise, loads from arrays of values of type boolean, byte, short, and char are encoded using Java Virtual Machine instructions that sign-extend or zero-extend the values to values of type int. Thus, most operations on values of actual types boolean, byte, char, and short are correctly performed by instructions operating on values of computational type int.
+Note that most instructions in Table 2.11.1-A do not have forms for the integral types byte, char, and short. None have forms for the boolean type. Whenever values of types byte and short are loaded onto the operand stack, they are implicitly converted by sign extension to values of type int. Similarly, whenever values of types boolean and char are loaded onto the operand stack, they are implicitly converted by zero extension to values of type int. Thus, most operations on values originally stored in variables of types boolean, byte, char, and short are correctly performed by instructions operating on values of computational type int.
 
 Table 2.11.1-A. Type support in the Java Virtual Machine instruction set
 
@@ -537,13 +537,13 @@ Treturn	 	 	ireturn	lreturn	freturn	dreturn	 	areturn
 
 
 
-The mapping between Java Virtual Machine actual types and Java Virtual Machine computational types is summarized by Table 2.11.1-B.
+The mapping between Java Virtual Machine storage types and Java Virtual Machine computational types is summarized by Table 2.11.1-B.
 
 Certain Java Virtual Machine instructions such as pop and swap operate on the operand stack without regard to type; however, such instructions are constrained to use only on values of certain categories of computational types, also given in Table 2.11.1-B.
 
-Table 2.11.1-B. Actual and Computational types in the Java Virtual Machine
+Table 2.11.1-B. Storage and Computational types in the Java Virtual Machine
 
-Actual type	Computational type	Category
+Storage type	Computational type	Category
 boolean	int	1
 byte	int	1
 char	int	1
@@ -570,7 +570,7 @@ Gain access to more local variables using a wider index, or to a larger immediat
 
 Instructions that access fields of objects and elements of arrays (§2.11.5) also transfer data to and from the operand stack.
 
-Instruction mnemonics shown above with trailing letters between angle brackets (for instance, iload_<n>) denote families of instructions (with members iload_0, iload_1, iload_2, and iload_3 in the case of iload_<n>). Such families of instructions are specializations of an additional generic instruction (iload) that takes one operand. For the specialized instructions, the operand is implicit and does not need to be stored or fetched. The semantics are otherwise the same (iload_0 means the same thing as iload with the operand 0). The letter between the angle brackets specifies the type of the implicit operand for that family of instructions: for <n>, a nonnegative integer; for <i>, an int; for <l>, a long; for <f>, a float; and for <d>, a double. Forms for type int are used in many cases to perform operations on values of type byte, char, and short (§2.11.1).
+Instruction mnemonics shown above with trailing letters between angle brackets (for instance, iload_<n>) denote families of instructions (with members iload_0, iload_1, iload_2, and iload_3 in the case of iload_<n>). Such families of instructions are specializations of an additional generic instruction (iload) that takes one operand. For the specialized instructions, the operand is implicit and does not need to be stored or fetched. The semantics are otherwise the same (iload_0 means the same thing as iload with the operand 0). The letter between the angle brackets specifies the type of the implicit operand for that family of instructions: for <n>, a nonnegative integer; for <i>, an int; for <l>, a long; for <f>, a float; and for <d>, a double.
 
 This notation for instruction families is used throughout this specification.
 
@@ -712,7 +712,7 @@ All int conditional control transfer instructions perform signed comparisons.
 
 The following five instructions invoke methods:
 
-invokevirtual invokes an instance method of an object, dispatching on the (virtual) type of the object. This is the normal method dispatch in the Java programming language.
+invokevirtual invokes an instance method of an object, dispatching on the (virtual) type of the object.
 
 invokeinterface invokes an interface method, searching the methods implemented by the particular run-time object to find the appropriate method.
 
@@ -722,7 +722,7 @@ invokestatic invokes a class (static) method in a named class.
 
 invokedynamic invokes the method which is the target of the call site object bound to the invokedynamic instruction. The call site object was bound to a specific lexical occurrence of the invokedynamic instruction by the Java Virtual Machine as a result of running a bootstrap method before the first execution of the instruction. Therefore, each occurrence of an invokedynamic instruction has a unique linkage state, unlike the other instructions which invoke methods.
 
-The method return instructions, which are distinguished by return type, are ireturn (used to return values of type boolean, byte, char, short, or int), lreturn, freturn, dreturn, and areturn. In addition, the return instruction is used to return from methods declared to be void, instance initialization methods, and class or interface initialization methods.
+The method return instructions, which are distinguished by return type, are ireturn (used for return types boolean, byte, char, short, and int), lreturn, freturn, dreturn, and areturn. In addition, the return instruction is used to return from methods declared to be void, instance initialization methods, and class or interface initialization methods.
 
 2.11.9. Throwing Exceptions
 

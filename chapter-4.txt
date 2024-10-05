@@ -326,6 +326,11 @@ Java SE	Released	Major	Supported majors
 	March 2024	66	45 .. 66
 
 
+23
+
+	September 2024	67	45 .. 67
+
+
 
 For a class file whose major_version is 56 or above, the minor_version must be 0 or 65535.
 
@@ -497,7 +502,7 @@ A descriptor is a string representing the type of a field or method. Descriptors
 
 4.3.1. Grammar Notation
 
-Descriptors are specified using a grammar. The grammar is a set of productions that describe how sequences of characters can form syntactically correct descriptors of various kinds. Terminal symbols of the grammar are shown in fixed width font. Nonterminal symbols are shown in italic type. The definition of a nonterminal is introduced by the name of the nonterminal being defined, followed by a colon. One or more alternative definitions for the nonterminal then follow on succeeding lines.
+Descriptors are specified using a grammar. The grammar is a set of productions that describe how sequences of characters can form syntactically correct descriptors of various kinds. Terminal symbols of the grammar are shown in fixed width font, and should be interpreted as ASCII characters. Nonterminal symbols are shown in italic type. The definition of a nonterminal is introduced by the name of the nonterminal being defined, followed by a colon. One or more alternative definitions for the nonterminal then follow on succeeding lines.
 
 The syntax {x} on the right-hand side of a production denotes zero or more occurrences of x.
 
@@ -505,45 +510,56 @@ The phrase (one of) on the right-hand side of a production signifies that each o
 
 4.3.2. Field Descriptors
 
-A field descriptor represents the type of a class, instance, or local variable.
+A field descriptor represents the type of a field, parameter, local variable, or value.
 
 FieldDescriptor:
 FieldType
 FieldType:
 BaseType
-ObjectType
+ClassType
 ArrayType
 BaseType:
 (one of)
 B C D F I J S Z
-ObjectType:
+ClassType:
 L ClassName ;
 ArrayType:
 [ ComponentType
 ComponentType:
 FieldType
 
-The characters of BaseType, the L and ; of ObjectType, and the [ of ArrayType are all ASCII characters.
-
 ClassName represents a binary class or interface name encoded in internal form (§4.2.1).
 
-The interpretation of field descriptors as types is shown in Table 4.3-A.
+A field descriptor mentions a class or interface name if the name appears as a ClassName in the descriptor. This includes a ClassName nested in the ComponentType of an ArrayType.
+
+The interpretation of field descriptors as types is shown in Table 4.3-A. See §2.2, §2.3, and §2.4 for the meaning of these types.
 
 A field descriptor representing an array type is valid only if it represents a type with 255 or fewer dimensions.
 
 Table 4.3-A. Interpretation of field descriptors
 
-FieldType term	Type	Interpretation
-B	byte	signed byte
-C	char	Unicode character code point in the Basic Multilingual Plane, encoded with UTF-16
-D	double	double-precision floating-point value
-F	float	single-precision floating-point value
-I	int	integer
-J	long	long integer
-L ClassName ;	reference	an instance of class ClassName
-S	short	signed short
-Z	boolean	true or false
-[	reference	one array dimension
+FieldType term	Type
+B	byte
+C	char
+D	double
+F	float
+I	int
+J	long
+L ClassName ;	
+
+Named class or interface type
+
+
+S	short
+Z	boolean
+
+
+[ ComponentType
+
+	
+
+Array of given component type
+
 
 
 
@@ -568,6 +584,8 @@ VoidDescriptor:
 V
 
 The character V indicates that the method returns no value (its result is void).
+
+A method descriptor mentions a class or interface name if the name appears as a ClassName in the FieldType of a parameter descriptor or return descriptor.
 
 The method descriptor for the method:
 
@@ -1058,7 +1076,7 @@ The bytes of multibyte characters are stored in the class file in big-endian (hi
 
 There are two differences between this format and the "standard" UTF-8 format. First, the null character (char)0 is encoded using the 2-byte format rather than the 1-byte format, so that modified UTF-8 strings never have embedded nulls. Second, only the 1-byte, 2-byte, and 3-byte formats of standard UTF-8 are used. The Java Virtual Machine does not recognize the four-byte format of standard UTF-8; it uses its own two-times-three-byte format instead.
 
-For more information regarding the standard UTF-8 format, see Section 3.9 Unicode Encoding Forms of The Unicode Standard, Version 15.0.
+For more information regarding the standard UTF-8 format, see Section 3.9 Unicode Encoding Forms of The Unicode Standard, Version 15.1.0.
 
 4.4.8. The CONSTANT_MethodHandle_info Structure
 
@@ -1681,7 +1699,7 @@ For instance, defining a new attribute to support vendor-specific debugging is p
 
 Java Virtual Machine implementations are specifically prohibited from throwing an exception or otherwise refusing to use class files simply because of the presence of some new attribute. Of course, tools operating on class files may not run correctly if given class files that do not contain all the attributes they require.
 
-Two attributes that are intended to be distinct, but that happen to use the same attribute name and are of the same length, will conflict on implementations that recognize either attribute. Attributes defined other than in this specification should have names chosen according to the package naming convention described in The Java Language Specification, Java SE 22 Edition (JLS §6.1).
+Two attributes that are intended to be distinct, but that happen to use the same attribute name and are of the same length, will conflict on implementations that recognize either attribute. Attributes defined other than in this specification should have names chosen according to the package naming convention described in The Java Language Specification, Java SE 23 Edition (JLS §6.1).
 
 Future versions of this specification may define additional attributes.
 
@@ -2290,7 +2308,7 @@ The value of the attribute_length item must be zero.
 
 4.7.9. The Signature Attribute
 
-The Signature attribute is a fixed-length attribute in the attributes table of a ClassFile, field_info, method_info, or record_component_info structure (§4.1, §4.5, §4.6, §4.7.30). A Signature attribute stores a signature (§4.7.9.1) for a class, interface, constructor, method, field, or record component whose declaration in the Java programming language uses type variables or parameterized types. See The Java Language Specification, Java SE 22 Edition for details about these constructs.
+The Signature attribute is a fixed-length attribute in the attributes table of a ClassFile, field_info, method_info, or record_component_info structure (§4.1, §4.5, §4.6, §4.7.30). A Signature attribute stores a signature (§4.7.9.1) for a class, interface, constructor, method, field, or record component whose declaration in the Java programming language uses type variables or parameterized types. See The Java Language Specification, Java SE 23 Edition for details about these constructs.
 
 There may be at most one Signature attribute in the attributes table of a ClassFile, field_info, method_info, or record_component_info structure.
 
@@ -2504,7 +2522,7 @@ LineNumberTable_attribute {
     u4 attribute_length;
     u2 line_number_table_length;
     {   u2 start_pc;
-        u2 line_number;	
+        u2 line_number;
     } line_number_table[line_number_table_length];
 }
 
@@ -2827,7 +2845,7 @@ The class_info_index item denotes a class literal as the value of this element-v
 
 The class_info_index item must be a valid index into the constant_pool table. The constant_pool entry at that index must be a CONSTANT_Utf8_info structure (§4.4.7) representing a return descriptor (§4.3.3). The return descriptor gives the type corresponding to the class literal represented by this element_value structure. Types correspond to class literals as follows:
 
-For a class literal C.class, where C is the name of a class, interface, or array type, the corresponding type is C. The return descriptor in the constant_pool will be an ObjectType or an ArrayType.
+For a class literal C.class, where C is the name of a class, interface, or array type, the corresponding type is C. The return descriptor in the constant_pool will be a ClassType or an ArrayType.
 
 For a class literal p.class, where p is the name of a primitive type, the corresponding type is p. The return descriptor in the constant_pool will be a BaseType character.
 
@@ -4256,9 +4274,7 @@ The structural constraints on the code array specify constraints on relationship
 
 Each instruction must only be executed with the appropriate type and number of arguments in the operand stack and local variable array, regardless of the execution path that leads to its invocation.
 
-An instruction operating on values of type int is also permitted to operate on values of type boolean, byte, char, and short.
-
-As noted in §2.3.4 and §2.11.1, the Java Virtual Machine internally converts values of types boolean, byte, short, and char to type int.)
+As noted in §2.3.4 and §2.11.1, the Java Virtual Machine implicitly converts values of types boolean, byte, short, and char to type int, allowing instructions expecting values of type int to operate on them.
 
 If an instruction can be executed along several different execution paths, the operand stack must have the same depth (§2.6.2) prior to the execution of the instruction, regardless of the path taken.
 
@@ -4354,7 +4370,7 @@ If a ret instruction returns to a point in the subroutine call chain above the r
 
 Even though a compiler for the Java programming language must only produce class files that satisfy all the static and structural constraints in the previous sections, the Java Virtual Machine has no guarantee that any file it is asked to load was generated by that compiler or is properly formed. Applications such as web browsers do not download source code, which they then compile; these applications download already-compiled class files. The browser needs to determine whether the class file was produced by a trustworthy compiler or by an adversary attempting to exploit the Java Virtual Machine.
 
-An additional problem with compile-time checking is version skew. A user may have successfully compiled a class, say PurchaseStockOptions, to be a subclass of TradingClass. But the definition of TradingClass might have changed since the time the class was compiled in a way that is not compatible with pre-existing binaries. Methods might have been deleted or had their return types or modifiers changed. Fields might have changed types or changed from instance variables to class variables. The access modifiers of a method or variable may have changed from public to private. For a discussion of these issues, see Chapter 13, "Binary Compatibility," in The Java Language Specification, Java SE 22 Edition.
+An additional problem with compile-time checking is version skew. A user may have successfully compiled a class, say PurchaseStockOptions, to be a subclass of TradingClass. But the definition of TradingClass might have changed since the time the class was compiled in a way that is not compatible with pre-existing binaries. Methods might have been deleted or had their return types or modifiers changed. Fields might have changed types or changed from instance variables to class variables. The access modifiers of a method or variable may have changed from public to private. For a discussion of these issues, see Chapter 13, "Binary Compatibility," in The Java Language Specification, Java SE 23 Edition.
 
 Because of these potential problems, the Java Virtual Machine needs to verify for itself that the desired constraints are satisfied by the class files it attempts to incorporate. A Java Virtual Machine implementation verifies that each class file satisfies the necessary constraints at linking time (§5.4).
 
@@ -4405,21 +4421,21 @@ The type checker requires a list of stack map frames for each method with a Code
 A class is type safe if all its methods are type safe, and it does not subclass a final class.
 
 classIsTypeSafe(Class) :-
-    classClassName(Class, Name), 
+    classClassName(Class, Name),
     classDefiningLoader(Class, L),
     superclassChain(Name, L, Chain),
     Chain \= [],
     classSuperClassName(Class, SuperclassName),
     loadedClass(SuperclassName, L, Superclass),
-    classIsNotFinal(Superclass),	 
-    classMethods(Class, Methods), 
+    classIsNotFinal(Superclass),
+    classMethods(Class, Methods),
     checklist(methodIsTypeSafe(Class), Methods).
 
 classIsTypeSafe(Class) :-
     classClassName(Class, 'java/lang/Object'),
     classDefiningLoader(Class, L),
     isBootstrapLoader(L),
-    classMethods(Class, Methods), 
+    classMethods(Class, Methods),
     checklist(methodIsTypeSafe(Class), Methods).
 
 
@@ -4637,7 +4653,7 @@ Verification type hierarchy:
            uninitialized                    +------------------+
             /         \                     |  Java reference  |
            /           \                    |  type hierarchy  |
-uninitializedThis  uninitialized(Offset)    +------------------+  
+uninitializedThis  uninitialized(Offset)    +------------------+
                                                      |
                                                      |
                                                     null
@@ -5061,7 +5077,7 @@ finalMethodNotOverridden(Method, Superclass, SuperMethodList) :-
     methodDescriptor(Method, Descriptor),
     member(method(_, Name, Descriptor), SuperMethodList),
     isFinal(Method, Superclass),
-    isStatic(Method, Superclass). 
+    isStatic(Method, Superclass).
 
 
 If a non-final private method or a non-final static method is found, skip over it because it is orthogonal to overriding.
@@ -5150,7 +5166,7 @@ handlerIsLegal(Environment, Handler) :-
     offsetStackFrame(Environment, Target, _),
     instructionsIncludeEnd(Instructions, End),
     currentClassLoader(Environment, CurrentLoader),
-    handlerExceptionClass(Handler, ExceptionClass, CurrentLoader), 
+    handlerExceptionClass(Handler, ExceptionClass, CurrentLoader),
     isBootstrapLoader(BL),
     isAssignable(ExceptionClass, class('java/lang/Throwable', BL)).
 
@@ -5253,13 +5269,13 @@ methodInitialThisType(Class, Method, [This]) :-
     instanceMethodInitialThisType(Class, Method, This).
 
 instanceMethodInitialThisType(Class, Method, class('java/lang/Object', L)) :-
-    methodName(Method, '<init>'), 
+    methodName(Method, '<init>'),
     classDefiningLoader(Class, L),
     isBootstrapLoader(L),
     classClassName(Class, 'java/lang/Object').
 
 instanceMethodInitialThisType(Class, Method, uninitializedThis) :-
-    methodName(Method, '<init>'), 
+    methodName(Method, '<init>'),
     classClassName(Class, ClassName),
     classDefiningLoader(Class, CurrentLoader),
     superclassChain(ClassName, CurrentLoader, Chain),
@@ -5344,7 +5360,7 @@ An instruction satisfies an exception handler if the instructions's outgoing typ
 instructionSatisfiesHandler(Environment, ExcStackFrame, Handler) :-
     Handler = handler(_, _, Target, _),
     currentClassLoader(Environment, CurrentLoader),
-    handlerExceptionClass(Handler, ExceptionClass, CurrentLoader), 
+    handlerExceptionClass(Handler, ExceptionClass, CurrentLoader),
     /* The stack consists of just the exception. */
     ExcStackFrame = frame(Locals, _, Flags),
     TrueExcStackFrame = frame(Locals, [ ExceptionClass ], Flags),
@@ -5391,7 +5407,7 @@ If I < Index-1, just copy the input to the output and recurse forward. If I = In
 modifyLocalVariable(I, Index, Type,
                     [Locals1 | LocalsRest],
                     [Locals1 | NextLocalsRest] ) :-
-    I < Index - 1, 
+    I < Index - 1,
     I1 is I + 1,
     modifyLocalVariable(I1, Index, Type, LocalsRest, NextLocalsRest).
 
@@ -5570,7 +5586,7 @@ aaload
 An aaload instruction is type safe iff one can validly replace types matching int and an array type with component type ComponentType where ComponentType is a subtype of Object, with ComponentType yielding the outgoing type state.
 
 instructionIsTypeSafe(aaload, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     nth1OperandStackIs(2, StackFrame, ArrayType),
     arrayComponentType(ArrayType, ComponentType),
     isBootstrapLoader(BL),
@@ -5590,7 +5606,7 @@ aastore
 An aastore instruction is type safe iff one can validly pop types matching Object, int, and an array of Object off the incoming operand stack yielding the outgoing type state.
 
 instructionIsTypeSafe(aastore, _Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     isBootstrapLoader(BL),
     canPop(StackFrame,
            [class('java/lang/Object', BL),
@@ -5604,7 +5620,7 @@ aconst_null
 An aconst_null instruction is type safe if one can validly push the type null onto the incoming operand stack yielding the outgoing type state.
 
 instructionIsTypeSafe(aconst_null, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     validTypeTransition(Environment, [], null, StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
 
@@ -5613,7 +5629,7 @@ aload, aload_<n>
 An aload instruction with operand Index is type safe and yields an outgoing type state NextStackFrame, if a load instruction with operand Index and type reference is type safe and yields an outgoing type state NextStackFrame.
 
 instructionIsTypeSafe(aload(Index), Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     loadIsTypeSafe(Environment, Index, reference, StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
 
@@ -5630,7 +5646,7 @@ anewarray
 An anewarray instruction with operand CP is type safe iff CP refers to a constant pool entry denoting a class, interface, or array type, and one can legally replace a type matching int on the incoming operand stack with an array with component type CP yielding the outgoing type state.
 
 instructionIsTypeSafe(anewarray(CP), Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     (CP = class(_, _) ; CP = arrayOf(_)),
     validTypeTransition(Environment, [int], arrayOf(CP),
                         StackFrame, NextStackFrame),
@@ -5641,7 +5657,7 @@ areturn
 An areturn instruction is type safe iff the enclosing method has a declared return type, ReturnType, that is a reference type, and one can validly pop a type matching ReturnType off the incoming operand stack.
 
 instructionIsTypeSafe(areturn, Environment, _Offset, StackFrame,
-                      afterGoto, ExceptionStackFrame) :- 
+                      afterGoto, ExceptionStackFrame) :-
     thisMethodReturnType(Environment, ReturnType),
     isAssignable(ReturnType, reference),
     canPop(StackFrame, [ReturnType], _PoppedStackFrame),
@@ -5652,7 +5668,7 @@ arraylength
 An arraylength instruction is type safe iff one can validly replace an array type on the incoming operand stack with the type int yielding the outgoing type state.
 
 instructionIsTypeSafe(arraylength, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     nth1OperandStackIs(1, StackFrame, ArrayType),
     arrayComponentType(ArrayType, _),
     validTypeTransition(Environment, [top], int, StackFrame, NextStackFrame),
@@ -5663,7 +5679,7 @@ astore, astore_<n>
 An astore instruction with operand Index is type safe and yields an outgoing type state NextStackFrame, if a store instruction with operand Index and type reference is type safe and yields an outgoing type state NextStackFrame.
 
 instructionIsTypeSafe(astore(Index), Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     storeIsTypeSafe(Environment, Index, reference, StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
 
@@ -5680,7 +5696,7 @@ athrow
 An athrow instruction is type safe iff the top of the operand stack matches Throwable.
 
 instructionIsTypeSafe(athrow, _Environment, _Offset, StackFrame,
-                      afterGoto, ExceptionStackFrame) :- 
+                      afterGoto, ExceptionStackFrame) :-
     isBootstrapLoader(BL),
     canPop(StackFrame, [class('java/lang/Throwable', BL)], _PoppedStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
@@ -5709,7 +5725,7 @@ bastore
 A bastore instruction is type safe iff one can validly pop types matching int, int and a small array type off the incoming operand stack yielding the outgoing type state.
 
 instructionIsTypeSafe(bastore, _Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     nth1OperandStackIs(3, StackFrame, ArrayType),
     isSmallArray(ArrayType),
     canPop(StackFrame, [int, int, top], NextStackFrame),
@@ -5726,7 +5742,7 @@ caload
 A caload instruction is type safe iff one can validly replace types matching int and array of char on the incoming operand stack with int yielding the outgoing type state.
 
 instructionIsTypeSafe(caload, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     validTypeTransition(Environment, [int, arrayOf(char)], int,
                         StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
@@ -5736,7 +5752,7 @@ castore
 A castore instruction is type safe iff one can validly pop types matching int, int and array of char off the incoming operand stack yielding the outgoing type state.
 
 instructionIsTypeSafe(castore, _Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     canPop(StackFrame, [int, int, arrayOf(char)], NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
 
@@ -5745,7 +5761,7 @@ checkcast
 A checkcast instruction with operand CP is type safe iff CP refers to a constant pool entry denoting either a class or an array, and one can validly replace the type Object on top of the incoming operand stack with the type denoted by CP yielding the outgoing type state.
 
 instructionIsTypeSafe(checkcast(CP), Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     (CP = class(_, _) ; CP = arrayOf(_)),
     isBootstrapLoader(BL),
     validTypeTransition(Environment, [class('java/lang/Object', BL)], CP,
@@ -5757,7 +5773,7 @@ d2f, d2i, d2l
 A d2f instruction is type safe if one can validly pop double off the incoming operand stack and replace it with float, yielding the outgoing type state.
 
 instructionIsTypeSafe(d2f, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     validTypeTransition(Environment, [double], float,
                         StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
@@ -5766,7 +5782,7 @@ instructionIsTypeSafe(d2f, Environment, _Offset, StackFrame,
 A d2i instruction is type safe if one can validly pop double off the incoming operand stack and replace it with int, yielding the outgoing type state.
 
 instructionIsTypeSafe(d2i, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     validTypeTransition(Environment, [double], int,
                         StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
@@ -5775,7 +5791,7 @@ instructionIsTypeSafe(d2i, Environment, _Offset, StackFrame,
 A d2l instruction is type safe if one can validly pop double off the incoming operand stack and replace it with long, yielding the outgoing type state.
 
 instructionIsTypeSafe(d2l, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     validTypeTransition(Environment, [double], long,
                         StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
@@ -5795,7 +5811,7 @@ daload
 A daload instruction is type safe iff one can validly replace types matching int and array of double on the incoming operand stack with double yielding the outgoing type state.
 
 instructionIsTypeSafe(daload, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     validTypeTransition(Environment, [int, arrayOf(double)], double,
                         StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
@@ -5805,7 +5821,7 @@ dastore
 A dastore instruction is type safe iff one can validly pop types matching double, int and array of double off the incoming operand stack yielding the outgoing type state.
 
 instructionIsTypeSafe(dastore, _Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     canPop(StackFrame, [double, int, arrayOf(double)], NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
 
@@ -5814,7 +5830,7 @@ dcmp<op>
 A dcmpg instruction is type safe iff one can validly replace types matching double and double on the incoming operand stack with int yielding the outgoing type state.
 
 instructionIsTypeSafe(dcmpg, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     validTypeTransition(Environment, [double, double], int,
                         StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
@@ -5829,7 +5845,7 @@ dconst_<d>
 A dconst_0 instruction is type safe if one can validly push the type double onto the incoming operand stack yielding the outgoing type state.
 
 instructionIsTypeSafe(dconst_0, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     validTypeTransition(Environment, [], double, StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
 
@@ -5849,7 +5865,7 @@ dload, dload_<n>
 A dload instruction with operand Index is type safe and yields an outgoing type state NextStackFrame, if a load instruction with operand Index and type double is type safe and yields an outgoing type state NextStackFrame.
 
 instructionIsTypeSafe(dload(Index), Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     loadIsTypeSafe(Environment, Index, double, StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
 
@@ -5872,7 +5888,7 @@ dneg
 A dneg instruction is type safe iff there is a type matching double on the incoming operand stack. The dneg instruction does not alter the type state.
 
 instructionIsTypeSafe(dneg, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     validTypeTransition(Environment, [double], double,
                         StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
@@ -5888,7 +5904,7 @@ dreturn
 A dreturn instruction is type safe if the enclosing method has a declared return type of double, and one can validly pop a type matching double off the incoming operand stack.
 
 instructionIsTypeSafe(dreturn, Environment, _Offset, StackFrame,
-                      afterGoto, ExceptionStackFrame) :- 
+                      afterGoto, ExceptionStackFrame) :-
     thisMethodReturnType(Environment, double),
     canPop(StackFrame, [double], _PoppedStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
@@ -5898,7 +5914,7 @@ dstore, dstore_<n>
 A dstore instruction with operand Index is type safe and yields an outgoing type state NextStackFrame, if a store instruction with operand Index and type double is type safe and yields an outgoing type state NextStackFrame.
 
 instructionIsTypeSafe(dstore(Index), Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     storeIsTypeSafe(Environment, Index, double, StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
 
@@ -5933,7 +5949,7 @@ dup_x1
 A dup_x1 instruction is type safe iff one can validly replace two category 1 types, Type1, and Type2, on the incoming operand stack with the types Type1, Type2, Type1, yielding the outgoing type state.
 
 instructionIsTypeSafe(dup_x1, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     StackFrame = frame(Locals, InputOperandStack, Flags),
     popCategory1(InputOperandStack, Type1, Stack1),
     popCategory1(Stack1, Type2, Rest),
@@ -5947,7 +5963,7 @@ dup_x2
 A dup_x2 instruction is type safe iff it is a type safe form of the dup_x2 instruction.
 
 instructionIsTypeSafe(dup_x2, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     StackFrame = frame(Locals, InputOperandStack, Flags),
     dup_x2FormIsTypeSafe(Environment, InputOperandStack, OutputOperandStack),
     NextStackFrame = frame(Locals, OutputOperandStack, Flags),
@@ -6022,7 +6038,7 @@ dup2_x1
 A dup2_x1 instruction is type safe iff it is a type safe form of the dup2_x1 instruction.
 
 instructionIsTypeSafe(dup2_x1, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     StackFrame = frame(Locals, InputOperandStack, Flags),
     dup2_x1FormIsTypeSafe(Environment, InputOperandStack, OutputOperandStack),
     NextStackFrame = frame(Locals, OutputOperandStack, Flags),
@@ -6061,7 +6077,7 @@ dup2_x2
 A dup2_x2 instruction is type safe iff it is a type safe form of the dup2_x2 instruction.
 
 instructionIsTypeSafe(dup2_x2, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     StackFrame = frame(Locals, InputOperandStack, Flags),
     dup2_x2FormIsTypeSafe(Environment, InputOperandStack, OutputOperandStack),
     NextStackFrame = frame(Locals, OutputOperandStack, Flags),
@@ -6138,7 +6154,7 @@ f2d, f2i, f2l
 An f2d instruction is type safe if one can validly pop float off the incoming operand stack and replace it with double, yielding the outgoing type state.
 
 instructionIsTypeSafe(f2d, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     validTypeTransition(Environment, [float], double,
                         StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
@@ -6147,7 +6163,7 @@ instructionIsTypeSafe(f2d, Environment, _Offset, StackFrame,
 An f2i instruction is type safe if one can validly pop float off the incoming operand stack and replace it with int, yielding the outgoing type state.
 
 instructionIsTypeSafe(f2i, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     validTypeTransition(Environment, [float], int,
                         StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
@@ -6156,7 +6172,7 @@ instructionIsTypeSafe(f2i, Environment, _Offset, StackFrame,
 An f2l instruction is type safe if one can validly pop float off the incoming operand stack and replace it with long, yielding the outgoing type state.
 
 instructionIsTypeSafe(f2l, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     validTypeTransition(Environment, [float], long,
                         StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
@@ -6166,7 +6182,7 @@ fadd
 An fadd instruction is type safe iff one can validly replace types matching float and float on the incoming operand stack with float yielding the outgoing type state.
 
 instructionIsTypeSafe(fadd, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     validTypeTransition(Environment, [float, float], float,
                         StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
@@ -6176,7 +6192,7 @@ faload
 An faload instruction is type safe iff one can validly replace types matching int and array of float on the incoming operand stack with float yielding the outgoing type state.
 
 instructionIsTypeSafe(faload, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     validTypeTransition(Environment, [int, arrayOf(float)], float,
                         StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
@@ -6186,7 +6202,7 @@ fastore
 An fastore instruction is type safe iff one can validly pop types matching float, int and array of float off the incoming operand stack yielding the outgoing type state.
 
 instructionIsTypeSafe(fastore, _Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     canPop(StackFrame, [float, int, arrayOf(float)], NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
 
@@ -6195,7 +6211,7 @@ fcmp<op>
 An fcmpg instruction is type safe iff one can validly replace types matching float and float on the incoming operand stack with int yielding the outgoing type state.
 
 instructionIsTypeSafe(fcmpg, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     validTypeTransition(Environment, [float, float], int,
                         StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
@@ -6210,7 +6226,7 @@ fconst_<f>
 An fconst_0 instruction is type safe if one can validly push the type float onto the incoming operand stack yielding the outgoing type state.
 
 instructionIsTypeSafe(fconst_0, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     validTypeTransition(Environment, [], float, StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
 
@@ -6231,7 +6247,7 @@ fload, fload_<n>
 An fload instruction with operand Index is type safe and yields an outgoing type state NextStackFrame, if a load instruction with operand Index and type float is type safe and yields an outgoing type state NextStackFrame.
 
 instructionIsTypeSafe(fload(Index), Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     loadIsTypeSafe(Environment, Index, float, StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
 
@@ -6254,7 +6270,7 @@ fneg
 An fneg instruction is type safe iff there is a type matching float on the incoming operand stack. The fneg instruction does not alter the type state.
 
 instructionIsTypeSafe(fneg, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     validTypeTransition(Environment, [float], float,
                         StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
@@ -6270,7 +6286,7 @@ freturn
 An freturn instruction is type safe if the enclosing method has a declared return type of float, and one can validly pop a type matching float off the incoming operand stack.
 
 instructionIsTypeSafe(freturn, Environment, _Offset, StackFrame,
-                      afterGoto, ExceptionStackFrame) :- 
+                      afterGoto, ExceptionStackFrame) :-
     thisMethodReturnType(Environment, float),
     canPop(StackFrame, [float], _PoppedStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
@@ -6280,7 +6296,7 @@ fstore, fstore_<n>
 An fstore instruction with operand Index is type safe and yields an outgoing type state NextStackFrame, if a store instruction with operand Index and type float is type safe and yields an outgoing type state NextStackFrame.
 
 instructionIsTypeSafe(fstore(Index), Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     storeIsTypeSafe(Environment, Index, float, StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
 
@@ -6303,7 +6319,7 @@ getfield
 A getfield instruction with operand CP is type safe iff CP refers to a constant pool entry denoting a field whose declared type is FieldType that is a member of a class FieldClassName, and one can validly replace a type matching FieldClassName with type FieldType on the incoming operand stack yielding the outgoing type state. FieldClassName must not be an array type. protected fields are subject to additional checks (§4.10.1.8).
 
 instructionIsTypeSafe(getfield(CP), Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     CP = field(FieldClassName, FieldName, FieldDescriptor),
     parseFieldDescriptor(FieldDescriptor, FieldType),
     passesProtectedCheck(Environment, FieldClassName, FieldName,
@@ -6319,7 +6335,7 @@ getstatic
 A getstatic instruction with operand CP is type safe iff CP refers to a constant pool entry denoting a field whose declared type is FieldType, and one can validly push FieldType on the incoming operand stack yielding the outgoing type state.
 
 instructionIsTypeSafe(getstatic(CP), Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     CP = field(_FieldClassName, _FieldName, FieldDescriptor),
     parseFieldDescriptor(FieldDescriptor, FieldType),
     validTypeTransition(Environment, [], FieldType,
@@ -6355,7 +6371,7 @@ instructionHasEquivalentTypeRule(i2c, ineg).
 An i2d instruction is type safe if one can validly pop int off the incoming operand stack and replace it with double, yielding the outgoing type state.
 
 instructionIsTypeSafe(i2d, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     validTypeTransition(Environment, [int], double,
                         StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
@@ -6364,7 +6380,7 @@ instructionIsTypeSafe(i2d, Environment, _Offset, StackFrame,
 An i2f instruction is type safe if one can validly pop int off the incoming operand stack and replace it with float, yielding the outgoing type state.
 
 instructionIsTypeSafe(i2f, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     validTypeTransition(Environment, [int], float,
                         StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
@@ -6373,7 +6389,7 @@ instructionIsTypeSafe(i2f, Environment, _Offset, StackFrame,
 An i2l instruction is type safe if one can validly pop int off the incoming operand stack and replace it with long, yielding the outgoing type state.
 
 instructionIsTypeSafe(i2l, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     validTypeTransition(Environment, [int], long,
                         StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
@@ -6388,7 +6404,7 @@ iadd
 An iadd instruction is type safe iff one can validly replace types matching int and int on the incoming operand stack with int yielding the outgoing type state.
 
 instructionIsTypeSafe(iadd, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     validTypeTransition(Environment, [int, int], int,
                         StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
@@ -6398,7 +6414,7 @@ iaload
 An iaload instruction is type safe iff one can validly replace types matching int and array of int on the incoming operand stack with int yielding the outgoing type state.
 
 instructionIsTypeSafe(iaload, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     validTypeTransition(Environment, [int, arrayOf(int)], int,
                         StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
@@ -6414,7 +6430,7 @@ iastore
 An iastore instruction is type safe iff one can validly pop types matching int, int and array of int off the incoming operand stack yielding the outgoing type state.
 
 instructionIsTypeSafe(iastore, _Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     canPop(StackFrame, [int, int, arrayOf(int)], NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
 
@@ -6423,7 +6439,7 @@ iconst_<i>
 An iconst_m1 instruction is type safe if one can validly push the type int onto the incoming operand stack yielding the outgoing type state.
 
 instructionIsTypeSafe(iconst_m1, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     validTypeTransition(Environment, [], int, StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
 
@@ -6448,7 +6464,7 @@ if_acmp<cond>
 An if_acmpeq instruction is type safe iff one can validly pop types matching reference and reference on the incoming operand stack yielding the outgoing type state NextStackFrame, and the operand of the instruction, Target, is a valid branch target assuming an incoming type state of NextStackFrame.
 
 instructionIsTypeSafe(if_acmpeq(Target), Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     canPop(StackFrame, [reference, reference], NextStackFrame),
     targetIsTypeSafe(Environment, NextStackFrame, Target),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
@@ -6463,7 +6479,7 @@ if_icmp<cond>
 An if_icmpeq instruction is type safe iff one can validly pop types matching int and int on the incoming operand stack yielding the outgoing type state NextStackFrame, and the operand of the instruction, Target, is a valid branch target assuming an incoming type state of NextStackFrame.
 
 instructionIsTypeSafe(if_icmpeq(Target), Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     canPop(StackFrame, [int, int], NextStackFrame),
     targetIsTypeSafe(Environment, NextStackFrame, Target),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
@@ -6483,7 +6499,7 @@ An ifeq instruction is type safe iff one can validly pop a type matching int off
 
 instructionIsTypeSafe(ifeq(Target), Environment, _Offset, StackFrame,
                       NextStackFrame, ExceptionStackFrame) :-
-    canPop(StackFrame, [int], NextStackFrame), 
+    canPop(StackFrame, [int], NextStackFrame),
     targetIsTypeSafe(Environment, NextStackFrame, Target),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
 
@@ -6501,7 +6517,7 @@ ifnonnull, ifnull
 An ifnonnull instruction is type safe iff one can validly pop a type matching reference off the incoming operand stack yielding the outgoing type state NextStackFrame, and the operand of the instruction, Target, is a valid branch target assuming an incoming type state of NextStackFrame.
 
 instructionIsTypeSafe(ifnonnull(Target), Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     canPop(StackFrame, [reference], NextStackFrame),
     targetIsTypeSafe(Environment, NextStackFrame, Target),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
@@ -6526,7 +6542,7 @@ iload, iload_<n>
 An iload instruction with operand Index is type safe and yields an outgoing type state NextStackFrame, if a load instruction with operand Index and type int is type safe and yields an outgoing type state NextStackFrame.
 
 instructionIsTypeSafe(iload(Index), Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     loadIsTypeSafe(Environment, Index, int, StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
 
@@ -6549,7 +6565,7 @@ ineg
 An ineg instruction is type safe iff there is a type matching int on the incoming operand stack. The ineg instruction does not alter the type state.
 
 instructionIsTypeSafe(ineg, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     validTypeTransition(Environment, [int], int, StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
 
@@ -6558,7 +6574,7 @@ instanceof
 An instanceof instruction with operand CP is type safe iff CP refers to a constant pool entry denoting either a class or an array, and one can validly replace the type Object on top of the incoming operand stack with type int yielding the outgoing type state.
 
 instructionIsTypeSafe(instanceof(CP), Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     (CP = class(_, _) ; CP = arrayOf(_)),
     isBootstrapLoader(BL),
     validTypeTransition(Environment, [class('java/lang/Object', BL)], int,
@@ -6578,7 +6594,7 @@ CallSiteName is not <clinit>.
 One can validly replace types matching the argument types given in Descriptor on the incoming operand stack with the return type given in Descriptor, yielding the outgoing type state.
 
 instructionIsTypeSafe(invokedynamic(CP,0,0), Environment, _Offset,
-                      StackFrame, NextStackFrame, ExceptionStackFrame) :- 
+                      StackFrame, NextStackFrame, ExceptionStackFrame) :-
     CP = dmethod(CallSiteName, Descriptor),
     CallSiteName \= '<init>',
     CallSiteName \= '<clinit>',
@@ -6603,7 +6619,7 @@ Its second operand, Count, is a valid count operand (see below).
 One can validly replace types matching the type MethodIntfName and the argument types given in Descriptor on the incoming operand stack with the return type given in Descriptor, yielding the outgoing type state.
 
 instructionIsTypeSafe(invokeinterface(CP, Count, 0), Environment, _Offset,
-                      StackFrame, NextStackFrame, ExceptionStackFrame) :- 
+                      StackFrame, NextStackFrame, ExceptionStackFrame) :-
     CP = imethod(MethodIntfName, MethodName, Descriptor),
     MethodName \= '<init>',
     MethodName \= '<clinit>',
@@ -6644,12 +6660,12 @@ One can validly replace types matching the current class and the argument types 
 One can validly replace types matching the class MethodClassName and the argument types given in Descriptor on the incoming operand stack with the return type given in Descriptor.
 
 instructionIsTypeSafe(invokespecial(CP), Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     CP = method(MethodClassName, MethodName, Descriptor),
     MethodName \= '<init>',
     MethodName \= '<clinit>',
     parseMethodDescriptor(Descriptor, OperandArgList, ReturnType),
-    thisClass(Environment, class(CurrentClassName, CurrentLoader)), 
+    thisClass(Environment, class(CurrentClassName, CurrentLoader)),
     isAssignable(class(CurrentClassName, CurrentLoader),
                  class(MethodClassName,  CurrentLoader)),
     reverse([class(CurrentClassName, CurrentLoader) | OperandArgList],
@@ -6688,13 +6704,13 @@ If the instruction calls an instance initialization method on a class instance c
 instructionIsTypeSafe(invokespecial(CP), Environment, _Offset, StackFrame,
                       NextStackFrame, ExceptionStackFrame) :-
     CP = method(MethodClassName, '<init>', Descriptor),
-    parseMethodDescriptor(Descriptor, OperandArgList, void), 
+    parseMethodDescriptor(Descriptor, OperandArgList, void),
     reverse(OperandArgList, StackArgList),
     canPop(StackFrame, StackArgList, TempFrame),
     TempFrame = frame(Locals, [uninitializedThis | OperandStack], Flags),
     currentClassLoader(Environment, CurrentLoader),
     rewrittenUninitializedType(uninitializedThis, Environment,
-                               class(MethodClassName, CurrentLoader), This), 
+                               class(MethodClassName, CurrentLoader), This),
     rewrittenInitializationFlags(uninitializedThis, Flags, NextFlags),
     substitute(uninitializedThis, This, OperandStack, NextOperandStack),
     substitute(uninitializedThis, This, Locals, NextLocals),
@@ -6706,13 +6722,13 @@ instructionIsTypeSafe(invokespecial(CP), Environment, _Offset, StackFrame,
 instructionIsTypeSafe(invokespecial(CP), Environment, _Offset, StackFrame,
                       NextStackFrame, ExceptionStackFrame) :-
     CP = method(MethodClassName, '<init>', Descriptor),
-    parseMethodDescriptor(Descriptor, OperandArgList, void), 
+    parseMethodDescriptor(Descriptor, OperandArgList, void),
     reverse(OperandArgList, StackArgList),
     canPop(StackFrame, StackArgList, TempFrame),
     TempFrame = frame(Locals, [uninitialized(Address) | OperandStack], Flags),
     currentClassLoader(Environment, CurrentLoader),
     rewrittenUninitializedType(uninitialized(Address), Environment,
-                               class(MethodClassName, CurrentLoader), This), 
+                               class(MethodClassName, CurrentLoader), This),
     rewrittenInitializationFlags(uninitialized(Address), Flags, NextFlags),
     substitute(uninitialized(Address), This, OperandStack, NextOperandStack),
     substitute(uninitialized(Address), This, Locals, NextLocals),
@@ -6732,7 +6748,7 @@ The second case arises from initialization of an object created by new. The unin
 rewrittenUninitializedType(uninitializedThis, Environment,
                            MethodClass, MethodClass) :-
     MethodClass = class(MethodClassName, CurrentLoader),
-    thisClass(Environment, MethodClass). 
+    thisClass(Environment, MethodClass).
 
 rewrittenUninitializedType(uninitializedThis, Environment,
                            MethodClass, MethodClass) :-
@@ -6775,11 +6791,11 @@ MethodName is not <clinit>.
 One can validly replace types matching the argument types given in Descriptor on the incoming operand stack with the return type given in Descriptor, yielding the outgoing type state.
 
 instructionIsTypeSafe(invokestatic(CP), Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     CP = method(_MethodClassName, MethodName, Descriptor),
     MethodName \= '<init>',
     MethodName \= '<clinit>',
-    parseMethodDescriptor(Descriptor, OperandArgList, ReturnType), 
+    parseMethodDescriptor(Descriptor, OperandArgList, ReturnType),
     reverse(OperandArgList, StackArgList),
     validTypeTransition(Environment, StackArgList, ReturnType,
                         StackFrame, NextStackFrame),
@@ -6800,11 +6816,11 @@ One can validly replace types matching the class MethodClassName and the argumen
 If the method is protected, the usage conforms to the special rules governing access to protected members (§4.10.1.8).
 
 instructionIsTypeSafe(invokevirtual(CP), Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     CP = method(MethodClassName, MethodName, Descriptor),
     MethodName \= '<init>',
     MethodName \= '<clinit>',
-    parseMethodDescriptor(Descriptor, OperandArgList, ReturnType), 
+    parseMethodDescriptor(Descriptor, OperandArgList, ReturnType),
     reverse(OperandArgList, ArgList),
     currentClassLoader(Environment, CurrentLoader),
     reverse([class(MethodClassName, CurrentLoader) | OperandArgList],
@@ -6832,7 +6848,7 @@ ireturn
 An ireturn instruction is type safe if the enclosing method has a declared return type of int, and one can validly pop a type matching int off the incoming operand stack.
 
 instructionIsTypeSafe(ireturn, Environment, _Offset, StackFrame,
-                      afterGoto, ExceptionStackFrame) :- 
+                      afterGoto, ExceptionStackFrame) :-
     thisMethodReturnType(Environment, int),
     canPop(StackFrame, [int], _PoppedStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
@@ -6858,7 +6874,7 @@ istore, istore_<n>
 An istore instruction with operand Index is type safe and yields an outgoing type state NextStackFrame, if a store instruction with operand Index and type int is type safe and yields an outgoing type state NextStackFrame.
 
 instructionIsTypeSafe(istore(Index), Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     storeIsTypeSafe(Environment, Index, int, StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
 
@@ -6886,7 +6902,7 @@ l2d, l2f, l2i
 An l2d instruction is type safe if one can validly pop long off the incoming operand stack and replace it with double, yielding the outgoing type state.
 
 instructionIsTypeSafe(l2d, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     validTypeTransition(Environment, [long], double,
                         StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
@@ -6895,7 +6911,7 @@ instructionIsTypeSafe(l2d, Environment, _Offset, StackFrame,
 An l2f instruction is type safe if one can validly pop long off the incoming operand stack and replace it with float, yielding the outgoing type state.
 
 instructionIsTypeSafe(l2f, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     validTypeTransition(Environment, [long], float,
                         StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
@@ -6904,7 +6920,7 @@ instructionIsTypeSafe(l2f, Environment, _Offset, StackFrame,
 An l2i instruction is type safe if one can validly pop long off the incoming operand stack and replace it with int, yielding the outgoing type state.
 
 instructionIsTypeSafe(l2i, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     validTypeTransition(Environment, [long], int,
                         StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
@@ -6914,7 +6930,7 @@ ladd
 An ladd instruction is type safe iff one can validly replace types matching long and long on the incoming operand stack with long yielding the outgoing type state.
 
 instructionIsTypeSafe(ladd, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     validTypeTransition(Environment, [long, long], long,
                         StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
@@ -6924,7 +6940,7 @@ laload
 An laload instruction is type safe iff one can validly replace types matching int and array of long on the incoming operand stack with long yielding the outgoing type state.
 
 instructionIsTypeSafe(laload, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     validTypeTransition(Environment, [int, arrayOf(long)], long,
                         StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
@@ -6940,7 +6956,7 @@ lastore
 An lastore instruction is type safe iff one can validly pop types matching long, int and array of long off the incoming operand stack yielding the outgoing type state.
 
 instructionIsTypeSafe(lastore, _Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     canPop(StackFrame, [long, int, arrayOf(long)], NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
 
@@ -6949,7 +6965,7 @@ lcmp
 A lcmp instruction is type safe iff one can validly replace types matching long and long on the incoming operand stack with int yielding the outgoing type state.
 
 instructionIsTypeSafe(lcmp, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     validTypeTransition(Environment, [long, long], int,
                         StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
@@ -6959,7 +6975,7 @@ lconst_<l>
 An lconst_0 instruction is type safe if one can validly push the type long onto the incoming operand stack yielding the outgoing type state.
 
 instructionIsTypeSafe(lconst_0, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     validTypeTransition(Environment, [], long, StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
 
@@ -6973,7 +6989,7 @@ ldc, ldc_w, ldc2_w
 An ldc instruction with operand CP is type safe iff CP refers to a constant pool entry denoting an entity of type Type, where Type is loadable (§4.4), but not long or double, and one can validly push Type onto the incoming operand stack yielding the outgoing type state.
 
 instructionIsTypeSafe(ldc(CP), Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     loadableConstant(CP, Type),
     Type \= long,
     Type \= double,
@@ -7010,7 +7026,7 @@ instructionHasEquivalentTypeRule(ldc_w(CP), ldc(CP))
 An ldc2_w instruction with operand CP is type safe iff CP refers to a constant pool entry denoting an entity of type Type, where Type is either long or double, and one can validly push Type onto the incoming operand stack yielding the outgoing type state.
 
 instructionIsTypeSafe(ldc2_w(CP), Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     loadableConstant(CP, Type),
     (Type = long ; Type = double),
     validTypeTransition(Environment, [], Type, StackFrame, NextStackFrame),
@@ -7027,7 +7043,7 @@ lload, lload_<n>
 An lload instruction with operand Index is type safe and yields an outgoing type state NextStackFrame, if a load instruction with operand Index and type long is type safe and yields an outgoing type state NextStackFrame.
 
 instructionIsTypeSafe(lload(Index), Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     loadIsTypeSafe(Environment, Index, long, StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
 
@@ -7050,7 +7066,7 @@ lneg
 An lneg instruction is type safe iff there is a type matching long on the incoming operand stack. The lneg instruction does not alter the type state.
 
 instructionIsTypeSafe(lneg, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     validTypeTransition(Environment, [long], long,
                         StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
@@ -7059,7 +7075,7 @@ lookupswitch
 
 A lookupswitch instruction is type safe if its keys are sorted, one can validly pop int off the incoming operand stack yielding a new type state BranchStackFrame, and all of the instruction's targets are valid branch targets assuming BranchStackFrame as their incoming type state.
 
-instructionIsTypeSafe(lookupswitch(Targets, Keys), Environment, _, StackFrame, 
+instructionIsTypeSafe(lookupswitch(Targets, Keys), Environment, _, StackFrame,
                       afterGoto, ExceptionStackFrame) :-
     sort(Keys, Keys),
     canPop(StackFrame, [int], BranchStackFrame),
@@ -7082,7 +7098,7 @@ lreturn
 An lreturn instruction is type safe if the enclosing method has a declared return type of long, and one can validly pop a type matching long off the incoming operand stack.
 
 instructionIsTypeSafe(lreturn, Environment, _Offset, StackFrame,
-                      afterGoto, ExceptionStackFrame) :- 
+                      afterGoto, ExceptionStackFrame) :-
     thisMethodReturnType(Environment, long),
     canPop(StackFrame, [long], _PoppedStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
@@ -7092,7 +7108,7 @@ lshl, lshr, lushr
 An lshl instruction is type safe if one can validly replace the types int and long on the incoming operand stack with the type long yielding the outgoing type state.
 
 instructionIsTypeSafe(lshl, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     validTypeTransition(Environment, [int, long], long,
                         StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
@@ -7112,7 +7128,7 @@ lstore, lstore_<n>
 An lstore instruction with operand Index is type safe and yields an outgoing type state NextStackFrame, if a store instruction with operand Index and type long is type safe and yields an outgoing type state NextStackFrame.
 
 instructionIsTypeSafe(lstore(Index), Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     storeIsTypeSafe(Environment, Index, long, StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
 
@@ -7154,11 +7170,11 @@ multianewarray
 A multianewarray instruction with operands CP and Dim is type safe iff CP refers to a constant pool entry denoting an array type whose dimension is greater or equal to Dim, Dim is strictly positive, and one can validly replace Dim int types on the incoming operand stack with the type denoted by CP yielding the outgoing type state.
 
 instructionIsTypeSafe(multianewarray(CP, Dim), Environment, _Offset,
-                      StackFrame, NextStackFrame, ExceptionStackFrame) :- 
+                      StackFrame, NextStackFrame, ExceptionStackFrame) :-
     CP = arrayOf(_),
     classDimension(CP, Dimension),
     Dimension >= Dim,
-    Dim > 0, 
+    Dim > 0,
     /* Make a list of Dim ints */
     findall(int, between(1, Dim, _), IntList),
     validTypeTransition(Environment, IntList, CP,
@@ -7169,20 +7185,20 @@ instructionIsTypeSafe(multianewarray(CP, Dim), Environment, _Offset,
 The dimension of an array type whose component type is also an array type is one more than the dimension of its component type.
 
 classDimension(arrayOf(X), Dimension) :-
-    classDimension(X, Dimension1), 
-    Dimension is Dimension1 + 1.	
+    classDimension(X, Dimension1),
+    Dimension is Dimension1 + 1.
 
 classDimension(_, Dimension) :-
-    Dimension = 0. 
+    Dimension = 0.
 
 new
 
 A new instruction with operand CP at offset Offset is type safe iff CP refers to a constant pool entry denoting a class or interface type, the type uninitialized(Offset) does not appear in the incoming operand stack, and one can validly push uninitialized(Offset) onto the incoming operand stack and replace uninitialized(Offset) with top in the incoming local variables yielding the outgoing type state.
 
 instructionIsTypeSafe(new(CP), Environment, Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
-    StackFrame = frame(Locals, OperandStack, Flags), 
-    CP = class(_, _), 
+                      NextStackFrame, ExceptionStackFrame) :-
+    StackFrame = frame(Locals, OperandStack, Flags),
+    CP = class(_, _),
     NewItem = uninitialized(Offset),
     notMember(NewItem, OperandStack),
     substitute(NewItem, top, Locals, NewLocals),
@@ -7199,7 +7215,7 @@ newarray
 A newarray instruction with operand TypeCode is type safe iff TypeCode corresponds to the primitive type ElementType, and one can validly replace the type int on the incoming operand stack with the type 'array of ElementType', yielding the outgoing type state.
 
 instructionIsTypeSafe(newarray(TypeCode), Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     primitiveArrayInfo(TypeCode, _TypeChar, ElementType, _VerifierType),
     validTypeTransition(Environment, [int], arrayOf(ElementType),
                         StackFrame, NextStackFrame),
@@ -7214,7 +7230,7 @@ primitiveArrayInfo(6,  0'F, float,   float).
 primitiveArrayInfo(7,  0'D, double,  double).
 primitiveArrayInfo(8,  0'B, byte,    int).
 primitiveArrayInfo(9,  0'S, short,   int).
-primitiveArrayInfo(10, 0'I, int,     int). 
+primitiveArrayInfo(10, 0'I, int,     int).
 primitiveArrayInfo(11, 0'J, long,    long).
 
 nop
@@ -7230,7 +7246,7 @@ pop, pop2
 A pop instruction is type safe iff one can validly pop a category 1 type off the incoming operand stack yielding the outgoing type state.
 
 instructionIsTypeSafe(pop, _Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     StackFrame = frame(Locals, [Type | Rest], Flags),
     popCategory1([Type | Rest], Type, Rest),
     NextStackFrame = frame(Locals, Rest, Flags),
@@ -7240,7 +7256,7 @@ instructionIsTypeSafe(pop, _Environment, _Offset, StackFrame,
 A pop2 instruction is type safe iff it is a type safe form of the pop2 instruction.
 
 instructionIsTypeSafe(pop2, _Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     StackFrame = frame(Locals, InputOperandStack, Flags),
     pop2SomeFormIsTypeSafe(InputOperandStack, OutputOperandStack),
     NextStackFrame = frame(Locals, OutputOperandStack, Flags),
@@ -7281,9 +7297,9 @@ One can validly pop types matching FieldType and FieldClassName off the incoming
 protected fields are subject to additional checks (§4.10.1.8).
 
 instructionIsTypeSafe(putfield(CP), Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     CP = field(FieldClassName, FieldName, FieldDescriptor),
-    parseFieldDescriptor(FieldDescriptor, FieldType),	
+    parseFieldDescriptor(FieldDescriptor, FieldType),
     canPop(StackFrame, [FieldType], PoppedFrame),
     passesProtectedCheck(Environment, FieldClassName, FieldName,
                          FieldDescriptor, PoppedFrame),
@@ -7313,7 +7329,7 @@ putstatic
 A putstatic instruction with operand CP is type safe iff CP refers to a constant pool entry denoting a field whose declared type is FieldType, and one can validly pop a type matching FieldType off the incoming operand stack yielding the outgoing type state.
 
 instructionIsTypeSafe(putstatic(CP), _Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     CP = field(_FieldClassName, _FieldName, FieldDescriptor),
     parseFieldDescriptor(FieldDescriptor, FieldType),
     canPop(StackFrame, [FieldType], NextStackFrame),
@@ -7328,7 +7344,7 @@ The enclosing method is not an <init> method, or
 this has already been completely initialized at the point where the instruction occurs.
 
 instructionIsTypeSafe(return, Environment, _Offset, StackFrame,
-                      afterGoto, ExceptionStackFrame) :- 
+                      afterGoto, ExceptionStackFrame) :-
     thisMethodReturnType(Environment, void),
     StackFrame = frame(_Locals, _OperandStack, Flags),
     notMember(flagThisUninit, Flags),
@@ -7339,7 +7355,7 @@ saload
 An saload instruction is type safe iff one can validly replace types matching int and array of short on the incoming operand stack with int yielding the outgoing type state.
 
 instructionIsTypeSafe(saload, Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     validTypeTransition(Environment, [int, arrayOf(short)], int,
                         StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
@@ -7349,7 +7365,7 @@ sastore
 An sastore instruction is type safe iff one can validly pop types matching int, int, and array of short off the incoming operand stack yielding the outgoing type state.
 
 instructionIsTypeSafe(sastore, _Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     canPop(StackFrame, [int, int, arrayOf(short)], NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
 
@@ -7358,7 +7374,7 @@ sipush
 An sipush instruction is type safe iff one can validly push the type int onto the incoming operand stack yielding the outgoing type state.
 
 instructionIsTypeSafe(sipush(_Value), Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     validTypeTransition(Environment, [], int, StackFrame, NextStackFrame),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).
 
@@ -7367,7 +7383,7 @@ swap
 A swap instruction is type safe iff one can validly replace two category 1 types, Type1 and Type2, on the incoming operand stack with the types Type2 and Type1 yielding the outgoing type state.
 
 instructionIsTypeSafe(swap, _Environment, _Offset, StackFrame,
-                      NextStackFrame, ExceptionStackFrame) :- 
+                      NextStackFrame, ExceptionStackFrame) :-
     StackFrame = frame(_Locals, [Type1, Type2 | Rest], _Flags),
     popCategory1([Type1 | Rest], Type1, Rest),
     popCategory1([Type2 | Rest], Type2, Rest),
@@ -7379,8 +7395,8 @@ tableswitch
 A tableswitch instruction is type safe if its keys are sorted, one can validly pop int off the incoming operand stack yielding a new type state BranchStackFrame, and all of the instruction's targets are valid branch targets assuming BranchStackFrame as their incoming type state.
 
 instructionIsTypeSafe(tableswitch(Targets, Keys), Environment, _Offset,
-                      StackFrame, afterGoto, ExceptionStackFrame) :- 
-    sort(Keys, Keys), 
+                      StackFrame, afterGoto, ExceptionStackFrame) :-
+    sort(Keys, Keys),
     canPop(StackFrame, [int], BranchStackFrame),
     checklist(targetIsTypeSafe(Environment, BranchStackFrame), Targets),
     exceptionStackFrame(StackFrame, ExceptionStackFrame).

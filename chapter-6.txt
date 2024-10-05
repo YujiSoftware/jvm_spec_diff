@@ -164,7 +164,7 @@ A Java Virtual Machine instruction consists of an opcode specifying the operatio
 
 The description of each instruction is always given in the context of Java Virtual Machine code that satisfies the static and structural constraints of §4 (The class File Format). In the description of individual Java Virtual Machine instructions, we frequently state that some situation "must" or "must not" be the case: "The value2 must be of type int." The constraints of §4 (The class File Format) guarantee that all such expectations will in fact be met. If some constraint (a "must" or "must not") in an instruction description is not satisfied at run time, the behavior of the Java Virtual Machine is undefined.
 
-The Java Virtual Machine checks that Java Virtual Machine code satisfies the static and structural constraints at link time using a class file verifier (§4.10). Thus, the Java Virtual Machine will only attempt to execute code from valid class files. Performing verification at link time is attractive in that the checks are performed just once, substantially reducing the amount of work that must be done at run time. Other implementation strategies are possible, provided that they comply with The Java Language Specification, Java SE 22 Edition and The Java Virtual Machine Specification, Java SE 22 Edition.
+The Java Virtual Machine checks that Java Virtual Machine code satisfies the static and structural constraints at link time using a class file verifier (§4.10). Thus, the Java Virtual Machine will only attempt to execute code from valid class files. Performing verification at link time is attractive in that the checks are performed just once, substantially reducing the amount of work that must be done at run time. Other implementation strategies are possible, provided that they comply with The Java Language Specification, Java SE 23 Edition and The Java Virtual Machine Specification, Java SE 23 Edition.
 
 6.2. Reserved Opcodes
 
@@ -313,27 +313,9 @@ The arrayref must be of type reference and must refer to an array whose componen
 
 If value is null, then value is stored as the component of the array at index.
 
-Otherwise, value is non-null. If the type of value is assignment compatible with the type of the components of the array referenced by arrayref, then value is stored as the component of the array at index.
+Otherwise, value is non-null. If value is a value of the component type of the array referenced by arrayref, then value is stored as the component of the array at index.
 
-The following rules are used to determine whether a value that is not null is assignment compatible with the array component type. If S is the type of the object referred to by value, and T is the reference type of the array components, then aastore determines whether assignment is compatible as follows:
-
-If S is a class type, then:
-
-If T is a class type, then S must be the same class as T, or S must be a subclass of T;
-
-If T is an interface type, then S must implement interface T.
-
-If S is an array type SC[], that is, an array of components of type SC, then:
-
-If T is a class type, then T must be Object.
-
-If T is an interface type, then T must be one of the interfaces implemented by arrays (JLS §4.10.3).
-
-If T is an array type TC[], that is, an array of components of type TC, then one of the following must be true:
-
-TC and SC are the same primitive type.
-
-TC and SC are reference types, and type SC is assignable to TC by these run-time rules.
+Whether value is a value of the array component type is determined according to the rules given for §checkcast.
 
 Run-time Exceptions
 
@@ -341,7 +323,7 @@ If arrayref is null, aastore throws a NullPointerException.
 
 Otherwise, if index is not within the bounds of the array referenced by arrayref, the aastore instruction throws an ArrayIndexOutOfBoundsException.
 
-Otherwise, if arrayref is not null and the actual type of the non-null value is not assignment compatible with the actual type of the components of the array, aastore throws an ArrayStoreException.
+Otherwise, if the non-null value is not a value of the array component type, aastore throws an ArrayStoreException.
 
 aconst_null
 Operation
@@ -847,27 +829,31 @@ The objectref must be of type reference. The unsigned indexbyte1 and indexbyte2 
 
 If objectref is null, then the operand stack is unchanged.
 
-Otherwise, the named class, array, or interface type is resolved (§5.4.3.1). If objectref can be cast to the resolved class, array, or interface type, the operand stack is unchanged; otherwise, the checkcast instruction throws a ClassCastException.
+Otherwise, the named class, array, or interface type is resolved (§5.4.3.1). If objectref is a value of the type given by the resolved class, array, or interface type, the operand stack is unchanged.
 
-The following rules are used to determine whether an objectref that is not null can be cast to the resolved type. If S is the type of the object referred to by objectref, and T is the resolved class, array, or interface type, then checkcast determines whether objectref can be cast to type T as follows:
+The following rules are used to determine whether a non-null reference to an object is a value of a reference type, T.
 
-If S is a class type, then:
+If the reference is to an instance of a class C, then:
 
-If T is a class type, then S must be the same class as T, or S must be a subclass of T;
+If T is the type of a class D, then the reference is a value of T if C is D or a subclass of D;
 
-If T is an interface type, then S must implement interface T.
+If T is the type of an interface I, then the reference is a value of T if C implements I.
 
-If S is an array type SC[], that is, an array of components of type SC, then:
+If the reference is to an array with component type SC, then:
 
-If T is a class type, then T must be Object.
+If T is a class type, then the reference is a value of T if T is Object;
 
-If T is an interface type, then T must be one of the interfaces implemented by arrays (JLS §4.10.3).
+If T is an interface type, then the reference is a value of T if T is Cloneable or java.io.Serializable, as defined by the bootstrap class loader (§5.3);
 
-If T is an array type TC[], that is, an array of components of type TC, then one of the following must be true:
+If T is an array type TC[], that is, an array of components of type TC, then the reference is a value of T if one of the following is true:
 
-TC and SC are the same primitive type.
+TC and SC are the same type;
 
-TC and SC are reference types, and type SC can be cast to TC by recursive application of these rules.
+TC is the class type Object;
+
+TC is a class or interface type, SC is a class or interface type, and the class or interface named by SC extends or implements the class or interface named by TC;
+
+SC is an array type SCC[], and (applying these rules recursively) a reference to an array with component type SCC is a value of type TC.
 
 Linking Exceptions
 
@@ -875,7 +861,7 @@ During resolution of the symbolic reference to the class, array, or interface ty
 
 Run-time Exception
 
-Otherwise, if objectref cannot be cast to the resolved class, array, or interface type, the checkcast instruction throws a ClassCastException.
+Otherwise, if objectref is not null and is not a value of the type given by the resolved class, array, or interface type, the checkcast instruction throws a ClassCastException.
 
 Notes
 
@@ -3259,29 +3245,11 @@ Description
 
 The objectref, which must be of type reference, is popped from the operand stack. The unsigned indexbyte1 and indexbyte2 are used to construct an index into the run-time constant pool of the current class (§2.6), where the value of the index is (indexbyte1 << 8) | indexbyte2. The run-time constant pool entry at the index must be a symbolic reference to a class, array, or interface type.
 
-If objectref is null, the instanceof instruction pushes an int result of 0 as an int onto the operand stack.
+If objectref is null, the instanceof instruction pushes an int result of 0 onto the operand stack.
 
-Otherwise, the named class, array, or interface type is resolved (§5.4.3.1). If objectref is an instance of the resolved class or array type, or implements the resolved interface, the instanceof instruction pushes an int result of 1 as an int onto the operand stack; otherwise, it pushes an int result of 0.
+Otherwise, the named class, array, or interface type is resolved (§5.4.3.1). If objectref is a value of the type given by the resolved class, array, or interface type, the instanceof instruction pushes an int result of 1 onto the operand stack; otherwise, it pushes an int result of 0.
 
-The following rules are used to determine whether an objectref that is not null is an instance of the resolved type. If S is the type of the object referred to by objectref, and T is the resolved class, array, or interface type, then instanceof determines whether objectref is an instance of T as follows:
-
-If S is a class type, then:
-
-If T is a class type, then S must be the same class as T, or S must be a subclass of T;
-
-If T is an interface type, then S must implement interface T.
-
-If S is an array type SC[], that is, an array of components of type SC, then:
-
-If T is a class type, then T must be Object.
-
-If T is an interface type, then T must be one of the interfaces implemented by arrays (JLS §4.10.3).
-
-If T is an array type TC[], that is, an array of components of type TC, then one of the following must be true:
-
-TC and SC are the same primitive type.
-
-TC and SC are reference types, and type SC can be cast to TC by these run-time rules.
+Whether objectref is a value of the type given by the resolved class, array, or interface type is determined according to the rules given for §checkcast.
 
 Linking Exceptions
 
@@ -5303,7 +5271,7 @@ Description
 
 The unsigned indexbyte1 and indexbyte2 are used to construct an index into the run-time constant pool of the current class (§2.6), where the value of the index is (indexbyte1 << 8) | indexbyte2. The run-time constant pool entry at the index must be a symbolic reference to a field (§5.1), which gives the name and descriptor of the field as well as a symbolic reference to the class in which the field is to be found. The referenced field is resolved (§5.4.3.2).
 
-The type of a value stored by a putfield instruction must be compatible with the descriptor of the referenced field (§4.3.2). If the field descriptor type is boolean, byte, char, short, or int, then the value must be an int. If the field descriptor type is float, long, or double, then the value must be a float, long, or double, respectively. If the field descriptor type is a reference type, then the value must be of a type that is assignment compatible (JLS §5.2) with the field descriptor type. If the field is final, it must be declared in the current class, and the instruction must occur in an instance initialization method of the current class (§2.9.1).
+The type of a value stored by a putfield instruction must be compatible with the descriptor of the referenced field (§4.3.2). If the field descriptor type is boolean, byte, char, short, or int, then the value must be an int. If the field descriptor type is float, long, or double, then the value must be a float, long, or double, respectively. If the field descriptor type is a class type or an array type, then the value must be a value of the field descriptor type. If the field is final, it must be declared in the current class, and the instruction must occur in an instance initialization method of the current class (§2.9.1).
 
 The value and objectref are popped from the operand stack.
 
@@ -5354,7 +5322,7 @@ The unsigned indexbyte1 and indexbyte2 are used to construct an index into the r
 
 On successful resolution of the field, the class or interface that declared the resolved field is initialized if that class or interface has not already been initialized (§5.5).
 
-The type of a value stored by a putstatic instruction must be compatible with the descriptor of the referenced field (§4.3.2). If the field descriptor type is boolean, byte, char, short, or int, then the value must be an int. If the field descriptor type is float, long, or double, then the value must be a float, long, or double, respectively. If the field descriptor type is a reference type, then the value must be of a type that is assignment compatible (JLS §5.2) with the field descriptor type. If the field is final, it must be declared in the current class or interface, and the instruction must occur in the class or interface initialization method of the current class or interface (§2.9.2).
+The type of a value stored by a putstatic instruction must be compatible with the descriptor of the referenced field (§4.3.2). If the field descriptor type is boolean, byte, char, short, or int, then the value must be an int. If the field descriptor type is float, long, or double, then the value must be a float, long, or double, respectively. If the field descriptor type is a class type or an array type, then the value must be a value of the field descriptor type. If the field is final, it must be declared in the current class or interface, and the instruction must occur in the class or interface initialization method of the current class or interface (§2.9.2).
 
 The value is popped from the operand stack.
 

@@ -232,7 +232,7 @@ If the component type is a reference type, the accessibility of the array class 
 
 Ensuring type safe linkage in the presence of class loaders requires special care. It is possible that when two different class loaders initiate loading of a class or interface denoted by N, the name N may denote a different class or interface in each loader.
 
-When a class or interface C = <N1, L1> makes a symbolic reference to a field or method of another class or interface D = <N2, L2>, the symbolic reference includes a descriptor specifying the type of the field, or the return and argument types of the method. It is essential that any type name N mentioned in the field or method descriptor denote the same class or interface when loaded by L1 and when loaded by L2.
+When a class or interface C = <N1, L1> makes a symbolic reference to a field or method of another class or interface D = <N2, L2>, the symbolic reference includes a descriptor specifying the type of the field, or the return and argument types of the method. It is essential that any class or interface name N mentioned in the field or method descriptor (§4.3.2, §4.3.3) denote the same class or interface when loaded by L1 and when loaded by L2.
 
 To ensure this, the Java Virtual Machine imposes loading constraints of the form NL1 = NL2 during preparation (§5.4.2) and resolution (§5.4.3). To enforce these constraints, the Java Virtual Machine will, at certain prescribed times (see §5.3.1, §5.3.2, §5.3.3, and §5.3.5), record that a particular loader is an initiating loader of a particular class. After recording that a loader is an initiating loader of a class, the Java Virtual Machine must immediately check to see if any loading constraints are violated. If so, the record is retracted, the Java Virtual Machine throws a LinkageError, and the loading operation that caused the recording to take place fails.
 
@@ -244,7 +244,7 @@ There exists a loader L such that L has been recorded by the Java Virtual Machin
 
 There exists a loader L' such that L' has been recorded by the Java Virtual Machine as an initiating loader of a class C ' named N.
 
-The equivalence relation defined by the (transitive closure of the) set of imposed constraints implies NL = NL'.
+The equivalence relation defined by the (reflexive, transitive closure of the) set of imposed constraints implies NL = NL'.
 
 C ≠ C '.
 
@@ -252,11 +252,15 @@ A full discussion of class loaders and type safety is beyond the scope of this s
 
 5.3.5. Deriving a Class from a class File Representation
 
-The following steps are used to derive a nonarray class or interface C denoted by N from a purported representation in class file format using the class loader L.
+Class loaders require the cooperation of the Java Virtual Machine to derive and create a class or interface from a binary representation provided by the loader (§5.3.1, §5.3.2). The following steps are used to derive a class or interface C denoted by N from a purported representation in class file format when requested by a class loader L.
 
-First, the Java Virtual Machine determines whether L has already been recorded as an initiating loader of a class or interface denoted by N. If so, this derivation attempt is invalid and derivation throws a LinkageError.
+First, the Java Virtual Machine determines whether the request by class loader L to derive a class or interface denoted by N is permitted.
 
-Otherwise, the Java Virtual Machine attempts to parse the purported representation. The purported representation may not in fact be a valid representation of C, so derivation must detect the following problems:
+If L has already been recorded as an initiating loader of a class or interface denoted by N, derivation throws a LinkageError.
+
+If the Java Virtual Machine is already in the process of deriving a class or interface denoted by N as requested by class loader L, derivation throws a ClassCircularityError.
+
+Next, the Java Virtual Machine attempts to parse the purported representation. The purported representation may not in fact be a valid representation of C, so derivation must detect the following problems:
 
 If the purported representation is not a ClassFile structure (§4.1, §4.8), derivation throws a ClassFormatError.
 
@@ -272,9 +276,7 @@ If C has a direct superclass, the symbolic reference from C to its direct superc
 
 Any exception that can be thrown as a result of failure of class or interface resolution can be thrown as a result of derivation. In addition, derivation must detect the following problems:
 
-If any of the superclasses of C is C itself, derivation throws a ClassCircularityError.
-
-Otherwise, if the class or interface named as the direct superclass of C is in fact an interface or a final class, derivation throws an IncompatibleClassChangeError.
+If the class or interface named as the direct superclass of C is in fact an interface or a final class, derivation throws an IncompatibleClassChangeError.
 
 Otherwise, if the class named as the direct superclass of C has a PermittedSubclasses attribute (§4.7.31) and any of the following is true, derivation throws an IncompatibleClassChangeError:
 
@@ -290,9 +292,7 @@ If C has any direct superinterfaces, the symbolic references from C to its direc
 
 Any exception that can be thrown as a result of failure of class or interface resolution can be thrown as a result of derivation. In addition, derivation must detect the following problems:
 
-If any of the superinterfaces of C is C itself, derivation throws a ClassCircularityError.
-
-Otherwise, if any class or interface named as a direct superinterface of C is not in fact an interface, derivation throws an IncompatibleClassChangeError.
+If any class or interface named as a direct superinterface of C is not in fact an interface, derivation throws an IncompatibleClassChangeError.
 
 Otherwise, for each direct superinterface named by C, if the superinterface has a PermittedSubclasses attribute (§4.7.31) and any of the following is true, derivation throws an IncompatibleClassChangeError:
 
@@ -307,6 +307,10 @@ If no exception is thrown in steps 1-4, then derivation of the class or interfac
 When derivation succeeds, the process of loading and creating C is not complete until every class loader that was involved in loading C (directly or indirectly) returns C as its result. Depending on the behavior of user-defined class loaders, the process of loading and creating C may yet fail (§5.3.2).
 
 If an exception is thrown in steps 1-4, then derivation of the class or interface C fails with that exception.
+
+Requests to derive a class or interface may be made concurrently by class loader code executing in multiple threads, but the derivation process is sequential. The Java Virtual Machine implementation ensures that only one request by a given class loader to derive a class or interface of a given name is processed at a time, while all other such requests wait until the first request is complete.
+
+As specified by the derivation process, if the first request is successful, no subsequent requests will be permitted. The ClassLoader API provides mechanisms to synchronize derivation requests and cache successful results so that redundant derivation requests do not occur.
 
 5.3.6. Modules and Layers
 
@@ -378,25 +382,9 @@ Preparation involves creating the static fields for a class or interface and ini
 
 During preparation of a class or interface C, the Java Virtual Machine also imposes loading constraints (§5.3.4):
 
-Let L1 be the defining loader of C. For each instance method m declared in C that can override (§5.4.5) an instance method declared in a superclass or superinterface <D, L2>, the Java Virtual Machine imposes loading constraints as follows.
+Let L1 be the defining loader of C. For each instance method m declared in C that can override (§5.4.5) an instance method declared in a superclass or superinterface D = <N2, L2>, for each class or interface name N mentioned by the descriptor of m (§4.3.3), the Java Virtual Machine imposes the loading constraint NL1 = NL2.
 
-Given that the return type of m is Tr, and that the formal parameter types of m are Tf1, ..., Tfn:
-
-If Tr not an array type, let T0 be Tr; otherwise, let T0 be the element type of Tr.
-
-For i = 1 to n: If Tfi is not an array type, let Ti be Tfi; otherwise, let Ti be the element type of Tfi.
-
-Then TiL1 = TiL2 for i = 0 to n.
-
-For each instance method m declared in a superinterface <I, L3> of C, if C does not itself declare an instance method that can override m, then a method is selected (§5.4.6) with respect to C and the method m in <I, L3>. Let <D, L2> be the class or interface that declares the selected method. The Java Virtual Machine imposes loading constraints as follows.
-
-Given that the return type of m is Tr, and that the formal parameter types of m are Tf1, ..., Tfn:
-
-If Tr not an array type, let T0 be Tr; otherwise, let T0 be the element type of Tr.
-
-For i = 1 to n: If Tfi is not an array type, let Ti be Tfi; otherwise, let Ti be the element type of Tfi.
-
-Then TiL2 = TiL3 for i = 0 to n.
+For each instance method m declared in a superinterface I = <N3, L3> of C, if C does not itself declare an instance method that can override m, then a method is selected (§5.4.6) with respect to C and the method m in I. Let D = <N2, L2> be the class or interface that declares the selected method. For each class or interface name N mentioned by the descriptor of m, the Java Virtual Machine imposes the loading constraint NL2 = NL3.
 
 Preparation may occur at any time following creation but must be completed prior to initialization.
 
@@ -474,11 +462,11 @@ If access control failed, field resolution fails for the same reason.
 
 Otherwise, access control succeeded. Loading constraints are imposed, as follows.
 
-Let <E, L1> be the class or interface in which the referenced field is actually declared. Let L2 be the defining loader of D. Given that the type of the referenced field is Tf: if Tf is not an array type, let T be Tf; otherwise, let T be the element type of Tf.
+Let <E, L1> be the class or interface in which the referenced field is actually declared. Let L2 be the defining loader of D.
 
-The Java Virtual Machine imposes the loading constraint that TL1 = TL2.
+For any class or interface name N mentioned by the descriptor of the referenced field (§4.3.2), the Java Virtual Machine imposes the loading constraint NL1 = NL2 (§5.3.4).
 
-If imposing this constraint results in any loading constraints being violated (§5.3.4), then field resolution fails. Otherwise, field resolution succeeds.
+If imposing this constraint results in any loading constraints being violated, then field resolution fails. Otherwise, field resolution succeeds.
 
 5.4.3.3. Method Resolution
 
@@ -490,7 +478,7 @@ If C is an interface, method resolution throws an IncompatibleClassChangeError.
 
 Otherwise, method resolution attempts to locate the referenced method in C and its superclasses:
 
-If C declares exactly one method with the name specified by the method reference, and the declaration is a signature polymorphic method (§2.9.3), then method lookup succeeds. All the class names mentioned in the descriptor are resolved (§5.4.3.1).
+If C declares exactly one method with the name specified by the method reference, and the declaration is a signature polymorphic method (§2.9.3), then method lookup succeeds. The descriptor specified by the method reference is resolved, as if by resolution of an unresolved symbolic reference to a method type (§5.4.3.5).
 
 The resolved method is the signature polymorphic method declaration. It is not necessary for C to declare a method with the descriptor specified by the method reference.
 
@@ -526,15 +514,11 @@ If access control failed, method resolution fails for the same reason.
 
 Otherwise, access control succeeded. Loading constraints are imposed, as follows.
 
-Let <E, L1> be the class or interface in which the referenced method m is actually declared. Let L2 be the defining loader of D. Given that the return type of m is Tr, and that the formal parameter types of m are Tf1, ..., Tfn:
+Let <E, L1> be the class or interface in which the referenced method m is actually declared. Let L2 be the defining loader of D.
 
-If Tr is not an array type, let T0 be Tr; otherwise, let T0 be the element type of Tr.
+For each class or interface name N mentioned by the descriptor of the referenced method (§4.3.3), the Java Virtual Machine imposes the loading constraint NL1 = NL2 (§5.3.4).
 
-For i = 1 to n: If Tfi is not an array type, let Ti be Tfi; otherwise, let Ti be the element type of Tfi.
-
-The Java Virtual Machine imposes the loading constraints TiL1 = TiL2 for i = 0 to n.
-
-If imposing these constraints results in any loading constraints being violated (§5.3.4), then method resolution fails. Otherwise, method resolution succeeds.
+If imposing these constraints results in any loading constraints being violated, then method resolution fails. Otherwise, method resolution succeeds.
 
 When resolution searches for a method in the class's superinterfaces, the best outcome is to identify a maximally-specific non-abstract method. It is possible that this method will be chosen by method selection, so it is desirable to add class loader constraints for it.
 
@@ -574,23 +558,19 @@ If access control failed, interface method resolution fails for the same reason.
 
 Otherwise, access control succeeded. Loading constraints are imposed, as follows.
 
-Let <E, L1> be the class or interface in which the referenced interface method m is actually declared. Let L2 be the defining loader of D. Given that the return type of m is Tr, and that the formal parameter types of m are Tf1, ..., Tfn:
+Let <E, L1> be the class or interface in which the referenced interface method m is actually declared. Let L2 be the defining loader of D.
 
-If Tr is not an array type, let T0 be Tr; otherwise, let T0 be the element type of Tr.
+For each class or interface name N mentioned by the descriptor of the referenced method (§4.3.3), the Java Virtual Machine imposes the loading constraint NL1 = NL2 (§5.3.4).
 
-For i = 1 to n: If Tfi is not an array type, let Ti be Tfi; otherwise, let Ti be the element type of Tfi.
-
-The Java Virtual Machine imposes the loading constraints TiL1 = TiL2 for i = 0 to n.
-
-If imposing these constraints results in any loading constraints being violated (§5.3.4), then interface method resolution fails. Otherwise, interface method resolution succeeds.
+If imposing these constraints results in any loading constraints being violated, then interface method resolution fails. Otherwise, interface method resolution succeeds.
 
 Access control is necessary because interface method resolution may pick a private method of interface C. (Prior to Java SE 8, the result of interface method resolution could be a non-public method of class Object or a static method of class Object; such results were not consistent with the inheritance model of the Java programming language, and are disallowed in Java SE 8 and above.)
 
 5.4.3.5. Method Type and Method Handle Resolution
 
-To resolve an unresolved symbolic reference to a method type, it is as if resolution occurs of unresolved symbolic references to classes and interfaces (§5.4.3.1) whose names correspond to the types given in the method descriptor (§4.3.3).
+To resolve an unresolved symbolic reference to a method type, it is as if resolution occurs of unresolved symbolic references to the classes and interfaces (§5.4.3.1) whose names are mentioned by the method descriptor (§4.3.3), in the order in which they are mentioned.
 
-Any exception that can be thrown as a result of failure of resolution of a class reference can thus be thrown as a result of failure of method type resolution.
+Any exception that can be thrown as a result of failure of resolution of a reference to a class or interface can thus be thrown as a result of failure of method type resolution.
 
 The result of successful method type resolution is a reference to an instance of java.lang.invoke.MethodType which represents the method descriptor.
 
@@ -617,29 +597,27 @@ Kind	Description	Interpretation
 
 Let MH be the symbolic reference to a method handle (§5.1) being resolved. Also:
 
-Let R be the symbolic reference to the field or method contained within MH.
-
-R is derived from the CONSTANT_Fieldref, CONSTANT_Methodref, or CONSTANT_InterfaceMethodref structure referred to by the reference_index item of the CONSTANT_MethodHandle from which MH is derived.
+Let R be the symbolic reference to a field or method given by MH.
 
 For example, R is a symbolic reference to C . f for bytecode behavior of kind 1, and a symbolic reference to C . <init> for bytecode behavior of kind 8.
 
-If MH's bytecode behavior is kind 7 (REF_invokeSpecial), then C must be the current class or interface, a superclass of the current class, a direct superinterface of the current class or interface, or Object.
+Let C be the class, interface, or array type referenced by R.
 
-Let T be the type of the field referenced by R, or the return type of the method referenced by R. Let A* be the sequence (perhaps empty) of parameter types of the method referenced by R.
+Let T be the type given by the field descriptor of R, or the return type given by the method descriptor of R. Let A* be the sequence (perhaps empty) of parameter types given by the method descriptor of R.
 
-T and A* are derived from the CONSTANT_NameAndType structure referred to by the name_and_type_index item in the CONSTANT_Fieldref, CONSTANT_Methodref, or CONSTANT_InterfaceMethodref structure from which R is derived.
-
-To resolve MH, all symbolic references to classes, interfaces, fields, and methods in MH's bytecode behavior are resolved, using the following four steps:
+To resolve MH, all symbolic references to classes, interfaces, fields, and methods in MH's bytecode behavior are resolved, using the following three steps:
 
 R is resolved. This occurs as if by field resolution (§5.4.3.2) when MH's bytecode behavior is kind 1, 2, 3, or 4, and as if by method resolution (§5.4.3.3) when MH's bytecode behavior is kind 5, 6, 7, or 8, and as if by interface method resolution (§5.4.3.4) when MH's bytecode behavior is kind 9.
 
 The following constraints apply to the result of resolving R. These constraints correspond to those that would be enforced during verification or execution of the instruction sequence for the relevant bytecode behavior.
 
+If MH's bytecode behavior is kind 7 (REF_invokeSpecial), then C must be the current class or interface, a superclass of the current class, a direct superinterface of the current class or interface, or Object.
+
 If MH's bytecode behavior is kind 8 (REF_newInvokeSpecial), then R must resolve to an instance initialization method declared in class C.
 
 If R resolves to a protected member, then the following rules apply depending on the kind of MH's bytecode behavior:
 
-For kinds 1, 3, and 5 (REF_getField, REF_putField, and REF_invokeVirtual): If C.f or C.m resolved to a protected field or method, and C is in a different run-time package than the current class, then C must be assignable to the current class.
+For kinds 1, 3, and 5 (REF_getField, REF_putField, and REF_invokeVirtual): If C.f or C.m resolved to a protected field or method, and C is in a different run-time package than the current class, then C must be a subclass of the current class.
 
 For kind 8 (REF_newInvokeSpecial): If C . <init> resolved to a protected method, then C must be declared in the same run-time package as the current class.
 
@@ -648,8 +626,6 @@ R must resolve to a static or non-static member depending on the kind of MH's by
 For kinds 1, 3, 5, 7, and 9 (REF_getField, REF_putField, REF_invokeVirtual, REF_invokeSpecial, and REF_invokeInterface): C.f or C.m must resolve to a non-static field or method.
 
 For kinds 2, 4, and 6 (REF_getStatic, REF_putStatic, and REF_invokeStatic): C.f or C.m must resolve to a static field or method.
-
-Resolution occurs as if of unresolved symbolic references to classes and interfaces whose names correspond to each type in A*, and to the type T, in that order.
 
 A reference to an instance of java.lang.invoke.MethodType is obtained as if by resolution of an unresolved symbolic reference to a method type that contains the method descriptor specified in Table 5.4.3.5-B for the kind of MH.
 
@@ -670,7 +646,7 @@ Kind	Description	Method descriptor
 
 
 
-In steps 1, 3, and 4, any exception that can be thrown as a result of failure of resolution of a symbolic reference to a class, interface, field, or method can be thrown as a result of failure of method handle resolution. In step 2, any failure due to the specified constraints causes a failure of method handle resolution due to an IllegalAccessError.
+In steps 1 and 3, any exception that can be thrown as a result of failure of resolution of a symbolic reference to a class, interface, field, or method can be thrown as a result of failure of method handle resolution. In step 2, any failure due to the specified constraints causes a failure of method handle resolution due to an IllegalAccessError.
 
 The intent is that resolving a method handle can be done in exactly the same circumstances that the Java Virtual Machine would successfully verify and resolve the symbolic references in the bytecode behavior. In particular, method handles to private, protected, and static members can be created in exactly those classes for which the corresponding normal accesses are legal.
 
@@ -720,15 +696,15 @@ R gives zero or more static arguments, which communicate application-specific me
 
 If A is a string constant, then a reference to its instance of class String is obtained.
 
-If A is a numeric constant, then a reference to an instance of java.lang.invoke.MethodHandle is obtained by the following procedure:
+If A is a numeric constant, then a reference to an object representing the number is obtained by the following procedure:
 
 Let v be the value of the numeric constant, and let T be a field descriptor which corresponds to the type of the numeric constant.
 
 Let MH be a method handle produced as if by invocation of the identity method of java.lang.invoke.MethodHandles with an argument representing the class Object.
 
-A reference to an instance of java.lang.invoke.MethodHandle is obtained as if by the invocation MH.invoke(v) with method descriptor (T)Ljava/lang/Object;.
+A reference to an object is obtained as if by the invocation MH.invoke(v) with method descriptor (T)Ljava/lang/Object;.
 
-If A is a symbolic reference to a dynamically-computed constant with a field descriptor indicating a primitive type T, then A is resolved, producing a primitive value v. Given v and T, a reference is obtained to an instance of java.lang.invoke.MethodHandle according to the procedure specified above for numeric constants.
+If A is a symbolic reference to a dynamically-computed constant with a field descriptor indicating a primitive type T, then A is resolved, producing a primitive value v. Given v and T, a reference is obtained to an object encoding v according to the procedure specified above for numeric constants.
 
 If A is any other kind of symbolic reference, then the result is the result of resolving A.
 
@@ -787,8 +763,6 @@ The type of the java.lang.invoke.CallSite is semantically equal to the method de
 If o does not have these properties, resolution fails with a BootstrapMethodError.
 
 Many of the steps above perform computations "as if by invocation" of certain methods. In each case, the invocation behavior is given in detail by the specifications for invokestatic and invokevirtual. The invocation occurs in the thread and from the class that is attempting resolution of the symbolic reference R. However, no corresponding method references are required to appear in the run-time constant pool, no particular method's operand stack is necessarily used, and the value of the max_stack item of any method's Code attribute is not enforced for the invocation.
-
-If several threads attempt resolution of R at the same time, the bootstrap method may be invoked concurrently. Therefore, bootstrap methods which access global application data must take precautions against race conditions.
 
 5.4.4. Access Control
 
@@ -912,7 +886,7 @@ While C will typically be a class, it may be an interface when these rules are a
 
 5.5. Initialization
 
-Initialization of a class or interface consists of executing its class or interface initialization method (§2.9.2).
+Initialization of a class or interface involves assigning any ConstantValue attribute values to its static fields and executing any declared class or interface initialization method (§2.9.2).
 
 A class or interface C may be initialized only as a result of:
 
@@ -936,31 +910,33 @@ Its designation as the initial class or interface at Java Virtual Machine startu
 
 Prior to initialization, a class or interface must be linked, that is, verified, prepared, and optionally resolved.
 
-Because the Java Virtual Machine is multithreaded, initialization of a class or interface requires careful synchronization, since some other thread may be trying to initialize the same class or interface at the same time. There is also the possibility that initialization of a class or interface may be requested recursively as part of the initialization of that class or interface. The implementation of the Java Virtual Machine is responsible for taking care of synchronization and recursive initialization by using the following procedure. It assumes that the Class object has already been verified and prepared, and that the Class object contains state that indicates one of four situations:
+Because the Java Virtual Machine is multithreaded, initialization of a class or interface requires careful synchronization, since some other thread may be trying to initialize the same class or interface at the same time. There is also the possibility that initialization of a class or interface may be requested recursively as part of the initialization of that class or interface. The implementation of the Java Virtual Machine is responsible for taking care of synchronization and recursive initialization by using the following procedure. It assumes that the class or interface has already been verified and prepared, and that the class or interface contains state that indicates one of four situations:
 
-This Class object is verified and prepared but not initialized.
+This class or interface is verified and prepared but not initialized.
 
-This Class object is being initialized by some particular thread.
+This class or interface is being initialized by some particular thread.
 
-This Class object is fully initialized and ready for use.
+This class or interface is fully initialized and ready for use.
 
-This Class object is in an erroneous state, perhaps because initialization was attempted and failed.
+This class or interface is in an erroneous state, perhaps because initialization was attempted and failed.
 
-For each class or interface C, there is a unique initialization lock LC. The mapping from C to LC is left to the discretion of the Java Virtual Machine implementation. For example, LC could be the Class object for C, or the monitor associated with that Class object. The procedure for initializing C is then as follows:
+The precise form of the initialization state is left to the discretion of the JVM implementation.
+
+For each class or interface C, there is a unique initialization lock LC. The mapping from C to LC is also left to the discretion of the Java Virtual Machine implementation. For example, LC could be the Class object for C, or the monitor associated with that Class object. The procedure for initializing C is then as follows:
 
 Synchronize on the initialization lock, LC, for C. This involves waiting until the current thread can acquire LC.
 
-If the Class object for C indicates that initialization is in progress for C by some other thread, then release LC and block the current thread until informed that the in-progress initialization has completed, at which time repeat this procedure.
+If the initialization state of C indicates that initialization is in progress for C by some other thread, then release LC and block the current thread until informed that the in-progress initialization has completed, at which time repeat this procedure.
 
 Thread interrupt status is unaffected by execution of the initialization procedure.
 
-If the Class object for C indicates that initialization is in progress for C by the current thread, then this must be a recursive request for initialization. Release LC and complete normally.
+If the initialization state of C indicates that initialization is in progress for C by the current thread, then this must be a recursive request for initialization. Release LC and complete normally.
 
-If the Class object for C indicates that C has already been initialized, then no further action is required. Release LC and complete normally.
+If the initialization state of C indicates that C has already been initialized, then no further action is required. Release LC and complete normally.
 
-If the Class object for C is in an erroneous state, then initialization is not possible. Release LC and throw a NoClassDefFoundError.
+If the initialization state of C is in an erroneous state, then initialization is not possible. Release LC and throw a NoClassDefFoundError.
 
-Otherwise, record the fact that initialization of the Class object for C is in progress by the current thread, and release LC.
+Otherwise, record the fact that initialization of C is in progress by the current thread, and release LC.
 
 Then, initialize each static field of C with the constant value in its ConstantValue attribute (§4.7.2), in the order the fields appear in the ClassFile structure.
 
@@ -968,17 +944,17 @@ Next, if C is a class rather than an interface, then let SC be its superclass an
 
 For each S in the list [ SC, SI1, ..., SIn ], if S has not yet been initialized, then recursively perform this entire procedure for S. If necessary, verify and prepare S first.
 
-If the initialization of S completes abruptly because of a thrown exception, then acquire LC, label the Class object for C as erroneous, notify all waiting threads, release LC, and complete abruptly, throwing the same exception that resulted from initializing SC.
+If the initialization of S completes abruptly because of a thrown exception, then acquire LC, label C as erroneous, notify all waiting threads, release LC, and complete abruptly, throwing the same exception that resulted from initializing S.
 
 Next, determine whether assertions are enabled for C by querying its defining loader.
 
-Next, execute the class or interface initialization method of C.
+Next, if C declares a class or interface initialization method, execute that method.
 
-If the execution of the class or interface initialization method completes normally, then acquire LC, label the Class object for C as fully initialized, notify all waiting threads, release LC, and complete this procedure normally.
+If the execution of the class or interface initialization method completes normally, or if C declares no class or interface initialization method, then acquire LC, label C as fully initialized, notify all waiting threads, release LC, and complete this procedure normally.
 
 Otherwise, the class or interface initialization method must have completed abruptly by throwing some exception E. If the class of E is not Error or one of its subclasses, then create a new instance of the class ExceptionInInitializerError with E as the argument, and use this object in place of E in the following step. If a new instance of ExceptionInInitializerError cannot be created because an OutOfMemoryError occurs, then use an OutOfMemoryError object in place of E in the following step.
 
-Acquire LC, label the Class object for C as erroneous, notify all waiting threads, release LC, and complete this procedure abruptly with reason E or its replacement as determined in the previous step.
+Acquire LC, label C as erroneous, notify all waiting threads, release LC, and complete this procedure abruptly with reason E or its replacement as determined in the previous step.
 
 A Java Virtual Machine implementation may optimize this procedure by eliding the lock acquisition in step 1 (and release in step 4/5) when it can determine that the initialization of the class has already completed, provided that, in terms of the Java memory model, all happens-before orderings (JLS §17.4.5) that would exist if the lock were acquired, still exist when the optimization is performed.
 
