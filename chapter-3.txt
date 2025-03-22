@@ -121,12 +121,12 @@ Method void dspin()
 0   dconst_0       // Push double constant 0.0
 1   dstore_1       // Store into local variables 1 and 2
 2   goto 9         // First time through don't increment
-5   dload_1        // Push local variables 1 and 2 
-6   dconst_1       // Push double constant 1.0 
+5   dload_1        // Push local variables 1 and 2
+6   dconst_1       // Push double constant 1.0
 7   dadd           // Add; there is no dinc instruction
 8   dstore_1       // Store result in local variables 1 and 2
-9   dload_1        // Push local variables 1 and 2 
-10  ldc2_w #4      // Push double constant 100.0 
+9   dload_1        // Push local variables 1 and 2
+10  ldc2_w #4      // Push double constant 100.0
 13  dcmpg          // There is no if_dcmplt instruction
 14  iflt 5         // Compare and loop if less than (i < 100.0)
 17  return         // Return void when done
@@ -333,9 +333,9 @@ Each floating-point type has two comparison instructions: fcmpl and fcmpg for ty
 
 int lessThan100(double d) {
     if (d < 100.0) {
-        return 1;				
+        return 1;
     } else {
-        return -1;				
+        return -1;
     }
 }
 
@@ -362,9 +362,9 @@ The dcmpl instruction achieves the same effect if the comparison is reversed:
 
 int greaterThan100(double d) {
     if (d > 100.0) {
-        return 1;			
+        return 1;
     } else {
-        return -1;			
+        return -1;
     }
 }
 
@@ -766,7 +766,7 @@ The Java Virtual Machine specifies that the table of the lookupswitch instructio
 The Java Virtual Machine has a large complement of instructions that manipulate the contents of the operand stack as untyped values. These are useful because of the Java Virtual Machine's reliance on deft manipulation of its operand stack. For instance:
 
 
-public long nextIndex() { 
+public long nextIndex() {
     return index++;
 }
 
@@ -782,10 +782,10 @@ Method long nextIndex()
 2   getfield #4    // One of the copies of this is consumed
                    // pushing long field index,
                    // above the original this
-5   dup2_x1        // The long on top of the operand stack is 
-                   // inserted into the operand stack below the 
+5   dup2_x1        // The long on top of the operand stack is
+                   // inserted into the operand stack below the
                    // original this
-6   lconst_1       // Push long constant 1 
+6   lconst_1       // Push long constant 1
 7   ladd           // The index value is incremented...
 8   putfield #4    // ...and the result stored in the field
 11  lreturn        // The original value of index is on top of
@@ -841,7 +841,7 @@ Method void catchOne()
 5   astore_1            // Store thrown value in local var 1
 6   aload_0             // Push this
 7   aload_1             // Push thrown value
-8   invokevirtual #5    // Invoke handler method: 
+8   invokevirtual #5    // Invoke handler method:
                         // Example.handleExc(LTestExc;)V
 11  return              // Return after handling TestExc
 Exception table:
@@ -864,7 +864,7 @@ Following the try block is the Java Virtual Machine code that implements the sin
 5   astore_1            // Store thrown value in local var 1
 6   aload_0             // Push this
 7   aload_1             // Push thrown value
-8   invokevirtual #5    // Invoke handler method: 
+8   invokevirtual #5    // Invoke handler method:
                         // Example.handleExc(LTestExc;)V
 11  return              // Return after handling TestExc
 Exception table:
@@ -944,7 +944,7 @@ Method void nestedCatch()
                         // Store thrown value in local var 1
 6   aload_0             // Push this
 7   aload_1             // Push thrown value
-8   invokevirtual #7    // Invoke handler method: 
+8   invokevirtual #7    // Invoke handler method:
                         // Example.handleExc1(LTestExc1;)V
 11  return              // Return after handling TestExc1
 12  astore_1            // Beginning of handler for TestExc2;
@@ -1121,7 +1121,7 @@ The interface's name is the internal form (§4.2.1) of package-name.package-info
 
 The interface has no superinterfaces.
 
-The interface's only members are those implied by The Java Language Specification, Java SE 23 Edition (JLS §9.2).
+The interface's only members are those implied by The Java Language Specification, Java SE 24 Edition (JLS §9.2).
 
 The annotations on the package declaration are stored as RuntimeVisibleAnnotations and RuntimeInvisibleAnnotations attributes in the attributes table of the ClassFile structure.
 

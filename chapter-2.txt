@@ -48,7 +48,7 @@ This document specifies an abstract machine. It does not describe any particular
 
 To implement the Java Virtual Machine correctly, you need only be able to read the class file format and correctly perform the operations specified therein. Implementation details that are not part of the Java Virtual Machine's specification would unnecessarily constrain the creativity of implementors. For example, the memory layout of run-time data areas, the garbage-collection algorithm used, and any internal optimization of the Java Virtual Machine instructions (for example, translating them into machine code) are left to the discretion of the implementor.
 
-All references to Unicode in this specification are given with respect to The Unicode Standard, Version 15.1.0, available at https://www.unicode.org/.
+All references to Unicode in this specification are given with respect to The Unicode Standard, Version 16.0.0, available at https://www.unicode.org/.
 
 2.1. The class File Format
 
@@ -525,7 +525,7 @@ Tushr	 	 	iushr	lushr	 	 	 	 
 Tand	 	 	iand	land	 	 	 	 
 Tor	 	 	ior	lor	 	 	 	 
 Txor	 	 	ixor	lxor	 	 	 	 
-i2T	i2b	i2s	 	i2l	i2f	i2d	 	 
+i2T	i2b	i2s	 	i2l	i2f	i2d	i2c	 
 l2T	 	 	l2i	 	l2f	l2d	 	 
 f2T	 	 	f2i	f2l	 	f2d	 	 
 d2T	 	 	d2i	d2l	d2f	 	 	 
@@ -756,7 +756,7 @@ Loading and creation of a class or interface. The most obvious example is the cl
 
 Linking and initialization of a class or interface. The example classes cited above fall into this category as well.
 
-Security, such as the classes in the package java.security and other classes such as SecurityManager.
+The module system, such as the class ModuleLayer.
 
 Multithreading, such as the class Thread.
 
