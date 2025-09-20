@@ -164,7 +164,7 @@ A Java Virtual Machine instruction consists of an opcode specifying the operatio
 
 The description of each instruction is always given in the context of Java Virtual Machine code that satisfies the static and structural constraints of §4 (The class File Format). In the description of individual Java Virtual Machine instructions, we frequently state that some situation "must" or "must not" be the case: "The value2 must be of type int." The constraints of §4 (The class File Format) guarantee that all such expectations will in fact be met. If some constraint (a "must" or "must not") in an instruction description is not satisfied at run time, the behavior of the Java Virtual Machine is undefined.
 
-The Java Virtual Machine checks that Java Virtual Machine code satisfies the static and structural constraints at link time using a class file verifier (§4.10). Thus, the Java Virtual Machine will only attempt to execute code from valid class files. Performing verification at link time is attractive in that the checks are performed just once, substantially reducing the amount of work that must be done at run time. Other implementation strategies are possible, provided that they comply with The Java Language Specification, Java SE 24 Edition and The Java Virtual Machine Specification, Java SE 24 Edition.
+The Java Virtual Machine checks that Java Virtual Machine code satisfies the static and structural constraints at link time using a class file verifier (§4.10). Thus, the Java Virtual Machine will only attempt to execute code from valid class files. Performing verification at link time is attractive in that the checks are performed just once, substantially reducing the amount of work that must be done at run time. Other implementation strategies are possible, provided that they comply with The Java Language Specification, Java SE 25 Edition and The Java Virtual Machine Specification, Java SE 25 Edition.
 
 6.2. Reserved Opcodes
 
@@ -2738,7 +2738,7 @@ Otherwise, if index is not within the bounds of the array referenced by arrayref
 iand
 Operation
 
-Boolean AND int
+Bitwise AND int
 
 Format
 
@@ -3673,7 +3673,7 @@ It is possible that the symbolic reference of an invokevirtual instruction resol
 ior
 Operation
 
-Boolean OR int
+Bitwise OR int
 
 Format
 
@@ -3947,7 +3947,7 @@ If value1 is positive and s is value2 & 0x1f, the result is the same as that of 
 ixor
 Operation
 
-Boolean XOR int
+Bitwise XOR int
 
 Format
 
@@ -4189,7 +4189,7 @@ Otherwise, if index is not within the bounds of the array referenced by arrayref
 land
 Operation
 
-Boolean AND long
+Bitwise AND long
 
 Format
 
@@ -4628,7 +4628,7 @@ The match-offset pairs are sorted to support lookup routines that are quicker th
 lor
 Operation
 
-Boolean OR long
+Bitwise OR long
 
 Format
 
@@ -4900,7 +4900,7 @@ If value1 is positive and s is value2 & 0x3f, the result is the same as that of 
 lxor
 Operation
 
-Boolean XOR long
+Bitwise XOR long
 
 Format
 

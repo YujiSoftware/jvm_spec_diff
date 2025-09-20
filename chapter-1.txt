@@ -6,7 +6,10 @@ Table of Contents
 1.2. The Java Virtual Machine
 1.3. Organization of the Specification
 1.4. Notation
-1.5. Feedback
+1.5. Preview Features
+1.5.1. Restrictions on the Use of Preview Features
+1.5.2. Current Preview VM Features
+1.6. Feedback
 1.1. A Bit of History
 
 The Java® programming language is a general-purpose, concurrent, object-oriented language. Its syntax is similar to C and C++, but it omits many of the features that make C and C++ complex, confusing, and unsafe. The Java platform was initially developed to address the problems of building software for networked consumer devices. It was designed to support multiple host architectures and to allow secure delivery of software components. To meet these requirements, compiled code had to survive transport across networks, operate on any client, and assure the client that it was safe to run.
@@ -31,7 +34,44 @@ The Java Virtual Machine knows nothing of the Java programming language, only of
 
 For the sake of security, the Java Virtual Machine imposes strong syntactic and structural constraints on the code in a class file. However, any language with functionality that can be expressed in terms of a valid class file can be hosted by the Java Virtual Machine. Attracted by a generally available, machine-independent platform, implementors of other languages can turn to the Java Virtual Machine as a delivery vehicle for their languages.
 
-The Java Virtual Machine specified here is compatible with the Java SE 24 platform, and supports the Java programming language specified in The Java Language Specification, Java SE 24 Edition.
+The class file format is versioned: every class file declares a version number, of the form major.minor, which indicates the file's dependency on a particular release of Java SE, and influences the interpretation of the file by the Java Virtual Machine.
+
+The Java Virtual Machine specified here is compatible with Java SE 25, and supports the Java programming language specified in The Java Language Specification, Java SE 25 Edition. It supports class files with major version numbers 45 through 69, inclusive.
+
+Tools that generate class files will typically adopt the latest major version number in order to take advantage of the latest features; but a class file with an older major version number can generally expect to be supported in future Java Virtual Machine releases.
+
+For reference, the following table shows the class file major version numbers supported by each release of Java SE, up to Java SE 25. The third column, "Earliest", shows the earliest class file major version number supported by the Java Virtual Machine in that release. The fourth column, "Latest", shows the latest class file major version number supported by the Java Virtual Machine in that release. (For very early releases, the JDK version is shown instead of the Java SE release.)
+
+Table 1.2-A. Java SE releases & class file major versions
+
+Java SE	Released	Earliest	Latest
+1.0.2	May 1996	45	45
+1.1	February 1997	45	45
+1.2	December 1998	45	46
+1.3	May 2000	45	47
+1.4	February 2002	45	48
+5.0	September 2004	45	49
+6	December 2006	45	50
+7	July 2011	45	51
+8	March 2014	45	52
+9	September 2017	45	53
+10	March 2018	45	54
+11	September 2018	45	55
+12	March 2019	45	56
+13	September 2019	45	57
+14	March 2020	45	58
+15	September 2020	45	59
+16	March 2021	45	60
+17	September 2021	45	61
+18	March 2022	45	62
+19	September 2022	45	63
+20	March 2023	45	64
+21	September 2023	45	65
+22	March 2024	45	66
+23	September 2024	45	67
+24	March 2025	45	68
+25	September 2025	45	69
+
 
 1.3. Organization of the Specification
 
@@ -47,9 +87,9 @@ Chapter 6 specifies the instruction set of the Java Virtual Machine, presenting 
 
 Chapter 7 gives a table of Java Virtual Machine opcode mnemonics indexed by opcode value.
 
-In the Second Edition of The Java® Virtual Machine Specification, Chapter 2 gave an overview of the Java programming language that was intended to support the specification of the Java Virtual Machine but was not itself a part of the specification. In The Java Virtual Machine Specification, Java SE 24 Edition, the reader is referred to The Java Language Specification, Java SE 24 Edition for information about the Java programming language.
+In the Second Edition of The Java® Virtual Machine Specification, Chapter 2 gave an overview of the Java programming language that was intended to support the specification of the Java Virtual Machine but was not itself a part of the specification. In The Java Virtual Machine Specification, Java SE 25 Edition, the reader is referred to The Java Language Specification, Java SE 25 Edition for information about the Java programming language.
 
-In the Second Edition of The Java® Virtual Machine Specification, Chapter 8 detailed the low-level actions that explained the interaction of Java Virtual Machine threads with a shared main memory. In The Java Virtual Machine Specification, Java SE 24 Edition, the reader is referred to Chapter 17 of The Java Language Specification, Java SE 24 Edition for information about threads and locks. Chapter 17 reflects The Java Memory Model and Thread Specification produced by the JSR 133 Expert Group.
+In the Second Edition of The Java® Virtual Machine Specification, Chapter 8 detailed the low-level actions that explained the interaction of Java Virtual Machine threads with a shared main memory. In The Java Virtual Machine Specification, Java SE 25 Edition, the reader is referred to Chapter 17 of The Java Language Specification, Java SE 25 Edition for information about threads and locks. Chapter 17 reflects The Java Memory Model and Thread Specification produced by the JSR 133 Expert Group.
 
 1.4. Notation
 
@@ -59,7 +99,7 @@ Whenever we refer to a class or interface that is declared in the package java o
 
 Whenever we refer to a subpackage of a package named java, the intended reference is to that subpackage as determined by the bootstrap class loader.
 
-A cross-reference within this specification is shown as (§x.y). Occasionally, we refer to concepts in the The Java Language Specification, Java SE 24 Edition via cross-references of the form (JLS §x.y).
+A cross-reference within this specification is shown as (§x.y). Occasionally, we refer to concepts in the The Java Language Specification, Java SE 25 Edition via cross-references of the form (JLS §x.y).
 
 The use of fonts in this specification is as follows:
 
@@ -71,7 +111,47 @@ Non-normative text, designed to clarify the normative text of this specification
 
 This is non-normative text. It provides intuition, rationale, advice, examples, etc.
 
-1.5. Feedback
+1.5. Preview Features
+
+A preview feature is:
+
+a new feature of the Java programming language ("preview language feature"), or
+
+a new feature of the Java Virtual Machine ("preview VM feature"), or
+
+a new module, package, class, interface, field, method, constructor, or enum constant in the java.* or javax.* namespace ("preview API")
+
+that is fully specified, fully implemented, and yet impermanent. It is available in implementations of a given release of the Java SE Platform to provoke developer feedback based on real world use; this may lead to it becoming permanent in a future release of the Java SE Platform.
+
+The preview features defined by a given release of the Java SE Platform are enumerated in the Java SE Platform Specification for that release. The preview features are specified as follows:
+
+Preview language features are specified in standalone documents that indicate changes ("diffs") to The Java® Language Specification for that release. The specifications of preview language features are incorporated into The Java® Language Specification by reference, and made a part thereof, if and only if preview features are enabled at compile time.
+
+Preview VM features are specified in standalone documents that indicate changes ("diffs") to The Java® Virtual Machine Specification for that release. The specifications of preview VM features are incorporated into The Java® Virtual Machine Specification by reference, and made a part thereof, if and only if preview features are enabled at run time.
+
+Preview APIs are specified within the Java SE API Specification for that release.
+
+1.5.1. Restrictions on the Use of Preview Features
+
+Implementations of the Java SE Platform disable, at both compile time and run time, the preview features defined by a given release, unless the user indicates via the host system, at both compile time and run time, that preview features are enabled. Implementations do not provide a way to enable only some of the given release's preview features.
+
+A class file depends on the preview features of Java SE N (N ≥ 12) if:
+
+the class file's major version number is the latest major version number supported by Java SE N in Table 1.2-A, and
+
+the class file's minor version number is 65535
+
+For example, a class file with version number 66.65535 depends on the preview features of Java SE 22, because 66 is the latest major version number supported by Java SE 22.
+
+Compilers may need to emit class files that depend on the preview features of a given release even if the class files do not use any preview VM features. For example, a Java source file that uses a preview language feature of the release must be compiled to a class file that depends on the preview features of the release.
+
+At run time, the rules for loading a class file that depends on the preview features of a given Java SE Platform release are specified in §4.1. Such a class file is tied to that release of the Java SE Platform, and cannot be loaded on any other release (even if preview features are enabled) because the preview features it depends on may be different or missing in the other release.
+
+1.5.2. Current Preview VM Features
+
+Java SE 25 does not define any preview VM features.
+
+1.6. Feedback
 
 Readers are invited to report technical errors and ambiguities in The Java® Virtual Machine Specification to jls-jvms-spec-comments@openjdk.org.
 
