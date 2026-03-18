@@ -36,11 +36,11 @@ For the sake of security, the Java Virtual Machine imposes strong syntactic and 
 
 The class file format is versioned: every class file declares a version number, of the form major.minor, which indicates the file's dependency on a particular release of Java SE, and influences the interpretation of the file by the Java Virtual Machine.
 
-The Java Virtual Machine specified here is compatible with Java SE 25, and supports the Java programming language specified in The Java Language Specification, Java SE 25 Edition. It supports class files with major version numbers 45 through 69, inclusive.
+The Java Virtual Machine specified here is compatible with Java SE 26, and supports the Java programming language specified in The Java Language Specification, Java SE 26 Edition. It supports class files with major version numbers 45 through 70, inclusive.
 
 Tools that generate class files will typically adopt the latest major version number in order to take advantage of the latest features; but a class file with an older major version number can generally expect to be supported in future Java Virtual Machine releases.
 
-For reference, the following table shows the class file major version numbers supported by each release of Java SE, up to Java SE 25. The third column, "Earliest", shows the earliest class file major version number supported by the Java Virtual Machine in that release. The fourth column, "Latest", shows the latest class file major version number supported by the Java Virtual Machine in that release. (For very early releases, the JDK version is shown instead of the Java SE release.)
+For reference, the following table shows the class file major version numbers supported by each release of Java SE, up to Java SE 26. The third column, "Earliest", shows the earliest class file major version number supported by the Java Virtual Machine in that release. The fourth column, "Latest", shows the latest class file major version number supported by the Java Virtual Machine in that release. (For very early releases, the JDK version is shown instead of the Java SE release.)
 
 Table 1.2-A. Java SE releases & class file major versions
 
@@ -71,6 +71,7 @@ Java SE	Released	Earliest	Latest
 23	September 2024	45	67
 24	March 2025	45	68
 25	September 2025	45	69
+26	March 2026	45	70
 
 
 1.3. Organization of the Specification
@@ -87,9 +88,9 @@ Chapter 6 specifies the instruction set of the Java Virtual Machine, presenting 
 
 Chapter 7 gives a table of Java Virtual Machine opcode mnemonics indexed by opcode value.
 
-In the Second Edition of The Java® Virtual Machine Specification, Chapter 2 gave an overview of the Java programming language that was intended to support the specification of the Java Virtual Machine but was not itself a part of the specification. In The Java Virtual Machine Specification, Java SE 25 Edition, the reader is referred to The Java Language Specification, Java SE 25 Edition for information about the Java programming language.
+In the Second Edition of The Java® Virtual Machine Specification, Chapter 2 gave an overview of the Java programming language that was intended to support the specification of the Java Virtual Machine but was not itself a part of the specification. In The Java Virtual Machine Specification, Java SE 26 Edition, the reader is referred to The Java Language Specification, Java SE 26 Edition for information about the Java programming language.
 
-In the Second Edition of The Java® Virtual Machine Specification, Chapter 8 detailed the low-level actions that explained the interaction of Java Virtual Machine threads with a shared main memory. In The Java Virtual Machine Specification, Java SE 25 Edition, the reader is referred to Chapter 17 of The Java Language Specification, Java SE 25 Edition for information about threads and locks. Chapter 17 reflects The Java Memory Model and Thread Specification produced by the JSR 133 Expert Group.
+In the Second Edition of The Java® Virtual Machine Specification, Chapter 8 detailed the low-level actions that explained the interaction of Java Virtual Machine threads with a shared main memory. In The Java Virtual Machine Specification, Java SE 26 Edition, the reader is referred to Chapter 17 of The Java Language Specification, Java SE 26 Edition for information about threads and locks. Chapter 17 reflects The Java Memory Model and Thread Specification produced by the JSR 133 Expert Group.
 
 1.4. Notation
 
@@ -99,7 +100,7 @@ Whenever we refer to a class or interface that is declared in the package java o
 
 Whenever we refer to a subpackage of a package named java, the intended reference is to that subpackage as determined by the bootstrap class loader.
 
-A cross-reference within this specification is shown as (§x.y). Occasionally, we refer to concepts in the The Java Language Specification, Java SE 25 Edition via cross-references of the form (JLS §x.y).
+A cross-reference within this specification is shown as (§x.y). Occasionally, we refer to concepts in the The Java Language Specification, Java SE 26 Edition via cross-references of the form (JLS §x.y).
 
 The use of fonts in this specification is as follows:
 
@@ -149,7 +150,7 @@ At run time, the rules for loading a class file that depends on the preview feat
 
 1.5.2. Current Preview VM Features
 
-Java SE 25 does not define any preview VM features.
+Java SE 26 does not define any preview VM features.
 
 1.6. Feedback
 
